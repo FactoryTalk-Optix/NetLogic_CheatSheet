@@ -62,3 +62,42 @@ Project.Current.Get("Model/instances").Add(customTypeInstance);
 var myObj = InformationModel.MakeObject<MotorType>("NewMotorInstance");
 Owner.Add(myObj);
 ```
+
+## Detect the Object Type of an element
+
+### Extract the BrowseName of the Type of any element
+
+```csharp
+String dataType = InformationModel.Get(((IUAVariable)myVar).DataType).BrowseName;
+```
+
+```csharp
+var dataSource = InformationModel.Get(Owner.GetVariable("Model").Value);
+String baseType = dataSource.GetType().FullName.ToString()
+```
+
+### More advanced scenarios
+
+This method expects the `BrowseName` of a `Screen` and makes a recursive search starting from a root node
+
+```csharp
+private NodeId RecursiveSearch(IUANode inputObject, String screenType) {
+    foreach (IUANode childrenObject in inputObject.Children) {
+        try {
+            if (childrenObject is FTOptix.Core.Folder) {
+                Log.Verbose1("FindPages.Folder", "Found folder with name [" + childrenObject.BrowseName + "] and Type: [" + childrenObject.GetType().ToString() + "]");
+                RecursiveSearch(childrenObject, screenType);
+            } else if (((UAManagedCore.UAObjectType)childrenObject).SuperType.BrowseName == screenType) {
+                return childrenObject.NodeId
+            } else {
+                Log.Verbose1("FindPages.Else", "Found unknown with name [" + childrenObject.BrowseName + "] and Type: [" + childrenObject.GetType().ToString() + "]");
+            }
+        } catch (Exception ex) {
+            Log.Error("FindPages.Catch", "Exception thrown: " + ex.Message);
+        }
+    }
+}
+
+```
+
+
