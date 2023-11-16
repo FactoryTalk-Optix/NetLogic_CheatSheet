@@ -30,3 +30,61 @@ private void MyVar_VariableChange(object sender, VariableChangeEventArgs e) {
     Log.Info("New value: " + e.NewValue.ToString());
 }
 ```
+
+## Access mono-dimensional arrays
+
+```csharp
+IUAVariable MyVar;
+float[] tempVar;
+MyVar = Project.Current.GetVariable("Model/Variable"); 
+tempVar = (float[])MyVar.Value.Value;
+tempVar[0] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver1/EthernetIPStation1/TagName").Value; 
+MyVar.SetValue(tempVar);
+```
+
+## Access multi-dimensional arrays
+
+```csharp
+IUAVariable MatrixMover;
+float[,] tempVar;
+
+MatrixMover = Project.Current.GetVariable("Model/PosMoverA");
+tempVar = (float[,])MatrixMover.Value.Value;
+tempVar[0, 0] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver1/EthernetIPStation1/Tags/Program:MainProgram/AOI_CalcPosMovA/x_Pos").Value;
+tempVar[0, 1] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver1/EthernetIPStation1/Tags/Program:MainProgram/AOI_CalcPosMovA/y_Pos").Value;
+tempVar[1, 0] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver1/EthernetIPStation1/Tags/Program:MainProgram/AOI_CalcPosMovA/x_Pos").Value;
+tempVar[1, 1] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver1/EthernetIPStation1/Tags/Program:MainProgram/AOI_CalcPosMovA/y_Pos").Value;
+
+MatrixMover.SetValue(tempVar);
+```
+
+## Variable synchronizer
+
+The `VariableSynchronizer` allows users to keep some variables synched even if not in use by any current page, it will keep all the children elements updated with the field. This method handles an automatic optimization of the Tags in order to minimize the number of read/write from the controller (while the `RemoteRead` performs a request per each tag and it is much slower)
+
+Please note: the `ChildrenRemoteRead` is just as "slow" as the `RemoteRead`, it is just a recursive approach to a normal `RemoteRead`
+
+```csharp
+private void Start() {
+    motorSpeed = LogicObject.Owner.GetVariable("Speed");
+    variableSynchronizer = new RemoteVariableSynchronizer();
+    variableSynchronizer.Add(motorSpeed);
+    motorSpeed.VariableChange += MotorSpeed_VariableChange;
+}
+private void Stop() {
+    variableSynchronizer?.Dispose();
+}
+private void MotorSpeed_VariableChange(object sender, VariableChangeEventArgs e) {
+    if (motorSpeed.Value > 200) {
+        Log.Warning("Speed limit reached!");
+    }
+}
+private IUAVariable motorSpeed;
+private RemoteVariableSynchronizer variableSynchronizer;
+```
+
+## Creating TagStructure
+
+```csharp
+var tagStructure = InformationModel.MakeVariable<FTOptix.CommunicationDriver.TagStructure>("FanArray", OpcUa.DataTypes.Structure, new[] { 11u });
+```

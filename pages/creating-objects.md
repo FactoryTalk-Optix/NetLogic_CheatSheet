@@ -100,4 +100,39 @@ private NodeId RecursiveSearch(IUANode inputObject, String screenType) {
 
 ```
 
+## Custom behavior
 
+OPC/UA Objects can expose custom OPC/UA methods that can be called from any connected client.
+
+How to add a custom behavior:
+
+1. Create an Object
+1. Add some children variables
+1. Convert the Object into Type
+1. Right click on the Object Type and click `Add Custom Behavior`
+1. Double click the Object Type and Visual Studio will appear
+
+Now that the new class is created you can add as many C# methods as you need. Children variables can be accessed by calling `Node.[VariableName]`
+
+```csharp
+[ExportMethod]
+public void StartMotor() {
+    Node.Running = true;
+    Node.CurSpeed = Node.SetSpeed;
+}
+
+[ExportMethod]
+public void StopMotor() {
+    Node.Running = false;
+    Node.CurSpeed = (Int32)0;
+}
+
+[ExportMethod]
+Public void Banana(int a, int b, out int c) {
+    c = a + b;
+}
+
+#region Auto-generated code, do not edit!
+protected new MotorWithBehaviorType Node => (MotorWithBehaviorType)base.Node;
+#endregion
+```

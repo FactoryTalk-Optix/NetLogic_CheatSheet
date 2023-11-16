@@ -82,3 +82,38 @@ if (dataSource.GetType().FullName.ToString().Contains("SQLite")) {
     }
 }
 ```
+
+## Creating random Database data
+
+```csharp
+private void PopulateTableWithRandomData(string tableName)
+{
+    var tableColumnsNames = GetTableColumnsNames(tableName);
+    var tableColumnsTypes = GetTableColumnsTypes(tableName);
+    for (int i = 0; i < _rowsToGenerate; i++)
+    {
+        object[,] values = GenerateTableRowData(tableColumnsTypes, tableColumnsNames);
+        _store.Insert(tableName, tableColumnsNames.ToArray(), values);
+    }
+}
+private object[,] GenerateTableRowData(List<Type> tableColumnsTypes, List<string> tableColumnsNames)
+{
+    Random random = new Random();
+    object[,] values = new object[1, tableColumnsTypes.Count];
+    var rowData = tableColumnsTypes.Select(rowType => GetRandomValue(rowType, random)).ToList();
+    for (int i = 0; i < tableColumnsTypes.Count; i++)
+    {
+        values[0, i] = rowData[i];
+    }
+    return values;
+}
+private static object GetRandomValue(Type dataType, Random random)
+{
+    if (dataType == typeof(int)) return random.Next(1, 100);
+    if (dataType == typeof(float)) return random.NextDouble() * 100.0;
+    if (dataType == typeof(string)) return Guid.NewGuid().ToString();
+    if (dataType == typeof(bool)) return random.Next(2);
+    return null;
+}
+
+```

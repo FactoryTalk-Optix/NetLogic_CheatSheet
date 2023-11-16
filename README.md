@@ -8,7 +8,7 @@ Rockwell Automation maintains these repositories as a convenience to you and oth
 
 The examples provided are to be used as a reference for building your own application and should not be used in production as-is. It is recommended to adapt the example for the purpose, observing the highest safety standards.
 
-This guide does not replace the official FT OPtix documentation, it is just a place to access the most-used code snippet with a brief explanation.
+This guide does not replace the official FT Optix documentation, it is just a place to access the most-used code snippet with a brief explanation.
 
 ## Sections
 
@@ -26,3 +26,8 @@ This guide does not replace the official FT OPtix documentation, it is just a pl
 - [RegEx](./pages/regex.md)
 - [DialogBox](./pages/dialog-boxes.md)
 - [Variables Interaction](./pages/variables-interaction.md)
+- [Execute commands](./pages/execute-command.md)
+- [Sessions](./pages/sessions.md)
+- [Translations](./pages/translations.md)
+- [Users and groups](./pages/users-groups.md)
+- [Mouse handling](./pages/mouse-handler.md)
