@@ -31,3 +31,4 @@ This guide does not replace the official FT Optix documentation, it is just a pl
 - [Translations](./pages/translations.md)
 - [Users and groups](./pages/users-groups.md)
 - [Mouse handling](./pages/mouse-handler.md)
+- [Dynamic Links](./pages/dynamic-links.md)
