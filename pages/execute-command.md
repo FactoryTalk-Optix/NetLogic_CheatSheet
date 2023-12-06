@@ -7,6 +7,8 @@ See [here](./creating-objects.md)
 ## Execute external commands (CMD or external softwares)
 
 ```csharp
+using System.Diagnostics;
+
 static void ExecuteCommand(string command)
 {
     int exitCode;
@@ -34,6 +36,26 @@ static void ExecuteCommand(string command)
     Log.Info("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
     Log.Info("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
     process.Close();
+}
+```
+
+## Open a WebBrowser to a specific page
+
+```csharp
+[ExportMethod]
+public void OpenBrowser(string urlPath) {
+    //string dstPath = new ResourceUri(urlPath).Uri;
+    string dstPath = urlPath;
+    Process myProcess = new Process();
+
+    try {
+        // true is the default, but it is important not to set it to false
+        myProcess.StartInfo.UseShellExecute = true;
+        myProcess.StartInfo.FileName = dstPath;
+        myProcess.Start();
+    } catch (Exception e) {
+        Log.Error("OpenInBrowser", e.Message);
+    }
 }
 ```
 
