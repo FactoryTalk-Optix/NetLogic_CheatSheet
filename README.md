@@ -17,7 +17,7 @@ This guide does not replace the official FT Optix documentation, it is just a pl
 - [Log output](./pages/log-output.md)
 - [Accessing project nodes](./pages/accessing-project-nodes.md)
 - [Managing aliases](./pages/managing-aliases.md)
-- [Creating objects and instances](./pages/creating-objects.md)
+- [Objects, types and instances](./pages/creating-objects.md)
 - [Asynchronous tasks](./pages/async-tasks.md)
 - [Database interaction](./pages/database-interaction.md)
 - [Random generation](./pages/random-generation.md)
