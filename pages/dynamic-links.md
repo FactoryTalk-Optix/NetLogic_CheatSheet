@@ -39,3 +39,28 @@ var variable2 = Project.Current.GetVariable("Model/Variable2");
 source0.SetDynamicLink(variable1); 
 source1.SetDynamicLink(variable2);
 ```
+
+## Creating an Expression Evaluator
+
+```csharp
+[ExportMethod]
+public void Method1()
+{
+    var var1 = Project.Current.GetVariable("Model/Variable1");
+    var var2 = Project.Current.GetVariable("Model/Variable2");
+    var var3 = Project.Current.GetVariable("Model/Variable3");
+
+    var expressionEvaluator = InformationModel.MakeObject<ExpressionEvaluator>("ExpressionEvaluator");
+    expressionEvaluator.Expression = "{0} + {1}";
+
+    var source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType);
+    source0.SetDynamicLink(var2);
+    var source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType);
+    source1.SetDynamicLink(var3);
+
+    expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0);
+    expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
+
+    var1.SetConverter(expressionEvaluator);
+}
+```
