@@ -64,3 +64,44 @@ public void Method1()
     var1.SetConverter(expressionEvaluator);
 }
 ```
+
+## Creating a Key-Value Converter
+```csharp
+private void StuffCreateKeyPair(IUAVariable targetNode, IUAVariable sourceVariable)
+{
+    ValueMapConverter newValueMapConverter = InformationModel.MakeObject<ValueMapConverter>("KeyValueConverter1", FTOptix.CoreBase.ObjectTypes.ValueMapConverter);
+    IUAObject newPairs = InformationModel.MakeObject("Pairs");
+    for (int i = 0; i < 3; i++)
+    {
+        string pairBrowseName = "Pair";
+        if (i > 0) pairBrowseName += i.ToString();
+        IUAObject newPair = InformationModel.MakeObject(pairBrowseName, FTOptix.CoreBase.ObjectTypes.ValueMapPair);
+        IUAVariable newKey = newPair.GetVariable("Key");
+        IUAVariable newValue = newPair.GetVariable("Value");
+        newKey.DataType = OpcUa.DataTypes.UInt32;
+        newValue.DataType = FTOptix.Core.DataTypes.Color;
+        newKey.Value = i;
+        newValue.Value = System.Drawing.Color.Violet.ToArgb();
+        newPairs.Add(newPair);
+    }
+    newValueMapConverter.Add(newPairs);
+    newValueMapConverter.Mode = DynamicLinkMode.Read;
+    newValueMapConverter.SourceVariable.SetDynamicLink(sourceVariable);
+    targetNode.SetConverter(newValueMapConverter);
+}
+```
+
+## Creating a Conditional Converter
+```csharp
+private void StuffCreateConditionaConverter(IUAVariable targetNode, IUAVariable sourceVariable)
+{
+    ConditionalConverter newConditionalConverter = InformationModel.MakeObject<ConditionalConverter>("ConditionalConverter1", FTOptix.CoreBase.ObjectTypes.ConditionalConverter);
+    newConditionalConverter.FalseValueVariable.DataType = FTOptix.Core.DataTypes.Color;
+    newConditionalConverter.FalseValueVariable.Value = System.Drawing.Color.Red.ToArgb();
+    newConditionalConverter.TrueValueVariable.DataType = FTOptix.Core.DataTypes.Color;
+    newConditionalConverter.TrueValueVariable.Value = System.Drawing.Color.Green.ToArgb();
+    newConditionalConverter.ConditionVariable.SetDynamicLink(sourceVariable);
+    newConditionalConverter.Mode = DynamicLinkMode.Read;
+    targetNode.SetConverter(newConditionalConverter);
+}
+```
