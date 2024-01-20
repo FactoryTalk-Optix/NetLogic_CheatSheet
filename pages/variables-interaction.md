@@ -88,3 +88,20 @@ private RemoteVariableSynchronizer variableSynchronizer;
 ```csharp
 var tagStructure = InformationModel.MakeVariable<FTOptix.CommunicationDriver.TagStructure>("FanArray", OpcUa.DataTypes.Structure, new[] { 11u });
 ```
+
+## Creating Guid for NodeID for using NodeFactory.MakeDataType
+
+```csharp
+public static Guid CreateGuidFromModelElement(string parentGUID, string itemName)
+    {
+        return CreateGuidFromText($"{parentGUID}.{itemName}");
+    }
+public static Guid CreateGuidFromText(string text)
+    {
+        var hashBytes = Encoding.UTF8.GetBytes(text);
+        var hasher = MD5.Create();
+        var hashValue = hasher.ComputeHash(hashBytes);
+        var guid = new Guid(hashValue);
+        return guid;
+    }
+```
