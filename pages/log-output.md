@@ -1,6 +1,6 @@
 # Log messages
 
-Log messages can be displayed both at Runtime and Designtime, at Designtime logs will appear in `Optix Studio Output` while at Runtime they will appear in the `Emulator output` or the Runtime log
+Log messages can be displayed both at RunTime and DesignTime, at DesignTime logs will appear in `Optix Studio Output` while at RunTime they will appear in the `Emulator output` or the RunTime log
 
 ## General syntax
 
