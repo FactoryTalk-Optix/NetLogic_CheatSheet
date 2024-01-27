@@ -40,3 +40,26 @@ Accessing the path of the node will return the project-level node, this is good 
 To access data from the current session is better to place the NetLogic in a session-based object (such as the page you want to access or manipulate) and then use the relative addressing to retrieve the right element
     - Example:
         - `var ButtonText = Owner.Get("MotorButton/Text");`
+
+## Node's references
+
+In OPC/UA, some nodes may have additional references are explicit relationship (a named pointer) from one Node to another
+
+```csharp
+[ExportMethod]
+public void ReadReference(NodeId element)
+{
+    IUANode targetNode = InformationModel.Get(element);
+    if (targetNode != null)
+    {
+        foreach (var item in targetNode.Refs.GetReferences())
+        {
+            Log.Info("References", $"ReferenceTypeId: {item.ReferenceTypeId}, TargetNodeId: {item.TargetNodeId}, TargetNode: {item.TargetNode.BrowseName}");
+        }
+    }
+    else
+    {
+        Log.Info("References", "Cannot find such node in the current project");
+    }
+}
+```
