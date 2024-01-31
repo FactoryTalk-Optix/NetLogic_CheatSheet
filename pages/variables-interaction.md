@@ -65,13 +65,13 @@ The `VariableSynchronizer` allows users to keep some variables synched even if n
 Please note: the `ChildrenRemoteRead` is just as "slow" as the `RemoteRead`, it is just a recursive approach to a normal `RemoteRead`
 
 ```csharp
-private void Start() {
+public override void Start() {
     motorSpeed = LogicObject.Owner.GetVariable("Speed");
     variableSynchronizer = new RemoteVariableSynchronizer();
     variableSynchronizer.Add(motorSpeed);
     motorSpeed.VariableChange += MotorSpeed_VariableChange;
 }
-private void Stop() {
+public override void Stop() {
     variableSynchronizer?.Dispose();
 }
 private void MotorSpeed_VariableChange(object sender, VariableChangeEventArgs e) {
