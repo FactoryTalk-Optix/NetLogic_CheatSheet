@@ -23,6 +23,22 @@ public void AddDynamicLinkToBitOfIntegerVariable()
 }
 ```
 
+### Dynamic Link to a single element of array variable
+
+```csharp
+[ExportMethod]
+public void StuffDynamicLinkToArrayElement(IUAVariable targetVariable, IUAVariable targetDynamicLink, uint arrayIndexToLink, DynamicLinkMode dynamicLinkmode)
+{
+    string dynamicLinkVariableBrowseName = $"DynamicLink_{arrayIndexToLink}";
+    DynamicLink newDynamicLink = InformationModel.MakeVariable<DynamicLink>(dynamicLinkVariableBrowseName, FTOptix.Core.DataTypes.NodePath);
+    newDynamicLink.Value = DynamicLinkPath.MakePath(targetVariable, targetDynamicLink);
+    newDynamicLink.Mode = dynamicLinkmode;
+    newDynamicLink.ParentArrayIndexVariable.Value = arrayIndexToLink;
+    targetVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, newDynamicLink);
+    newDynamicLink.SetModellingRuleRecursive();
+}
+```
+
 ## Creating a String Formatter
 
 ```csharp
