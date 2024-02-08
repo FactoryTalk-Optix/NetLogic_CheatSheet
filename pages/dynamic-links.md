@@ -121,3 +121,13 @@ private void StuffCreateConditionaConverter(IUAVariable targetNode, IUAVariable 
     targetNode.SetConverter(newConditionalConverter);
 }
 ```
+
+## Resolve a DynamicLink
+
+```csharp
+TrendPen originalpen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
+var myvar = (String)originalpen.FindVariable("DynamicLink").Value;
+var result = LogicObject.Context.ResolvePath(myvar);
+var test = result.ResolvedNode;
+Owner.Find<ComboBox>("ComboBox1").SelectedItem = test.Owner.NodeId;
+```
