@@ -9,16 +9,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UAManagedCore;
 using OpcUa = UAManagedCore.OpcUa;
-using QPlatform.HMIProject;
-using QPlatform.Retentivity;
-using QPlatform.NativeUI;
-using QPlatform.UI;
-using QPlatform.Core;
-using QPlatform.CoreBase;
-using QPlatform.NetLogic;
-using QPlatform.Report;
-using System.Linq;
-using QPlatform.OPCUAServer;
+using FTOptix.HMIProject;
+using FTOptix.UI;
+using FTOptix.Core;
+using FTOptix.CoreBase;
+using FTOptix.NetLogic;
 #endregion
 
 public class DesignTimeNetLogic1 : BaseNetLogic
@@ -32,42 +27,41 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         var button1 = mainWindow.Get<Button>("Button1");
         var button1BackgroundColor = button1.BackgroundColorVariable;
 
-        var oldEventHandlers = generateReportButton.Children.OfType<QPlatform.CoreBase.EventHandler>().ToList();
-        oldEventHandlers.AddRange(changeColorButton.Children.OfType<QPlatform.CoreBase.EventHandler>());
+        var oldEventHandlers = generateReportButton.Children.OfType<FTOptix.CoreBase.EventHandler>().ToList();
+        oldEventHandlers.AddRange(changeColorButton.Children.OfType<FTOptix.CoreBase.EventHandler>());
         foreach (var oldEventHandler in oldEventHandlers)
             oldEventHandler.Delete();
 
         var report1 = Project.Current.GetObject("Reports/Report1");
         MakeEventHandler(
             generateReportButton,
-            QPlatform.UI.ObjectTypes.MouseClickEvent,
-            report1,
-            "GeneratePdf",
-            new List<Tuple<string, NodeId, object>>
-            {
-                new("OutputPath", QPlatform.Core.DataTypes.ResourceUri, (string)ResourceUri.FromApplicationRelativePath("MyReport.pdf")),
+            FTOptix.UI.ObjectTypes.MouseClickEvent,
+        report1,
+        "GeneratePdf",
+        new List<Tuple<string, NodeId, object>>
+        {
+                new("OutputPath", FTOptix.Core.DataTypes.ResourceUri, (string)ResourceUri.FromApplicationRelativePath("MyReport.pdf")),
                 new("LocaleId", OpcUa.DataTypes.String, "en-US")
-            });
-
+        });
         MakeEventHandler(
-            changeColorButton,
-            QPlatform.UI.ObjectTypes.MouseClickEvent,
-            InformationModel.GetObject(QPlatform.CoreBase.Objects.VariableCommands),
-            "Set",
-            new List<Tuple<string, NodeId, object>>
+        changeColorButton,
+            FTOptix.UI.ObjectTypes.MouseClickEvent,
+            InformationModel.GetObject(FTOptix.CoreBase.Objects.VariableCommands),
+        "Set",
+        new List<Tuple<string, NodeId, object>>
             {
-                new("VariableToModify", QPlatform.Core.DataTypes.VariablePointer, NodeId.Empty),
-                new("Value", QPlatform.Core.DataTypes.Color, new Color(0xff3480ebu).ARGB),
+                new("VariableToModify", FTOptix.Core.DataTypes.VariablePointer, NodeId.Empty),
+                new("Value", FTOptix.Core.DataTypes.Color, new Color(0xff3480ebu).ARGB),
                 new("ArrayIndex", OpcUa.DataTypes.UInt32, 0u)
             });
         var changeColorButtonEventHandler = changeColorButton.Get("EventHandler");
         var variableToModifyArgumentVariable = changeColorButtonEventHandler.GetVariable("MethodsToCall/MethodContainer1/InputArguments/VariableToModify");
         variableToModifyArgumentVariable.SetDynamicLink(button1BackgroundColor);
-        var dynamicLink = variableToModifyArgumentVariable.Children.OfType<DataBind>().First();
+        var dynamicLink = variableToModifyArgumentVariable.Children.OfType<DynamicLink>().First();
         dynamicLink.Value = dynamicLink.Value + "@NodeId";
     }
 
-    private QPlatform.CoreBase.EventHandler MakeEventHandler(
+    private FTOptix.CoreBase.EventHandler MakeEventHandler(
         IUANode parentNode, // The parent node to which the event handler is to be added
         NodeId listenEventTypeId, // The NodeID of the event to be listened
         IUAObject callingObject, // The object on which the method is to be executed
@@ -76,10 +70,10 @@ public class DesignTimeNetLogic1 : BaseNetLogic
     )
     {
         // Create event handler object
-        var eventHandler = InformationModel.MakeObject<QPlatform.CoreBase.EventHandler>("EventHandler");
+        var eventHandler = InformationModel.MakeObject<FTOptix.CoreBase.EventHandler>("EventHandler");
         parentNode.Add(eventHandler);
 
-        // Set the ListenEventType variable value to the Node ID of the event to be listend
+        // Set the ListenEventType variable value to the Node ID of the event to be listened
         eventHandler.ListenEventType = listenEventTypeId;
 
         // Create method container

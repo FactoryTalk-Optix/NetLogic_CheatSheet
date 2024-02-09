@@ -34,6 +34,9 @@ public void Start() {
 ### Using random GUID
 
 ```csharp
-Guid g = Guid.NewGuid();
-string randomString = g.replace("-", "");
+private string RandomString()
+{
+    Guid g = Guid.NewGuid();
+    return g.ToString().Replace("-", "");
+}
 ```
