@@ -20,7 +20,7 @@ For each variable that is created in FT Optix, the corresponding class is automa
 ### Subscribing to a value change
 
 ```csharp
-public override Start() {
+public override void Start() {
     IUAVariable myVar = Project.Current.GetVariable("Model/MotorType/Speed");
     myVar.VariableChange += MyVar_VariableChange;
 }
