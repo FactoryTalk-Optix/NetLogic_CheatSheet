@@ -83,6 +83,31 @@ private IUAVariable motorSpeed;
 private RemoteVariableSynchronizer variableSynchronizer;
 ```
 
+## RemoteRead
+
+```csharp
+[ExportMethod]
+public void ReadBitFromPlcInteger(out int value)
+{
+    var tag1 = Project.Current.Get<FTOptix.RAEtherNetIP.Tag>("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Program:CustomUdtProgram/program_dint_1D");
+    var remoteVariables = new List<RemoteVariable>()
+    {
+        new RemoteVariable(tag1),
+    };
+    var values = InformationModel.RemoteRead(remoteVariables).ToList();
+    int[] plcArray = (int[])values[0].Value.Value;
+    Log.Info($"Value of first element of the array is {plcArray[0]}");
+    Log.Info($"Bit 5 of first element of the array is {GetBitValue(plcArray[0], 5)}");
+    value = plcArray[0];
+}
+
+private bool GetBitValue(int inputValue, int bitPosition)
+{
+    var array = new BitArray(new int[] { inputValue });
+    return array[bitPosition];
+}
+```
+
 ## Creating TagStructure
 
 ```csharp
@@ -93,15 +118,15 @@ var tagStructure = InformationModel.MakeVariable<FTOptix.CommunicationDriver.Tag
 
 ```csharp
 public static Guid CreateGuidFromModelElement(string parentGUID, string itemName)
-    {
-        return CreateGuidFromText($"{parentGUID}.{itemName}");
-    }
+{
+    return CreateGuidFromText($"{parentGUID}.{itemName}");
+}
 public static Guid CreateGuidFromText(string text)
-    {
-        var hashBytes = Encoding.UTF8.GetBytes(text);
-        var hasher = MD5.Create();
-        var hashValue = hasher.ComputeHash(hashBytes);
-        var guid = new Guid(hashValue);
-        return guid;
-    }
+{
+    var hashBytes = Encoding.UTF8.GetBytes(text);
+    var hasher = MD5.Create();
+    var hashValue = hasher.ComputeHash(hashBytes);
+    var guid = new Guid(hashValue);
+    return guid;
+}
 ```
