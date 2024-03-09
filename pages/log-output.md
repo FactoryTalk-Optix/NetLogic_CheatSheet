@@ -19,4 +19,4 @@ Different log levels can be triggered and then filtered in `Optix Studio Output`
 
 ## Extra
 
-- `Log.Node(IUANode);` -> Returns a log message containing the node path for a specific element
+- `Log.Node(IUANode);` -> Returns a string containing the node path for a specific element
