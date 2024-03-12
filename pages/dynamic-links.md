@@ -39,6 +39,30 @@ public void StuffDynamicLinkToArrayElement(IUAVariable targetVariable, IUAVariab
 }
 ```
 
+### Formatted dynamic link
+```csharp
+public void StuffCreateNewDynamicLinkFormatter()
+{
+    IUAVariable targetVariable = Project.Current.Find("TextBox1").GetVariable("Text");
+    targetVariable.ResetDynamicLink();
+    DynamicLink newDynamicLink = InformationModel.MakeVariable<DynamicLink>("DynamicLink", FTOptix.Core.DataTypes.NodePath);
+    newDynamicLink.Value = "";
+    StringFormatter newStringFormatter = InformationModel.MakeObject<StringFormatter>("DynamicLinkFormatter", FTOptix.CoreBase.ObjectTypes.StringFormatter);
+    newStringFormatter.Format = "/Objects/StuffTest/Model/Folder1/Variable5[{0},{1}]";
+    IUAVariable source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType);
+    IUAVariable source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType);
+    source0.SetDynamicLink(Project.Current.GetVariable("Model/Folder1/Variable1"));
+    source1.SetDynamicLink(Project.Current.GetVariable("Model/Folder1/Variable2"));
+    newStringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0);
+    newStringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
+    newDynamicLink.Mode = DynamicLinkMode.ReadWrite;
+    newDynamicLink.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasConverter, newStringFormatter);
+    newStringFormatter.SetModellingRuleRecursive();
+    targetVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, newDynamicLink);
+    newDynamicLink.SetModellingRuleRecursive();       
+}
+```
+
 ## Creating a String Formatter
 
 ```csharp
