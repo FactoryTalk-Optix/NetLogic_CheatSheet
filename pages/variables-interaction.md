@@ -6,11 +6,62 @@
 var myVar = InformationModel.MakeVariable("MyVariable", OpcUa.DataTypes.Int32);
 ```
 
+## Handle Struct variable
+
+By connecting to an OPC-UA server from another vendor, it is possible for Optix to resolve structures as Struct! (or arrays of structs). 
+This type of variable, at code level is readonly, to be able to modify the values within it, one must extract its content which is always expressed in an array of objects, modify this array and recreate a new Struct.
+
+```csharp
+[ExportMethod]
+public void ModifyStructVariable (NodeId opcuaStructVariableNodeId, int indexToModify, string value)
+{
+    IUAVariable opcUaVariable = InformationModel.GetVariable(opcuaStructVariableNodeId);
+    Struct structureVariable = opcUaVariable.RemoteRead();
+    object[] newValues = structureVariable.Values as object[];
+    newValues[indexToModify] = value;
+    Struct newStructureToWrite = structureVariable.HasDataTypeId ? new Struct(structureVariable.DataTypeId, newValues) : new Struct(newValues);
+    opcUaVariable.RemoteWrite(newStructureToWrite);
+}
+```
+
+## Create a complex Variable
+
+Some DataTypes are not exposed by OPC/UA, so you need to get to the DataType number (attaching the debugger or inspecting the decompiled sources) and then use that to build a NodeId
+
+### TimeRange variable
+
+TimeRange variables are structures with two datatimes inside it, its type as NodeID is contained in the FTOptix:Core name space and refers as primary ancestor to Struct
+```csharp
+[ExportMethod]
+public void CreateTimeRangeVariable(string browseName)
+{
+    IUAVariable newTimeRangeVariable = InformationModel.MakeVariable(browseName, new NodeId(LogicObject.Context.GetNamespaceIndex("urn:FTOptix:Core"), 277u));
+    TimeRange timeRangeValue = new TimeRange();
+    timeRangeValue.StartTime = DateTime.Now.AddDays(-2);
+    timeRangeValue.EndTime = DateTime.Now.AddDays(5);
+    newTimeRangeVariable.Value = timeRangeValue;
+    if (Project.Current.Get("Model").GetVariable(browseName) == null)
+        Project.Current.Get("Model").Add(newTimeRangeVariable);
+}
+
+[ExportMethod]
+public void ModifyTimeRangeVariable(NodeId timeRangeVariableNodeId, DateTime startTime, DateTime stopTime)
+{
+    IUAVariable timeRangeVariable = InformationModel.GetVariable(timeRangeVariableNodeId);
+    if (timeRangeVariable == null)
+        return;
+    TimeRange timeRangeValue = timeRangeVariable.Value.Value as TimeRange;
+    timeRangeValue.StartTime = startTime;
+    timeRangeValue.EndTime = stopTime;
+    timeRangeVariable.Value = timeRangeValue;
+}
+```
+
 ## Sync to variable change
 
 For each variable that is created in FT Optix, the corresponding class is automatically generated, this is actually creating two properties/classes per each variable
-- First one is a variable with the same BrowseName
-- Second one is the BrowseName of the variable concatenated by `Variable`, this is typically used to sync to change in value or to make DynamicLinks
+- The first one is a variable with the same BrowseName
+- The second one is the BrowseName of the variable concatenated by `Variable`, this is typically used to sync to change in value or to make DynamicLinks
 - Example:
     - User creates a `MotorType` which exposes a `Speed` property
     - Optix creates:
