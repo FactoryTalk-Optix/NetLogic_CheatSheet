@@ -13,6 +13,42 @@ newPanel.HorizontalAlignment = HorizontalAlignment.Stretch;
 Project.Current.Get("UI/Screens/Screen1").Add(newPanel);
 ```
 
+#### `Panel` Assigning the value of Move Target property
+The Move target property is an optional extra, so it must be materialised before being valued. When creating a panel from netlogic, this step is mandatory. This property may be *None* or *Self*. As this property is a **NodePointer**, you must create a dynamicLink with value **..@NodeId** if you want to set **Self**, otherwise you must simply remove the DynamicLink to set *None*.
+
+```csharp
+private void StuffMakePanelUIObject(IUANode panelOwner, string panelName, int width, int height, bool moveTargetSelf)
+{
+    Panel panel = panelOwner.Get(panelName) as Panel;
+    if (panel == null)
+    {
+        panel = InformationModel.MakeObject<Panel>(panelName);
+        panelOwner.Add(panel);
+    }
+    panel.Height = height;
+    panel.Width = width;
+    IUAVariable moveTarget = panel.GetOrCreateVariable("MoveTarget"); 
+    DynamicLink moveTargetLink = moveTarget?.GetVariable("DynamicLink") as DynamicLink;
+    if (moveTarget != null && moveTargetSelf)
+    {
+        if (moveTargetLink == null)
+        {
+            moveTargetLink = InformationModel.MakeVariable<DynamicLink>("DynamicLink", FTOptix.Core.DataTypes.NodePath);
+            moveTargetLink.Value = "..@NodeId";
+            moveTargetLink.Mode = DynamicLinkMode.Read;
+            moveTarget.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, moveTargetLink);
+        }
+    }
+    else
+    {
+        if (moveTargetLink != null)
+        {
+            moveTarget?.Refs.RemoveReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, moveTargetLink.NodeId);
+        }
+    }
+}
+```
+
 #### Make it faster
 
 When you need to create a lot of element in a short time (such in a `for` loop), adding each element to the page every time is not recommended as multiple async request are made to FTOptix APIs and some concurrency issues may appear, in this case we suggest to create the whole model in RAM and then add it to the page only when the whole structure is defined
