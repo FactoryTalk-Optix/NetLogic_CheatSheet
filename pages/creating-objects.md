@@ -14,6 +14,7 @@ Project.Current.Get("UI/Screens/Screen1").Add(newPanel);
 ```
 
 #### `Panel` Assigning the value of Move Target property
+
 The Move target property is an optional extra, so it must be materialised before being valued. When creating a panel from netlogic, this step is mandatory. This property may be *None* or *Self*. As this property is a **NodePointer**, you must create a dynamicLink with value **..@NodeId** if you want to set **Self**, otherwise you must simply remove the DynamicLink to set *None*.
 
 ```csharp
