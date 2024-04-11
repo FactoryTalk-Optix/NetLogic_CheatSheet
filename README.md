@@ -36,3 +36,4 @@ The examples provided are to be used as a reference for building your applicatio
 - [Mouse handling](./pages/mouse-handler.md)
 - [Dynamic Links](./pages/dynamic-links.md)
 - [Colors](./pages/colors.md)
+- [Companion Specifications](./pages/companion-specs.md)

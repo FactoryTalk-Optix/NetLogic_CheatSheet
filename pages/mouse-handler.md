@@ -119,3 +119,125 @@ public class DesignTimeNetLogic1 : BaseNetLogic
 }
 
 ```
+
+### Generic event handler
+
+```csharp
+#region Using directives
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using FTOptix.Core;
+using FTOptix.CoreBase;
+using FTOptix.HMIProject;
+using FTOptix.NetLogic;
+using UAManagedCore;
+using OpcUa = UAManagedCore.OpcUa;
+
+#endregion
+
+public class CreateEventHandler : BaseNetLogic
+{
+    private FTOptix.CoreBase.EventHandler MakeEventHandler(
+       IUANode parentNode, // The parent node to which the event handler is to be added
+       NodeId listenEventTypeId, // The NodeID of the event to be listened
+       IUAObject callingObject, // The object on which the method is to be executed
+       string methodName, // The name of the method to be called
+       List<Tuple<string, NodeId, object>> arguments = null // List of input arguments (name, data type NodeID, value)
+    )
+
+    {
+        // Create event handler object
+        var eventHandler = InformationModel.MakeObject<FTOptix.CoreBase.EventHandler>("EventHandler");
+        parentNode.Add(eventHandler);
+
+        // Set the ListenEventType variable value to the Node ID of the event to be listened
+        eventHandler.ListenEventType = listenEventTypeId;
+
+        // Create method container
+        var methodContainer = InformationModel.MakeObject("MethodContainer1");
+        eventHandler.MethodsToCall.Add(methodContainer);
+
+        // Create the ObjectPointer variable and set its value to the object on which the method is to be executed
+        var objectPointerVariable = InformationModel.MakeVariable<NodePointer>("ObjectPointer", OpcUa.DataTypes.NodeId);
+        objectPointerVariable.Value = callingObject.NodeId;
+        string resultPath = CreateRelativePath(parentNode, callingObject);
+        var isCore = resultPath.Contains("Root");
+        if (!isCore)
+        {
+            IUAVariable temp = null;
+            objectPointerVariable.SetDynamicLink(temp, DynamicLinkMode.ReadWrite);
+            objectPointerVariable.GetVariable("DynamicLink").Value = "../../../../" + resultPath;
+        }
+
+        methodContainer.Add(objectPointerVariable);
+
+        // Create the Method variable and set its value to the name of the method to be called
+        var methodNameVariable = InformationModel.MakeVariable("Method", OpcUa.DataTypes.String);
+        methodNameVariable.Value = methodName;
+        methodContainer.Add(methodNameVariable);
+
+        if (arguments != null)
+            CreateInputArguments(methodContainer, arguments);
+
+        return eventHandler;
+    }
+
+    private void CreateInputArguments(
+        IUANode methodContainer,
+        List<Tuple<string, NodeId, object>> arguments)
+    {
+        IUAObject inputArguments = InformationModel.MakeObject("InputArguments");
+        methodContainer.Add(inputArguments);
+
+        foreach (var arg in arguments)
+        {
+            var argumentVariable = inputArguments.Context.NodeFactory.MakeVariable(
+                NodeId.Random(inputArguments.NodeId.NamespaceIndex),
+                arg.Item1,
+                arg.Item2,
+                OpcUa.VariableTypes.BaseDataVariableType,
+                false,
+                arg.Item3);
+
+            inputArguments.Add(argumentVariable);
+        }
+    }
+
+    private static string CreateRelativePath(IUANode source, IUANode target)
+    {
+        string result = "";
+        var srcPath = GetCurrentProjectBrowsePath(source);
+        var tarPath = GetCurrentProjectBrowsePath(target);
+        var srcArr = srcPath.Split("/");
+        var tarArr = tarPath.Split("/");
+        var max = Math.Max(srcPath.Count(), tarPath.Count());
+        int i = 0;
+        for (; i < max; i++)
+        {
+            result = "..";
+            if (srcArr[i] != tarArr[i])
+            {
+                break;
+            }
+        }
+        for (int j = srcArr.Count() - 1; j > i; j--)
+        {
+            result = result + "/..";
+        }
+        for (int k = i; k < tarArr.Count(); k++)
+        {
+            result = result + "/" + tarArr[k];
+        }
+        return result;
+    }
+
+    private static string GetCurrentProjectBrowsePath(IUANode node)
+    {
+        if (node.Owner == Project.Current || node.BrowseName == "Root")
+            return node.BrowseName;
+        return GetCurrentProjectBrowsePath(node.Owner) + "/" + node.BrowseName;
+    }
+}
+```
