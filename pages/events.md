@@ -1,4 +1,4 @@
-# Mouse interaction
+# Events handling
 
 ## Add MouseClick event to a Button
 
@@ -120,7 +120,7 @@ public class DesignTimeNetLogic1 : BaseNetLogic
 
 ```
 
-### Generic event handler
+## Add a method handler to an object
 
 ```csharp
 #region Using directives

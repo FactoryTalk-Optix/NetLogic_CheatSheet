@@ -165,7 +165,7 @@ private bool GetBitValue(int inputValue, int bitPosition)
 var tagStructure = InformationModel.MakeVariable<FTOptix.CommunicationDriver.TagStructure>("FanArray", OpcUa.DataTypes.Structure, new[] { 11u });
 ```
 
-## Creating Guid for NodeID for using NodeFactory.MakeDataType
+## Creating Guid for NodeID to use NodeFactory.MakeDataType
 
 ```csharp
 public static Guid CreateGuidFromModelElement(string parentGUID, string itemName)

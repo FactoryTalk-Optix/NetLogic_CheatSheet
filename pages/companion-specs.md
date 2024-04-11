@@ -48,8 +48,9 @@ From the XML we can see that the numeric identifier for the BlockType is `1003`,
 public void CreateDIBlockType()
 {
     Log.Info("Create DI Block Type NetLogic", "Searching NameSpaceIndex for DI");
+    // Get the NameSpaceIndex URI from the DI XML file
     var nsIndex = LogicObject.Context.GetNamespaceIndex("http://opcfoundation.org/UA/DI/");
-    if (nsIndex == -1)
+    if (nsIndex == -1 or nsIndex == null)
     {
         Log.Error("Create DI Block Type NetLogic", "NameSpaceIndex for DI not found, make sure the CompanionSpecification for DI was loaded");
         return;

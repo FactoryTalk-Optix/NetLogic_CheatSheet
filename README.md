@@ -33,7 +33,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Sessions](./pages/sessions.md)
 - [Translations](./pages/translations.md)
 - [Users and groups](./pages/users-groups.md)
-- [Mouse handling](./pages/mouse-handler.md)
+- [Events handling](./pages/events.md)
 - [Dynamic Links](./pages/dynamic-links.md)
 - [Colors](./pages/colors.md)
 - [Companion Specifications](./pages/companion-specs.md)
