@@ -6,7 +6,7 @@
 - Add them to FT Optix in one of these paths (make sure to replace your username or the proper FT Optix setup folder):
     - `C:\Users\<username>\Documents\Rockwell Automation\FactoryTalk Optix\CompanionSpecifications`
     - `C:\Program Files\Rockwell Automation\FactoryTalk Optix\Studio <version number>\CompanionSpecifications`
-- Restart the IDE after adding files to one of those paths in order to load new files
+- Restart the IDE after adding files to one of those paths to load new files
     - Check the FT Optix output if any error was reported after loading the files
 
 ## Create an instance of a Companion Specs type
@@ -45,27 +45,30 @@ From the XML we can see that the numeric identifier for the BlockType is `1003`,
 
 ```csharp
 [ExportMethod]
-public void CreateDIBlockType()
+public void CreateCompanionSpecsInstance()
 {
-    Log.Info("Create DI Block Type NetLogic", "Searching NameSpaceIndex for DI");
-    // Get the NameSpaceIndex URI from the DI XML file
+    Log.Info("Create Companion Specs NetLogic", "Searching NameSpaceIndex for companion spec");
+    // Get the NameSpaceIndex URI from the XML file
     var nsIndex = LogicObject.Context.GetNamespaceIndex("http://opcfoundation.org/UA/DI/");
-    if (nsIndex == -1 or nsIndex == null)
+    if (nsIndex == -1 || nsIndex == null)
     {
-        Log.Error("Create DI Block Type NetLogic", "NameSpaceIndex for DI not found, make sure the CompanionSpecification for DI was loaded");
+        Log.Error("Create Companion Specs NetLogic", "NameSpaceIndex not found, make sure the CompanionSpecification was properly loaded");
         return;
     }
     else
     {
-        Log.Info("Create DI Block Type NetLogic", "NameSpaceIndex for DI: " + nsIndex);
+        Log.Info("Create Companion Specs NetLogic", "NameSpaceIndex found: " + nsIndex);
     }
-    // The ID of the BlockType is 1003 - we can get this value from the DI XML file
-    var blockTypeNodeId = new NodeId(nsIndex, 1003);
+    // The ID of the Type we want to add is 1003 - we can get this value from the specs XML file
+    var companionSpecsTypeNodeId = new NodeId(nsIndex, 1003);
     // Create an instance of the element
-    Log.Info("Create DI Block Type NetLogic", "BlockTypeNodeId: " + blockTypeNodeId);
-    var blockTypeInstance = InformationModel.MakeObject("BlockTypeInstance", blockTypeNodeId);
-    Project.Current.Get("Model/BlockTypeInstance")?.Delete();
-    Project.Current.Get("Model").Add(blockTypeInstance);
-    Log.Info("Create DI Block Type NetLogic", "BlockTypeInstance created and added to the model");
+    Log.Info("Create Companion Specs NetLogic", "Type definition NodeId: " + companionSpecsTypeNodeId);
+    var instanceName = InformationModel.Get(companionSpecsTypeNodeId).BrowseName + "Instance";
+    var companionSpecsInstance = InformationModel.MakeObject(instanceName, companionSpecsTypeNodeId);
+    Project.Current.Get($"Model/{instanceName}")?.Delete();
+    // Optional, set a value to a children variable set as "optional" in the CompanionSpecs
+    // companionSpecsInstance.GetOrCreateVariable("RevisionCounter").Value = 100;
+    Project.Current.Get("Model").Add(companionSpecsInstance);
+    Log.Info("Create Companion Specs NetLogic", $"Companion Specs instance \"{instanceName}\" created and added to the model");
 }
 ```
