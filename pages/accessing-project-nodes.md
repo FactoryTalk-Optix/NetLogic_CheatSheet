@@ -49,9 +49,12 @@ In OPC/UA, some nodes may have additional references are explicit relationship (
 [ExportMethod]
 public void ReadReference(NodeId element)
 {
+    // Get to the element where we want to investigate the OPC/UA references
     IUANode targetNode = InformationModel.Get(element);
+    // Assuming the node exists
     if (targetNode != null)
     {
+        // Loop per each reference and list it in the console output
         foreach (var item in targetNode.Refs.GetReferences())
         {
             Log.Info("References", $"ReferenceTypeId: {item.ReferenceTypeId}, TargetNodeId: {item.TargetNodeId}, TargetNode: {item.TargetNode.BrowseName}");

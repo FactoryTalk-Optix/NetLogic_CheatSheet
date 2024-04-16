@@ -4,11 +4,14 @@
 
 ```csharp
 [ExportMethod]
-publicvoidGetActiveWebSessionsNumber(NodeIdwebPresentatonEngine, out intactiveWebSessionNumber){
+public void GetActiveWebSessionsNumber(NodeId webPresentationEngine, out int activeWebSessionNumber)
+{
     try
     {
-        varwpe=InformationModel.Get<PresentationEngine>(webPresentatonEngine);
-        activeWebSessionNumber=GetWebpresentationengingSessions(wpe).Count();
+        // Get the current WebPresentationEngine from the project
+        var webPresentationEngine = InformationModel.Get<PresentationEngine>(webPresentationEngine);
+        // Call the method to read the active sessions
+        activeWebSessionNumber = GetWebPresentationEngineSessions(webPresentationEngine).Count();
     }
     catch(System.Exception)
     {
@@ -16,7 +19,9 @@ publicvoidGetActiveWebSessionsNumber(NodeIdwebPresentatonEngine, out intactiveWe
         activeWebSessionNumber=-1;
     }
 }
-privateIEnumerable<UISession>GetWebpresentationengingSessions(PresentationEnginewebPresentationEngine) =>webPresentationEngine.Sessions.Where(s=>s.User!=null);
+
+// Use reflections to get the sessions
+private IEnumerable<UISession> GetWebPresentationEngineSessions(PresentationEngine webPresentationEngine) => webPresentationEngine.Sessions.Where(s=>s.User!=null);
 ```
 
 

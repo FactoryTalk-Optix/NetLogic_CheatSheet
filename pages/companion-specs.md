@@ -49,18 +49,18 @@ public void CreateCompanionSpecsInstance()
 {
     Log.Info("Create Companion Specs NetLogic", "Searching NameSpaceIndex for companion spec");
     // Get the NameSpaceIndex URI from the XML file
-    var nsIndex = LogicObject.Context.GetNamespaceIndex("http://opcfoundation.org/UA/DI/");
-    if (nsIndex == -1 || nsIndex == null)
+    var nameSpaceIndex = LogicObject.Context.GetNamespaceIndex("http://opcfoundation.org/UA/DI/");
+    if (nameSpaceIndex == -1 || nameSpaceIndex == null)
     {
         Log.Error("Create Companion Specs NetLogic", "NameSpaceIndex not found, make sure the CompanionSpecification was properly loaded");
         return;
     }
     else
     {
-        Log.Info("Create Companion Specs NetLogic", "NameSpaceIndex found: " + nsIndex);
+        Log.Info("Create Companion Specs NetLogic", "NameSpaceIndex found: " + nameSpaceIndex);
     }
     // The ID of the Type we want to add is 1003 - we can get this value from the specs XML file
-    var companionSpecsTypeNodeId = new NodeId(nsIndex, 1003);
+    var companionSpecsTypeNodeId = new NodeId(nameSpaceIndex, 1003);
     // Create an instance of the element
     Log.Info("Create Companion Specs NetLogic", "Type definition NodeId: " + companionSpecsTypeNodeId);
     var instanceName = InformationModel.Get(companionSpecsTypeNodeId).BrowseName + "Instance";

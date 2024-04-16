@@ -15,6 +15,8 @@ Project.Current.Get<Alias>("UI/Pages/MainPage/MainBoilerAlias").Kind = NodeId.Em
 ## Connect an Alias to a node
 
 ```csharp
-var targetVar = Project.Current.Get<Tag>("CommDriver/RAEthernetIP/Station1/InletPump");
-Project.Current.Get("UI/Pages/MainPage").SetAlias("MainBoilerAlias", targetVar.NodeId);
+// Get the target variable
+var targetVariable = Project.Current.Get<Tag>("CommDriver/RAEthernetIP/Station1/InletPump");
+// Set the alias to the target value
+Project.Current.Get("UI/Pages/MainPage").SetAlias("MainBoilerAlias", targetVariable.NodeId);
 ```

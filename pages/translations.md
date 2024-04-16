@@ -5,28 +5,39 @@
 Please note: `myKey` should already exist in the TranslationDictionary
 
 ```csharp
+// Create a new label
 Label myLabel = InformationModel.Make<Label>("MyLabelName");
+// Create a new LocalizedText with a specific Key (that should exist in the LocalizationDictionary)
 myLabel.LocalizedText = new LocalizedText(myLabel.NodeId.NamespaceIndex, "myKey1");
+// Add the label to the project
 Owner.Add(myLabel);
 ```
 
 ## Read the translation key of a Text property
 
 ```csharp
+// Get the LocalizedText variable from the Label
 string myKey = myLabel.LocalizedText.TextId
+```
+
+```csharp
+// Alternative way (same result)
 string myKey = ((LocalizedText)myVariable.Value).TextId
 ```
 
 ## Read the translation content for a specific key
 
 ```csharp
+// Create a new temporary localized text to read the key value from the dictionary
 LocalizedText alarmKey = new LocalizedText(LogicObject.NodeId.NamespaceIndex, "Alarm_TL_Key");
+// Get the text value from the current language
 string alarmMessage = InformationModel.LookupTranslation(alarmKey).Text;
 ```
 
 ## Adding a description to a variable
 
 ```csharp
+// Set the description of an object to a localized text
 variable.Description = new LocalizedText(Project.Current.NodeId.NamespaceIndex, "descriptionTextId");
 ```
 
@@ -41,8 +52,10 @@ private void StuffMakeNewDictionary(string browseName, string[]languages, IUANod
         return;
     if (languages[0] != "")
     {
-        string[] firstColumnEmpyt = new string[1] {""};
-        languages = firstColumnEmpyt.Concat(languages).ToArray();
+        // The first column needs to be empty as it's the keys list
+        string[] firstColumnEmpty = new string[1] {""};
+        // Add the languages to the other columns
+        languages = firstColumnEmpty.Concat(languages).ToArray();
     }
     List<string> languageVerifiedToAdd = new List<string>();
     foreach (string language in languages) 
@@ -62,8 +75,18 @@ private void StuffMakeNewDictionary(string browseName, string[]languages, IUANod
     {
         newDictionaryValues[0,i] = languageVerifiedToAdd[i];
     }
-    IUAVariable newDictionary = InformationModel.MakeVariable(browseName, OpcUa.DataTypes.String, FTOptix.Core.VariableTypes.LocalizationDictionary, new uint[2] { (uint)newDictionaryValues.GetLength(0), (uint)newDictionaryValues.GetLength(1) });
+    // Create the new dictionary
+    IUAVariable newDictionary = InformationModel.MakeVariable(
+        browseName, 
+        OpcUa.DataTypes.String, 
+        FTOptix.Core.VariableTypes.LocalizationDictionary, 
+        new uint[2] { 
+            (uint)newDictionaryValues.GetLength(0), 
+            (uint)newDictionaryValues.GetLength(1) 
+        });
+    // Set the dictionary content
     newDictionary.Value = new UAValue(newDictionaryValues);
+    // Check if the dictionary does not exist already, then add it
     if (dictionaryOwner.Get(browseName) == null) 
         dictionaryOwner.Add(newDictionary);
 }
@@ -73,14 +96,14 @@ private void StuffMakeNewDictionary(string browseName, string[]languages, IUANod
 
 Dictionary values are stored in a bidimensional array of string, you need to handle this rectangular array and regenerate the UAValue to store into the dictionary.
 
-### Add
+### Add elements to the dictionary
 
 This example provide a collection of array to add multiple records into the dictionary
 
 ```csharp
 private void StuffAddDictionaryTranslations(IUAVariable dictionary, List<string[]> valuesToAdd)
 {
-    // *README* Long dictionary may take a long execution time, take in consideration to use LongRunningTask into Runtime Netlogic enviroment
+    // A big dictionary may take a long processing time, usage of a LongRunningTask is recommended
     if (dictionary == null || dictionary.Value.Value == null || valuesToAdd == null || valuesToAdd.Count <= 0)
         return;
     string[,] actualDictionaryValues;
@@ -142,14 +165,14 @@ private void StuffAddDictionaryTranslations(IUAVariable dictionary, List<string[
 }
 ```
 
-### Modify
+### Modify content of a dictionary
 
 This example provide a collection of array to edit multiple records into the dictionary. Into a single array you can only write the language value to modify (take in consideration to place in correct order) and leave other field empty.
 
 ```csharp
 private void StuffModifyDictionaryTranslations(IUAVariable dictionary, List<string[]> valuesToEdit)
 {
-    // *README* Long dictionary may take a long execution time, take in consideration to use LongRunningTask into Runtime Netlogic enviroment
+    // A big dictionary may take a long processing time, usage of a LongRunningTask is recommended
     if (dictionary == null || dictionary.Value.Value == null || valuesToEdit == null || valuesToEdit.Count <= 0)
         return;
     string[,] actualDictionaryValues;
@@ -202,7 +225,7 @@ This example provide a list of keys to delete multiple records into the dictiona
 ```csharp
 private void StuffRemoveDictionaryTranslations(IUAVariable dictionary, List<string> keysToRemove)
 {
-    // *README* Long dictionary may take a long execution time, take in consideration to use LongRunningTask into Runtime Netlogic enviroment
+    // A big dictionary may take a long processing time, usage of a LongRunningTask is recommended
     if (dictionary == null || dictionary.Value.Value == null || keysToRemove == null || keysToRemove.Count <= 0)
         return;
     string[,] actualDictionaryValues;
@@ -257,7 +280,7 @@ private void StuffRemoveDictionaryTranslations(IUAVariable dictionary, List<stri
 }
 ```
 
-### Stuff example of previous code snippet
+### Example of previous code snippets
 
 You can build a Design NetLogic with all previous methods to create and populate a Dictionary
 
@@ -265,9 +288,11 @@ You can build a Design NetLogic with all previous methods to create and populate
 [ExportMethod]
 public void Method1()
 {
+    // Get to the translations folder
     Folder translation = Project.Current.Get<Folder>("Translations");
+    // Create the new dictionary object
     StuffMakeNewDictionary("MyNewDictionary", new string[6] { "", "it-IT", "en-US", "fr-FR", "es-ES","de-DE" }, translation);
-
+    // Set some content to the dictionary
     List<string[]> fillThisDict = new List<string[]>
     {
         new string[6] { "keyHello1", "Ciao", "Hello", "Bonjour", "Hola", "Hallo" },
@@ -279,7 +304,7 @@ public void Method1()
         new string[6] { "keyStop3", "Fermare", "Stop", "Arrêter", "Para", "Stopp" }
     };
     StuffAddDictionaryTranslations(translation.GetVariable("MyNewDictionary"), fillThisDict);
-
+    // Add even more lines to the dictionary
     List<string[]> editThisDict = new List<string[]>
     {
         new string[6] { "keyHello", "Ciao!", "Hello!", "Bonjour!", "Hola!", "Hallo!" },
@@ -287,7 +312,7 @@ public void Method1()
         new string[6] { "keyStart2", "Avviare", "Start", "Démarrer", "Inicio", "Start" }
     };
     StuffModifyDictionaryTranslations(translation.GetVariable("MyNewDictionary"), editThisDict);
-    
+    // Remove some unused keys
     List<string> removeToThisDict = new List<string>
     {
         "keyHello1",

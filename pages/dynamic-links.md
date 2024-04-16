@@ -5,8 +5,11 @@
 By default a `DynamicLink` is made as _Read only_ unless you specify different mode
 
 ```csharp
+// Get the element where the dynamic link has to be added
 var myObj = Owner.Get<Motor>("Motor1");
+// Reach the specific variable
 var speedValue = Owner.GetObject("SpeedLabel").GetVariable("Text");
+// Create the dynamic link and specify the mode (optional - read only if empty)
 myObj.SpeedVariable.SetDynamicLink(speedValue, DynamicLinkMode.Read);
 ```
 
@@ -16,9 +19,13 @@ myObj.SpeedVariable.SetDynamicLink(speedValue, DynamicLinkMode.Read);
 [ExportMethod]
 public void AddDynamicLinkToBitOfIntegerVariable()
 {
+    // Get the variable
     var myBitAlarm = Project.Current.GetVariable("Model/BitVariable");
+    // Create a fake variable
     IUAVariable tempVariable = null;
+    // Add a dynamic link to the fake variable (to trigger the link mechanism)
     myBitAlarm.SetDynamicLink(tempVariable, DynamicLinkMode.ReadWrite);
+    // Replace the dynamic link content to the real target value
     myBitAlarm.GetVariable("DynamicLink").Value = "../Int32Variable.1";
 }
 ```
@@ -27,35 +34,52 @@ public void AddDynamicLinkToBitOfIntegerVariable()
 
 ```csharp
 [ExportMethod]
-public void StuffDynamicLinkToArrayElement(IUAVariable targetVariable, IUAVariable targetDynamicLink, uint arrayIndexToLink, DynamicLinkMode dynamicLinkmode)
+public void StuffDynamicLinkToArrayElement(IUAVariable targetVariable, IUAVariable targetDynamicLink, uint arrayIndexToLink, DynamicLinkMode dynamicLinkMode)
 {
+    // Prepare the BrowseName for the dynamic link variable
     string dynamicLinkVariableBrowseName = $"DynamicLink_{arrayIndexToLink}";
+    // Create the dynamic link object
     DynamicLink newDynamicLink = InformationModel.MakeVariable<DynamicLink>(dynamicLinkVariableBrowseName, FTOptix.Core.DataTypes.NodePath);
+    // Set the dynamic link values
     newDynamicLink.Value = DynamicLinkPath.MakePath(targetVariable, targetDynamicLink);
-    newDynamicLink.Mode = dynamicLinkmode;
+    newDynamicLink.Mode = dynamicLinkMode;
     newDynamicLink.ParentArrayIndexVariable.Value = arrayIndexToLink;
+    // Add the dynamic link reference to the dynamic link (OPCUA specs)
     targetVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, newDynamicLink);
+    // Set the proper modelling rule (OPCUA specs)
     newDynamicLink.SetModellingRuleRecursive();
 }
 ```
 
 ### Formatted dynamic link
+
+A formatted dynamic link is very similar to a string formatter and it is used to dynamically reference different objects in the project, such as using the same widget to control different motors using a SpinBox
+
 ```csharp
 public void StuffCreateNewDynamicLinkFormatter()
 {
-    IUAVariable targetVariable = Project.Current.Find("TextBox1").GetVariable("Text");
+    // Get to the text box where the dynamic link has to be created
+    IUAVariable targetVariable = Owner.Get("TextBox1").GetVariable("Text");
+    // Remove dynamic link (if any)
     targetVariable.ResetDynamicLink();
+    // Create a new empty dynamic link object
     DynamicLink newDynamicLink = InformationModel.MakeVariable<DynamicLink>("DynamicLink", FTOptix.Core.DataTypes.NodePath);
     newDynamicLink.Value = "";
+    // Create a string formatter to be added to the dynamic link
     StringFormatter newStringFormatter = InformationModel.MakeObject<StringFormatter>("DynamicLinkFormatter", FTOptix.CoreBase.ObjectTypes.StringFormatter);
+    // Set the proper format for the string formatter, where curly brackets are used as placeholders
     newStringFormatter.Format = "/Objects/StuffTest/Model/Folder1/Variable5[{0},{1}]";
+    // Set the sources for the placeholders
     IUAVariable source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType);
     IUAVariable source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType);
     source0.SetDynamicLink(Project.Current.GetVariable("Model/Folder1/Variable1"));
     source1.SetDynamicLink(Project.Current.GetVariable("Model/Folder1/Variable2"));
+    // Add the references about the children variables to the string formatter
     newStringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0);
     newStringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
+    // Set the dynamic link mode (if needed)
     newDynamicLink.Mode = DynamicLinkMode.ReadWrite;
+    // Set the proper references and modelling rules (OPCUA specs)
     newDynamicLink.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasConverter, newStringFormatter);
     newStringFormatter.SetModellingRuleRecursive();
     targetVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, newDynamicLink);
@@ -66,15 +90,23 @@ public void StuffCreateNewDynamicLinkFormatter()
 ## Creating a String Formatter
 
 ```csharp
+// Create a new variable
 var variable4 = InformationModel.MakeVariable("Variable4", OpcUa.DataTypes.String); 
+// Add the variable to the Model folder
 Project.Current.Get("Model").Add(variable4); 
+// Create a string formatter
 var stringFormatter = InformationModel.Make<StringFormatter>("StringFormatter1"); 
+// Set the base text (with placeholders)
 stringFormatter.Format = "{0} and {1}"; 
+// Configure placeholders
 var source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType); 
 stringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0); 
 var source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType); 
 stringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1); 
-variable4.SetConverter(stringFormatter); var variable1 = Project.Current.GetVariable("Model/Variable1"); 
+// Add the new converter to the variable
+variable4.SetConverter(stringFormatter);
+// Set the targets for the dynamic links 
+var variable1 = Project.Current.GetVariable("Model/Variable1"); 
 var variable2 = Project.Current.GetVariable("Model/Variable2"); 
 source0.SetDynamicLink(variable1); 
 source1.SetDynamicLink(variable2);
@@ -86,61 +118,81 @@ source1.SetDynamicLink(variable2);
 [ExportMethod]
 public void Method1()
 {
+    // Get the source variables
     var var1 = Project.Current.GetVariable("Model/Variable1");
     var var2 = Project.Current.GetVariable("Model/Variable2");
     var var3 = Project.Current.GetVariable("Model/Variable3");
-
+    // Create the expression evaluator object
     var expressionEvaluator = InformationModel.MakeObject<ExpressionEvaluator>("ExpressionEvaluator");
+    // Set the format
     expressionEvaluator.Expression = "{0} + {1}";
-
+    // Set the dynamic links to the source variables
     var source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType);
     source0.SetDynamicLink(var2);
     var source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType);
     source1.SetDynamicLink(var3);
-
+    // Add the references (OPCUA specs)
     expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0);
     expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
-
+    // Add the converter to the variable
     var1.SetConverter(expressionEvaluator);
 }
 ```
 
 ## Creating a Key-Value Converter
+
 ```csharp
 private void StuffCreateKeyPair(IUAVariable targetNode, IUAVariable sourceVariable)
 {
+    // Create the new key value converter
     ValueMapConverter newValueMapConverter = InformationModel.MakeObject<ValueMapConverter>("KeyValueConverter1", FTOptix.CoreBase.ObjectTypes.ValueMapConverter);
+    // Create the pairs object
     IUAObject newPairs = InformationModel.MakeObject("Pairs");
+    // For each pair, set properties
     for (int i = 0; i < 3; i++)
     {
+        // First element is the default one
         string pairBrowseName = "Pair";
         if (i > 0) pairBrowseName += i.ToString();
+        // Create the new pair
         IUAObject newPair = InformationModel.MakeObject(pairBrowseName, FTOptix.CoreBase.ObjectTypes.ValueMapPair);
         IUAVariable newKey = newPair.GetVariable("Key");
         IUAVariable newValue = newPair.GetVariable("Value");
+        // Set the proper datatype
         newKey.DataType = OpcUa.DataTypes.UInt32;
         newValue.DataType = FTOptix.Core.DataTypes.Color;
+        // Set the proper value
         newKey.Value = i;
         newValue.Value = System.Drawing.Color.Violet.ToArgb();
+        // Add the pair to the map
         newPairs.Add(newPair);
     }
+    // Add the map to the key value converter
     newValueMapConverter.Add(newPairs);
+    // Set the dynamic link properties
     newValueMapConverter.Mode = DynamicLinkMode.Read;
     newValueMapConverter.SourceVariable.SetDynamicLink(sourceVariable);
+    // Add the key value converter to the variable
     targetNode.SetConverter(newValueMapConverter);
 }
 ```
 
 ## Creating a Conditional Converter
+
 ```csharp
-private void StuffCreateConditionaConverter(IUAVariable targetNode, IUAVariable sourceVariable)
+private void StuffCreateConditionalConverter(IUAVariable targetNode, IUAVariable sourceVariable)
 {
+    // Create the conditional converter
     ConditionalConverter newConditionalConverter = InformationModel.MakeObject<ConditionalConverter>("ConditionalConverter1", FTOptix.CoreBase.ObjectTypes.ConditionalConverter);
+    // Set the "false" condition
     newConditionalConverter.FalseValueVariable.DataType = FTOptix.Core.DataTypes.Color;
     newConditionalConverter.FalseValueVariable.Value = System.Drawing.Color.Red.ToArgb();
+    // Set the "true" condition
     newConditionalConverter.TrueValueVariable.DataType = FTOptix.Core.DataTypes.Color;
     newConditionalConverter.TrueValueVariable.Value = System.Drawing.Color.Green.ToArgb();
+    // Add the source variable
     newConditionalConverter.ConditionVariable.SetDynamicLink(sourceVariable);
+    // Set the dynamic link to the object
     newConditionalConverter.Mode = DynamicLinkMode.Read;
     targetNode.SetConverter(newConditionalConverter);
 }
@@ -149,9 +201,13 @@ private void StuffCreateConditionaConverter(IUAVariable targetNode, IUAVariable 
 ## Resolve a DynamicLink
 
 ```csharp
-TrendPen originalpen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
-var myvar = (String)originalpen.FindVariable("DynamicLink").Value;
-var result = LogicObject.Context.ResolvePath(myvar);
+// Get the element containing a DynamicLink
+TrendPen originalPen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
+// Read the variable value
+var myVariable = (String)originalPen.FindVariable("DynamicLink").Value;
+// Resolve the dynamic link target
+var result = LogicObject.Context.ResolvePath(myVariable);
 var test = result.ResolvedNode;
+// Set the target variable somewhere in the project
 Owner.Find<ComboBox>("ComboBox1").SelectedItem = test.Owner.NodeId;
 ```

@@ -8,7 +8,9 @@ When using the random generation, if the loop is particularly fast the system ti
 Random r = new Random();
 
 public void Start() {
+    // Create a random integer value
 	Int variableRandom = r.Next(min, max);
+    // Create a random double value
 	Double variableRandom = r.NextDouble()
 }
 ```
@@ -20,14 +22,18 @@ public void Start() {
 ```csharp
 private static Random random = new Random();
 
-public static string RandomString(int length) {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
-    }
+public static string RandomString(int stringLength) 
+{
+    // Set the subset of characters to be used
+    const string usableCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    // Return the random string
+    return new string(Enumerable.Repeat(usableCharacters, stringLength)
+        .Select(s => s[random.Next(s.Length)]).ToArray());
+}
 
 public void Start() {
-	String randStr = RandomString(10);
+    // Call the method to generate the string
+	String randomString = RandomString(10);
 }
 ```
 
@@ -36,7 +42,9 @@ public void Start() {
 ```csharp
 private string RandomString()
 {
-    Guid g = Guid.NewGuid();
-    return g.ToString().Replace("-", "");
+    // Create a new guid
+    Guid newGuid = Guid.NewGuid();
+    // Remove dashes to keep only alphanumeric characters
+    return newGuid.ToString().Replace("-", "");
 }
 ```
