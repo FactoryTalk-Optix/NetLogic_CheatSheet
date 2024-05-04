@@ -211,3 +211,14 @@ var test = result.ResolvedNode;
 // Set the target variable somewhere in the project
 Owner.Find<ComboBox>("ComboBox1").SelectedItem = test.Owner.NodeId;
 ```
+
+## Check for a DynamicLink
+
+```csharp
+// Check if the current node has a dynamic link
+var dynamicLink = inputVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+// Retrieve the path of the dynamic link
+var dynamicLinkPath = (string)dynamicLink.Value;
+// Resolve the dynamic link and get to the target node
+var targetVariable = LogicObject.Context.ResolvePath(inputVariable, dynamicLinkPath).ResolvedNode;
+```

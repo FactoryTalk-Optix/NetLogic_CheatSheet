@@ -69,3 +69,12 @@ var coreCommandsObject = InformationModel.GetObject(FTOptix.CoreBase.Objects.Cor
 // Call a specific command
 coreCommandsObject.ExecuteMethod("Close");
 ```
+
+## Execute a method from a different NetLogic
+
+```csharp
+// Get the NetLogic containing the method to execute
+var myScript = Project.Current.GetObject("NetLogic/RuntimeNetLogic1");
+// Launch the method
+myScript.ExecuteMethod("Method1");
+```

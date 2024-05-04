@@ -3,7 +3,13 @@
 ## Create a Variable
 
 ```csharp
-var myVar = InformationModel.MakeVariable("MyVariable", OpcUa.DataTypes.Int32);
+using OpcUa = UAManagedCore.OpcUa;
+
+[ExportMethod]
+public void CreateVariable()
+{
+    var myVar = InformationModel.MakeVariable("MyVariable", OpcUa.DataTypes.Int32);
+}
 ```
 
 ## Handle Struct variable
