@@ -37,3 +37,4 @@ The examples provided are to be used as a reference for building your applicatio
 - [Dynamic Links](./pages/dynamic-links.md)
 - [Colors](./pages/colors.md)
 - [Companion Specifications](./pages/companion-specs.md)
+- [Runtime tags import](./pages/runtime-tags-import.md)
