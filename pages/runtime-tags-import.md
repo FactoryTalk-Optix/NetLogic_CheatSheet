@@ -95,6 +95,10 @@ public class RuntimeTagsImport : FTOptix.NetLogic.BaseNetLogic
         ReadStructure("SomeOtherTag.B", station);
     }
 
+    /*
+
+    UNTESTED CODE
+
     [FTOptix.NetLogic.ExportMethod]
     public static void ImportFromRAEthernetIP()
     {
@@ -126,6 +130,8 @@ public class RuntimeTagsImport : FTOptix.NetLogic.BaseNetLogic
         // Remote read on imported structure
         ReadStructure("SomeOtherTag.B", station);
     }
+
+    */
 
     private static Struct[] GetItemsToImport(List<string> tagToImport, Struct[] plcItems)
     {
