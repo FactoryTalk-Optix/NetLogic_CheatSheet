@@ -21,3 +21,12 @@ myObject.Color = Colors.Red;
 // Add the Led to the page
 ...
 ```
+
+```csharp
+// Create a Led
+var myObject = InformationModel.Make<Led>("myLabel");
+// Set the Led color with System color Goldenrod by call method ToArgb to get the argb value
+myObject.Color = new Color(System.Drawing.Color.Goldenrod.ToArgb());;
+// Add the Led to the page
+...
+```
