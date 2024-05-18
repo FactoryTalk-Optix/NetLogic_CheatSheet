@@ -34,18 +34,24 @@ public void AddDynamicLinkToBitOfIntegerVariable()
 
 ```csharp
 [ExportMethod]
-public void StuffDynamicLinkToArrayElement(IUAVariable targetVariable, IUAVariable targetDynamicLink, uint arrayIndexToLink, DynamicLinkMode dynamicLinkMode)
+public void StuffDynamicLinkToArrayElement(IUAVariable sourceVariable, IUAVariable targetDynamicLink, uint sourceVariableArrayIndex, int targetDynamicLinkArrayIndex, DynamicLinkMode dynamicLinkMode)
 {
     // Prepare the BrowseName for the dynamic link variable
-    string dynamicLinkVariableBrowseName = $"DynamicLink_{arrayIndexToLink}";
+    string dynamicLinkVariableBrowseName = $"DynamicLink_{sourceVariableArrayIndex}";
     // Create the dynamic link object
     DynamicLink newDynamicLink = InformationModel.MakeVariable<DynamicLink>(dynamicLinkVariableBrowseName, FTOptix.Core.DataTypes.NodePath);
     // Set the dynamic link values
-    newDynamicLink.Value = DynamicLinkPath.MakePath(targetVariable, targetDynamicLink);
+    newDynamicLink.Value = DynamicLinkPath.MakePath(sourceVariable, targetDynamicLink);
     newDynamicLink.Mode = dynamicLinkMode;
-    newDynamicLink.ParentArrayIndexVariable.Value = arrayIndexToLink;
+    newDynamicLink.ParentArrayIndexVariable.Value = sourceVariableArrayIndex;
+    // Check if the target of dynamic link is an array
+    if (targetDynamicLinkArrayIndex >= 0)
+    {
+        //If it is set the index by adding square brackets with inside the index value at the end of the path
+        newDynamicLink.Value = $"{newDynamicLink.Value.Value}[{targetDynamicLinkArrayIndex}]";
+    }
     // Add the dynamic link reference to the dynamic link (OPCUA specs)
-    targetVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, newDynamicLink);
+    sourceVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, newDynamicLink);
     // Set the proper modelling rule (OPCUA specs)
     newDynamicLink.SetModellingRuleRecursive();
 }
