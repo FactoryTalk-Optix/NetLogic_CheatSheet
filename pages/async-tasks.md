@@ -97,3 +97,40 @@ private void ProcessCsvFile(LongRunningTask task)
 
 private LongRunningTask myLongRunningTask;
 ```
+
+### Some general notes on asynchronous tasks
+
+When a task is called asynchronously (especially in LongRunningTask), then the method itself should check if a cancellation request is pending (see [documentation here](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/task-cancellation)) and act accordingly, for example:
+
+```csharp
+public class LongRunningLogic : BaseNetLogic
+{
+    public override void Start()
+    {
+        // Create the new LongRunningTask and execute it
+        myTask = new LongRunningTask(MyMethod, LogicObject);
+        myTask.Start();
+    }
+
+    public override void Stop()
+    {
+        // Request a cancellation event to the async task
+        myTask?.Dispose();
+    }
+
+    public void MyMethod()
+    {
+        for (int i = 0; i < 1000; i++)
+        {
+            // Check if the somebody requested to dispose this task
+            if (myTask.IsCancellationRequested)
+                return;
+            // Do some work here
+            Thread.Sleep(1000);
+            Owner.Get<Led>("LED1").Active = !Owner.Get<Led>("LED1").Active;
+        }
+    }
+
+    private LongRunningTask myTask;
+}
+```
