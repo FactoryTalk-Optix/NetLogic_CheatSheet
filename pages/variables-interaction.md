@@ -235,3 +235,170 @@ public static Guid CreateGuidFromText(string text)
     return guid;
 }
 ```
+
+## Check if a variable on an instance has a dynamic link, converter or the default value was overwritten
+
+```csharp
+#region Using directives
+using System.Collections.Generic;
+using System.Linq;
+using FTOptix.NetLogic;
+using FTOptix.UI;
+using UAManagedCore;
+#endregion
+
+public class DesignTimeNetLogic1 : BaseNetLogic
+{
+    /// <summary>
+    /// This method is used when the node is an instance of a type and no other super types are used
+    /// </summary>
+    [ExportMethod]
+    public void SimpleInstance()
+    {
+        Log.Info("Method1 called");
+        // Insert code to be executed by the method
+        var myPanel = Owner.Get<Panel>("MyPanel1");
+        var panelChildren = myPanel.GetNodesByType<IUAVariable>();
+        Log.Info("Found " + panelChildren.Count().ToString() + " children in panel");
+        foreach (var item in panelChildren)
+        {
+            // Do something with the controls
+            if (myPanel.ObjectType.GetVariable(item.BrowseName).Value != myPanel.GetVariable(item.BrowseName).Value)
+                Log.Warning(item.BrowseName + " has a different value from the object type");
+
+            if (myPanel.GetVariable(item.BrowseName).Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) != null)
+                Log.Warning(item.BrowseName + " has a dynamic link");
+
+            if (myPanel.GetVariable(item.BrowseName).Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasConverter) != null)
+                Log.Warning(item.BrowseName + " has a converter");
+        }
+    }
+
+
+    /// <summary>
+    /// This approach is used when the instance comes from a type derived from another type (and so on)
+    /// This will go up to all supertypes to extract the values from anywhere
+    /// </summary>
+    [ExportMethod]
+    public void RecursiveApproach()
+    {
+        var myPanel = Owner.Get<Panel>("MyPanel1");
+        var panelChildren = myPanel.GetNodesByType<IUAVariable>();
+        Log.Info("Found " + panelChildren.Count().ToString() + " children in panel");
+        var browsePath = new List<QualifiedName>();
+
+        IUANode newMatchingNode;
+        if (myPanel.IsObjectTypeOrVariableType())
+            newMatchingNode = FindNodeInTypeOrSuperType(myPanel.GetSuperType(), browsePath);
+        else if (myPanel.IsObjectOrVariable())
+            newMatchingNode = FindNodeInTypeOrSuperType(myPanel.GetTypeNode(), browsePath);
+        else
+            newMatchingNode = null;
+
+        if (newMatchingNode == null)
+        {
+            Log.Error("Can't get to the node supertype!");
+            return;
+        }
+
+        foreach (var node in panelChildren)
+        {
+            Log.Info(node.BrowseName);
+            var instanceValue = myPanel.GetVariable(node.BrowseName).Value;
+            var typeValue = newMatchingNode.GetVariable(node.BrowseName).Value;
+
+            if (instanceValue != typeValue)
+                Log.Warning("Value of node " + node.BrowseName + " has a different value");
+
+            if (myPanel.GetVariable(node.BrowseName).Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) != null)
+                Log.Warning(node.BrowseName + " has a dynamic link");
+
+            if (myPanel.GetVariable(node.BrowseName).Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasConverter) != null)
+                Log.Warning(node.BrowseName + " has a converter");
+        }
+    }
+
+    private IUANode FindNodeInTypeOrSuperType(IUANode typeNode, List<QualifiedName> browsePath)
+    {
+        while (typeNode != null)
+        {
+            var childNode = FindNode(typeNode, browsePath);
+            if (childNode != null)
+                return childNode;
+
+            typeNode = typeNode.GetSuperType();
+        }
+
+        return null;
+    }
+
+    private IUANode FindNode(IUANode parentNode, List<QualifiedName> browsePath)
+    {
+        var currentNode = parentNode;
+
+        for (int i = browsePath.Count - 1; i >= 0; --i)
+        {
+            var childNode = currentNode.Refs.GetNode(browsePath[i]);
+            if (childNode == null)
+                return null;
+
+            if (childNode.Owner != currentNode)
+                return null;
+
+            currentNode = childNode;
+        }
+
+        return currentNode;
+    }
+}
+
+public static class PrototypeAnalyzerExtensions
+{
+    public static IUANode GetTypeNode(this IUANode node)
+    {
+        if (node is IUAObject obj)
+            return obj.ObjectType;
+
+        if (node is IUAVariable var)
+            return var.VariableType;
+
+        return null;
+    }
+
+    public static IUANode GetSuperType(this IUANode node)
+    {
+        if (node is IUAObjectType objType)
+            return objType.SuperType;
+
+        if (node is IUAVariableType varType)
+            return varType.SuperType;
+
+        return null;
+    }
+
+    public static bool IsObjectTypeOrVariableType(this IUANode node) => node.NodeClass == NodeClass.ObjectType || node.NodeClass == NodeClass.VariableType;
+
+    public static bool IsObjectOrVariable(this IUANode node) => node.NodeClass == NodeClass.Object || node.NodeClass == NodeClass.Variable;
+
+    public static IUANode GetPrototype(this IUANode node)
+    {
+        if (node is IUAObject obj)
+            return obj.Prototype;
+
+        if (node is IUAVariable var)
+            return var.Prototype;
+
+        return null;
+    }
+
+    public static void SetPrototype(this IUANode node, IUANode prototype)
+    {
+        if (node is IUAObject obj)
+            obj.Prototype = (IUAObject)prototype;
+        else if (node is IUAVariable var)
+            var.Prototype = (IUAVariable)prototype;
+    }
+
+    public static IReadOnlyList<IUANode> GetInstances(this IUANode node) => node.InverseRefs.GetNodes(UAManagedCore.OpcUa.ReferenceTypes.HasTypeDefinition, false);
+}
+```
