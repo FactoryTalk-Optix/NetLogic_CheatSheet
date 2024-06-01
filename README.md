@@ -38,3 +38,4 @@ The examples provided are to be used as a reference for building your applicatio
 - [Colors](./pages/colors.md)
 - [Companion Specifications](./pages/companion-specs.md)
 - [Runtime tags import](./pages/runtime-tags-import.md)
+- [Advanced SVG](./pages/advanced-svg.md)
