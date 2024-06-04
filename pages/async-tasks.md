@@ -18,6 +18,14 @@ These asynchronous tasks are InformationModel-safe and can be used to access pro
 
 This kind of task allows a specific method to be executed every `x` milliseconds, for example to blink a LED or to handle a watchdog.
 
+Please note: the specified interval, is actually the delay between two consecutive execution of the method, and the execution is impacted by the length of the instruction to process. The next execution is delayed until the task is completed, for example:
+
+Having a task:
+- PeriodicTask declared every 50mS
+- Method executed by the PeriodicTask takes 100mS to process
+
+With this timings, the task is actually executed every 150mS, as the interval is actually the delay after which the task is executed again.
+
 ```csharp
 public override void Start()
 {
