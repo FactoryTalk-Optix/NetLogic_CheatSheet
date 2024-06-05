@@ -27,7 +27,7 @@ This is the sample image (containing a "star" shape) that we used in the example
 public void replaceSVG()
 {
     // LogicObject.Owner is the button, so LogicObject.Owner is the MainWindow
-    AdvancedSVGImage svgImage = LogicObject.Owner.Children.Get<AdvancedSVGImage>("AdvancedSVGImage1");
+    AdvancedSVGImage svgImage = LogicObject.Owner.Get<AdvancedSVGImage>("AdvancedSVGImage1");
 
     string myXML = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n<svg version=\"1.1\" id=\"Overall\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" viewBox=\"0 0 300 300\">\r\n  <g id=\"Box1\">\r\n    <polygon style=\"fill:#CB8252;\" points=\"25,270 75,270 75,220 25,220\" transform=\"rotate(0, 20, 20)\"/>\r\n  </g>\r\n</svg>\r\n";
 
@@ -53,7 +53,7 @@ public class RuntimeNetLogic1 : BaseNetLogic
     public override void Start()
     {
         // LogicObject.Owner is the button, so LogicObject.Owner is the MainWindow
-        svgImage = LogicObject.Owner.Children.Get<AdvancedSVGImage>("AdvancedSVGImage1");
+        svgImage = LogicObject.Owner.Get<AdvancedSVGImage>("AdvancedSVGImage1");
         // Retrieve the Path to the SVG
         var imageAbsolutePath = svgImage.Path.Uri;
         // Load the SVG into an XDocument
