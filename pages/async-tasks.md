@@ -106,6 +106,43 @@ private void ProcessCsvFile(LongRunningTask task)
 private LongRunningTask myLongRunningTask;
 ```
 
+#### Passing arguments to a LongRunningTask
+
+An overload of the LongRunningTask constructor accepts a task and an object, the task can be used to check if a cancellation was requested, while the object can be used to pass arguments to the thread that is being generated
+
+```csharp
+[ExportMethod]
+public void StartExam(bool free, string clientID = "", string examCode = "")
+{
+    Log.Debug(examCode == "" ? "ExamLogic.StartExam" : "ExamLogic.StartExamCertification", "Starting exam");
+    startExamTask?.Dispose();
+    var argumentsObject = new StartExamParameters { isFree = free, clientID = clientID, examCode = examCode };
+    startExamTask = new LongRunningTask(StartExamMethod, argumentsObject, LogicObject);
+    startExamTask.Start();
+    Log.Debug(examCode == "" ? "ExamLogic.StartExam" : "ExamLogic.StartExamCertification", "Leaving method");
+}
+
+private void StartExamMethod(LongRunningTask task, object examParameters)
+{
+    // Get the parameters
+    var argumentsObject = (StartExamParameters)examParameters;
+    string clientID = argumentsObject.clientID;
+    string examCode = argumentsObject.examCode;
+    bool free = argumentsObject.isFree;
+    // Do other stuff
+    // ...
+}
+
+private sealed class StartExamParameters
+{
+    public bool isFree;
+    public string clientID;
+    public string examCode;
+}
+
+private LongRunningTask startExamTask = null;
+```
+
 ### Some general notes on asynchronous tasks
 
 When a task is called asynchronously (especially in LongRunningTask), then the method itself should check if a cancellation request is pending (see [documentation here](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/task-cancellation)) and act accordingly, for example:
