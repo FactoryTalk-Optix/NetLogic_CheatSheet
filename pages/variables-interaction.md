@@ -402,3 +402,27 @@ public static class PrototypeAnalyzerExtensions
     public static IReadOnlyList<IUANode> GetInstances(this IUANode node) => node.InverseRefs.GetNodes(UAManagedCore.OpcUa.ReferenceTypes.HasTypeDefinition, false);
 }
 ```
+## Loading environment variables
+
+Some elements can be loaded from Environment Variables, for example it is good practice to load secrets of Databases or external sources from env. This can be done using the [System.Environment.GetEnvironmentVariable](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-environment-getenvironmentvariable), please note about some limitations, for example the `User` and `Machine` target are only supported on Windows platforms, when working with Linux (like Docker Containers), they should be loaded from `Process`.
+
+```csharp
+public override void Start()
+{
+    var myStore = (ODBCStore)Owner;
+
+    // Load DB password
+    string env_password = Environment.GetEnvironmentVariable("DB_PASSWORD", EnvironmentVariableTarget.User); // Windows only
+    if (string.IsNullOrEmpty(env_password))
+        env_password = Environment.GetEnvironmentVariable("DB_PASSWORD", EnvironmentVariableTarget.Machine); // Windows only
+    if (string.IsNullOrEmpty(env_password))
+        env_password = Environment.GetEnvironmentVariable("DB_PASSWORD", EnvironmentVariableTarget.Process); // Required on Linux
+
+    // Load variables to the project
+    if (!string.IsNullOrEmpty(env_password))
+    {
+        Log.Info("Loading database password from environment variable DB_PASSWORD");
+        myStore.Password = env_password;
+    }
+}
+```
