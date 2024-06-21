@@ -18,15 +18,15 @@ public void DataGridSelectionChanged(NodeId dataGrid)
     var dataGridItem = InformationModel.Get<DataGrid>(dataGrid);
     if (dataGridItem == null)
     {
-        ThrowErrorToUI("DataGrid is null");
+        Log.Error("DataGrid is null");
         return;
     }
 
-    // Get the UI Selected Item variable
-    var selectedRow = InformationModel.GetVariable(dataGridItem.UISelectedItem);
+    // Get the UI Selected Item variable (an object)
+    var selectedRow = InformationModel.Get(dataGridItem.UISelectedItem);
     if (selectedRow == null)
     {
-        ThrowErrorToUI("Selected row is null");
+        Log.Error("Selected row is null");
         return;
     }
 
@@ -34,7 +34,7 @@ public void DataGridSelectionChanged(NodeId dataGrid)
     var selectedRowClientId = selectedRow.Children.OfType<IUAVariable>().FirstOrDefault(x => x.BrowseName == "ClientID");
     if (selectedRowClientId == null)
     {
-        ThrowErrorToUI("ClientID is null");
+        Log.Error("ClientID is null");
         return;
     }
 
@@ -42,7 +42,7 @@ public void DataGridSelectionChanged(NodeId dataGrid)
     var selectedRowUsedCnt = selectedRow.Children.OfType<IUAVariable>().FirstOrDefault(x => x.BrowseName == "Used");
     if (selectedRowUsedCnt == null)
     {
-        ThrowErrorToUI("Used is null");
+        Log.Error("Used is null");
         return;
     }
 
@@ -50,7 +50,7 @@ public void DataGridSelectionChanged(NodeId dataGrid)
     var selectedRowLastUsedTime = selectedRow.Children.OfType<IUAVariable>().FirstOrDefault(x => x.BrowseName == "LastUsedTime");
     if (selectedRowLastUsedTime == null)
     {
-        ThrowErrorToUI("LastUsedTime is null");
+        Log.Error("LastUsedTime is null");
         return;
     }
 
