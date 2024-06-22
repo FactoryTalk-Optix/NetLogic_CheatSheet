@@ -14,7 +14,7 @@ public void CreateVariable()
 
 ## Handle Struct variable
 
-By connecting to an OPC-UA server from another vendor, it is possible for Optix to resolve structures as Struct! (or arrays of structs). 
+By connecting to an OPC-UA server from another vendor, it is possible for Optix to resolve structures as Struct! (or arrays of structs).
 This type of variable, at code level is readonly, to be able to modify the values within it, one must extract its content which is always expressed in an array of objects, modify this array and recreate a new Struct.
 
 ```csharp
@@ -83,16 +83,100 @@ public void ModifyTimeRangeVariable(NodeId timeRangeVariableNodeId, DateTime sta
 }
 ```
 
+### Enumeration DataType
+
+Enumerations are DataTypes that contain a variable called EnumValues that contains an array of structures that define the entries of the enumeration in this order:
+
+- `Key` : integer value
+- `DisplayValue` : LocalizedText of the displayed text for the enumeration
+- `Description` : Localized text of the description of the key-DisplayValue pair
+
+#### Create a Enumeration DataType
+
+```csharp
+[ExportMethod]
+public void MakeEnumerationAndVariable()
+{
+    // Create the values for the enumeration
+    List<Tuple<int, string, string, string, string>> enumerationDataCollection = new List<Tuple<int, string, string, string, string>>()
+    {
+        {new Tuple<int, string, string, string, string>(0,"NA","en-US","Not available","en-US") },
+        {new Tuple<int, string, string, string, string>(1,"Automatic","en-US","Automatic mode and running","en-US") },
+        {new Tuple<int, string, string, string, string>(2,"Manual","en-US","Manual mode","en-US") },
+        {new Tuple<int, string, string, string, string>(3,"Stop","en-US","","") },
+        {new Tuple<int, string, string, string, string>(5,"Emergency restore","en-US","Automatic mode and operation phase after emergency stop","en-US") }
+    };
+    StuffMakeNewEnumeration(Project.Current.Get("Model"), "MachineOperationStatus", enumerationDataCollection);
+    // Create a variable with DataType the new Enumeration if not exist
+    if (Project.Current.Get("Model").Get("FeedingMachineStatus") == null)
+    {
+        IUAVariable newEnumerationVariable = InformationModel.MakeVariable("FeedingMachineStatus", Project.Current.Get("Model/MachineOperationStatus").NodeId);
+        Project.Current.Get("Model").Add(newEnumerationVariable);
+    }
+}
+
+/// <summary>
+/// Generate a new OPC-UA enumeration with values filled by a Tuple including all necessary information
+/// </summary>
+/// <param name="newEnumerationOwner">Node where to add the new enumeration</param>
+/// <param name="newEnumerationName">BrowseName of the new enumeration</param>
+/// <param name="enumerationDataCollection">Tuple that is structured as: key, text value, LocaleId of text value, description, LocaleId of description</param>
+private void StuffMakeNewEnumeration(IUANode newEnumerationOwner, string newEnumerationName, List<Tuple<int, string, string, string, string>> enumerationDataCollection)
+{
+    if (newEnumerationOwner.Get<IUADataType>(newEnumerationName) != null)
+    {
+        // If the enumeration already exists do not perform any operation
+        Log.Warning("StuffMakeNewEnumeration", $"Enumeration with BrowseName {newEnumerationName} alread exist!");
+        return;
+    }
+    // Generate a NodeId for the new Enumeration
+    NodeId newEnumerationNodeId = NodeId.Random(newEnumerationOwner.NodeId.NamespaceIndex);
+    // For enumeration I need to create the reference structure and the values to be assigned
+    List<EnumField> newEnumerationFields = new List<EnumField>();
+    List<Struct> newEnumerationValues = new List<Struct>();
+    // With one foreach loop it populates both Lists
+    foreach (Tuple<int, string, string, string, string> enumerationData in enumerationDataCollection)
+    {
+        // Generate the localizedText of display Value with Item 2 (value) and Item 3 (LocaleId)
+        LocalizedText displayValue = new LocalizedText(enumerationData.Item2, enumerationData.Item3);
+        // Generate the localizedText of description with Item 4 (value) and Item 5 (LocaleId)
+        LocalizedText description = new LocalizedText(enumerationData.Item4, enumerationData.Item5);
+        // Generate the Struct containing the enumeration values in the order Key, DisplayValue and Description
+        List<object> newValues = new List<object>
+        {
+            enumerationData.Item1,
+            displayValue,
+            description
+        };
+        newEnumerationValues.Add(new Struct(OpcUa.DataTypes.EnumValueType, newValues.AsReadOnly()));
+        // Generate the EnumField called Value<key> (ex Value0) containing the values of the enumeration in the order Key, DisplayValue and Description
+        newEnumerationFields.Add(new EnumField($"Value{enumerationData.Item1}", enumerationData.Item1, displayValue, description));
+    }
+    // Generate a new EnumDefinition with the same nodeId and browseName of the new enumeration
+    EnumDefinition newEnumerationDefinition = new EnumDefinition(newEnumerationName, newEnumerationNodeId, newEnumerationFields.AsReadOnly());
+    // Generate the new Enumeration (is a DataType)
+    IUADataType newEnumeration = Project.Current.Context.NodeFactory.MakeDataType(newEnumerationNodeId, newEnumerationName, OpcUa.DataTypes.Enumeration, enumDefinition: newEnumerationDefinition);
+    // Generate the variable EnumValues, which contains all the values of the enumeration that you will see in the IDE
+    IUAVariable newEnumValuesVariable = InformationModel.MakeVariable(new QualifiedName(0, "EnumValues"), OpcUa.DataTypes.EnumValueType, OpcUa.VariableTypes.BaseDataVariableType, new uint[1] { (uint) newEnumerationValues.Count });
+    // Fill the variable EnumValues with the values passed in the method
+    newEnumValuesVariable.Value = new UAValue(newEnumerationValues.ToArray());
+    // Finalize by adding the variable to the enumeration and the latter to its owner
+    newEnumeration.Add(newEnumValuesVariable);
+    newEnumerationOwner.Add(newEnumeration);
+}
+```
+
 ## Sync to variable change
 
 For each variable that is created in FT Optix, the corresponding class is automatically generated, this is actually creating two properties/classes per each variable
+
 - The first one is a variable with the same BrowseName
 - The second one is the BrowseName of the variable concatenated by `Variable`, this is typically used to sync to change in value or to make DynamicLinks
 - Example:
-    - User creates a `MotorType` which exposes a `Speed` property
-    - Optix creates:
-        - `MotorType.Speed` -> This is used to access the value of the variable
-        - `MotorType.SpeedVariable` -> This is used to sync to change in value
+  - User creates a `MotorType` which exposes a `Speed` property
+  - Optix creates:
+    - `MotorType.Speed` -> This is used to access the value of the variable
+    - `MotorType.SpeedVariable` -> This is used to sync to change in value
 
 ### Subscribing to a value change
 
@@ -402,6 +486,7 @@ public static class PrototypeAnalyzerExtensions
     public static IReadOnlyList<IUANode> GetInstances(this IUANode node) => node.InverseRefs.GetNodes(UAManagedCore.OpcUa.ReferenceTypes.HasTypeDefinition, false);
 }
 ```
+
 ## Loading environment variables
 
 Some elements can be loaded from Environment Variables, for example it is good practice to load secrets of Databases or external sources from env. This can be done using the [System.Environment.GetEnvironmentVariable](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-environment-getenvironmentvariable), please note about some limitations, for example the `User` and `Machine` target are only supported on Windows platforms, when working with Linux (like Docker Containers), they should be loaded from `Process`.
