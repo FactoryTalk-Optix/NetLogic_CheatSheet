@@ -350,10 +350,10 @@ public class DesignTimeNetLogic1 : BaseNetLogic
             if (myPanel.ObjectType.GetVariable(item.BrowseName).Value != myPanel.GetVariable(item.BrowseName).Value)
                 Log.Warning(item.BrowseName + " has a different value from the object type");
 
-            if (myPanel.GetVariable(item.BrowseName).Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) != null)
+            if (myPanel.GetVariable(item.BrowseName).Refs.GetNode(Optix.CoreBase.ReferenceTypes.HasDynamicLink) != null)
                 Log.Warning(item.BrowseName + " has a dynamic link");
 
-            if (myPanel.GetVariable(item.BrowseName).Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasConverter) != null)
+            if (myPanel.GetVariable(item.BrowseName).Refs.GetNode(FTOptix.CoreBase.ReferenceTypes.HasConverter) != null)
                 Log.Warning(item.BrowseName + " has a converter");
         }
     }
