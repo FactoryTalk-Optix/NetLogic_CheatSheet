@@ -40,3 +40,4 @@ The examples provided are to be used as a reference for building your applicatio
 - [Runtime tags import](./pages/runtime-tags-import.md)
 - [Advanced SVG](./pages/advanced-svg.md)
 - [DataGrid](./pages/datagrids.md)
+- [OPC/UA](./pages/opcua.md)
