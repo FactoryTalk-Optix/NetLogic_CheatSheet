@@ -57,12 +57,16 @@ public class RuntimeTagsImport : FTOptix.NetLogic.BaseNetLogic
         // prototypes parameter for TwinCat is always empty
         station.Browse(out var plcItems, out var prototypes);
 
-        Log.Info(MethodBase.GetCurrentMethod().Name, "Fetched " + plcItems.Length + " tags");
+        Log.Info("RuntimeTagsImport.ImportFromTwincat", "Fetched " + plcItems.Length + " tags");
 
         // Filter tag to import by tag name
         var tagInstances = FilterTagsToImport(new List<string>() { "SampleTag.A", "SomeOtherTag.B" }, plcItems); //TODO
 
-        Log.Info(MethodBase.GetCurrentMethod().Name, "Importing " + tagInstances.Length + " tags");
+        // Delete existing tags
+        Log.Info("RuntimeTagsImport.ImportFromTwincat", "Clearing existing tags");
+        station.Tags.Clear();
+
+        Log.Info("RuntimeTagsImport.ImportFromTwincat", "Importing " + tagInstances.Length + " tags");
 
         // Filter tag to import by prototypeId
         // var tagInstances = GetTagsOfType("MachineParameter", plcItems);
@@ -93,18 +97,22 @@ public class RuntimeTagsImport : FTOptix.NetLogic.BaseNetLogic
         // prototypes parameter for S7TiaProfinet is always empty
         station.Browse(out var plcItems, out var prototypes);
 
-        Log.Info(MethodBase.GetCurrentMethod().Name, "Fetched " + plcItems.Length + " PLC structures");
+        Log.Info("RuntimeTagsImport.ImportFromProfinet", "Fetched " + plcItems.Length + " PLC structures");
 
         // Profinet tag are grouped by project, so we need to retrieve tags from root
         var root = plcItems.OfType<BasePlcItem>().ToList();
         // Root node is always the first element in the list
         // This is called "PLC" when browsing from the TagImporter
         var tags = root[0].Items;
-        Log.Info("Fetched " + tags.Length + " tags");
+        Log.Info("RuntimeTagsImport.ImportFromProfinet", "Fetched " + tags.Length + " tags");
         // Filter tag to import by tag name
         var tagInstances = FilterTagsToImport(new List<string>() { "PLC/TestFix", "PLC/TestDT" }, tags);
 
-        Log.Info(MethodBase.GetCurrentMethod().Name, "Importing " + tagInstances.Length + " tags");
+        // Delete existing tags
+        Log.Info("RuntimeTagsImport.ImportFromProfinet", "Clearing existing tags");
+        station.Tags.Clear();
+
+        Log.Info("RuntimeTagsImport.ImportFromProfinet", "Importing " + tagInstances.Length + " tags");
 
         //Filter tag to import by prototypeId
         //var tagInstances = GetTagsOfType("MachineParameter", tags);
@@ -140,6 +148,10 @@ public class RuntimeTagsImport : FTOptix.NetLogic.BaseNetLogic
         // Filter tag to import by tag name
         var tagInstances = FilterTagsToImport(new List<string>() { "Controller Tags/Tank1/Level", "Controller Tags/Tank2/Level" }, plcItems);
 
+        // Delete existing tags
+        Log.Info("RuntimeTagsImport.ImportFromRAEthernetIP", "Clearing existing tags");
+        station.Tags.Clear();
+
         Log.Info("RuntimeTagsImport.ImportFromRAEthernetIP", "Importing " + tagInstances.Length + " tags");
 
         if (tagInstances.Length == 0)
@@ -170,7 +182,7 @@ public class RuntimeTagsImport : FTOptix.NetLogic.BaseNetLogic
     /// If the list of tags to import is empty, all fetched tags will be returned.
     /// Warning: a flat list is returned, so the tag paths must be unique.
     /// </summary>
-    /// <param name="tagToImport">List of tag paths to import (path with forward slashes "/")</param>
+    /// <param name="tagPathsToImport">List of tag paths to import (path with forward slashes "/")</param>
     /// <param name="plcItems">List of all tags fetched from the PLC</param>
     /// <returns>List of tags (Struct[]) that matches the input list</returns>
     private static Struct[] FilterTagsToImport(List<string> tagPathsToImport, Struct[] plcItems)
