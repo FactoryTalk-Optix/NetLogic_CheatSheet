@@ -153,13 +153,14 @@ private void StuffCreateKeyPair(IUAVariable targetNode, IUAVariable sourceVariab
     // Create the new key value converter
     ValueMapConverter newValueMapConverter = InformationModel.MakeObject<ValueMapConverter>("KeyValueConverter1", FTOptix.CoreBase.ObjectTypes.ValueMapConverter);
     // Create the pairs object
-    IUAObject newPairs = InformationModel.MakeObject("Pairs");
+    IUAObject newPairs = InformationModel.MakeObject(new QualifiedName(FTOptix.CoreBase.ObjectTypes.ValueMapConverter.NamespaceIndex, "Pairs"));
     // For each pair, set properties
     for (int i = 0; i < 3; i++)
     {
         // First element is the default one
         string pairBrowseName = "Pair";
-        if (i > 0) pairBrowseName += i.ToString();
+        if (i > 0)
+            pairBrowseName += i.ToString();
         // Create the new pair
         IUAObject newPair = InformationModel.MakeObject(pairBrowseName, FTOptix.CoreBase.ObjectTypes.ValueMapPair);
         IUAVariable newKey = newPair.GetVariable("Key");
@@ -175,8 +176,6 @@ private void StuffCreateKeyPair(IUAVariable targetNode, IUAVariable sourceVariab
     }
     // Add the map to the key value converter
     newValueMapConverter.Add(newPairs);
-    // Set the dynamic link properties
-    newValueMapConverter.Mode = DynamicLinkMode.Read;
     newValueMapConverter.SourceVariable.SetDynamicLink(sourceVariable);
     // Add the key value converter to the variable
     targetNode.SetConverter(newValueMapConverter);
