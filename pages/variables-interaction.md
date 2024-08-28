@@ -178,6 +178,10 @@ For each variable that is created in FT Optix, the corresponding class is automa
     - `MotorType.Speed` -> This is used to access the value of the variable
     - `MotorType.SpeedVariable` -> This is used to sync to change in value
 
+Registering for the `VariableChange` event in C#, registers a Core-side subscription to the `VariableChange` event. Simultaneously, a native C++ observer for the `VariableChange` event is created, which acts as a bridge by calling the C# method you subscribed to the `VariableChange` event with. Even if the `NetLogic` dies, without de-registration, the native observer remains alive, so the C# method is still triggered even after the `NetLogic` stops. This means it is **mandatory** to remove the observer before disposing the NetLogic.
+
+Let me know if you need any further assistance!
+
 ### Subscribing to a value change
 
 ```csharp
@@ -194,6 +198,12 @@ private void MyVar_VariableChange(object sender, VariableChangeEventArgs e)
     // Event listener to print old value and new value
     Log.Info("Old value: " + e.OldValue.ToString());
     Log.Info("New value: " + e.NewValue.ToString());
+}
+
+public override void Stop()
+{
+    // Mandatory unsubscriber
+    myVar.VariableChange -= MyVar_VariableChange;
 }
 ```
 
