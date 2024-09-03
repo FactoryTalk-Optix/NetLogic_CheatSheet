@@ -15,29 +15,46 @@ The examples provided are to be used as a reference for building your applicatio
 
 ## Sections
 
-- [General FT Optix good practices](./pages/good-practices.md)
+### Introduction
+
 - [NetLogic overview](./pages/netlogic-overview.md)
-- [Log output](./pages/log-output.md)
-- [Accessing project nodes](./pages/accessing-project-nodes.md)
-- [Managing aliases](./pages/managing-aliases.md)
+- [Accessing project nodes and the concept of "session"](./pages/accessing-project-nodes.md)
+- [General FT Optix good practices](./pages/good-practices.md)
+
+### General NetLogic tips and tricks
+
 - [Objects, types and instances](./pages/creating-objects.md)
+- [Sessions](./pages/sessions.md)
 - [Asynchronous tasks](./pages/async-tasks.md)
-- [Database interaction](./pages/database-interaction.md)
-- [Random generation](./pages/random-generation.md)
+
+### Variables
+
+- [Managing aliases](./pages/managing-aliases.md)
 - [Resource URI](./pages/resource-uri.md)
 - [Variables formatting](./pages/variables-formatting.md)
 - [RegEx](./pages/regex.md)
-- [DialogBox](./pages/dialog-boxes.md)
 - [Variables Interaction](./pages/variables-interaction.md)
-- [Execute commands](./pages/execute-command.md)
-- [Sessions](./pages/sessions.md)
-- [Translations](./pages/translations.md)
-- [Users and groups](./pages/users-groups.md)
-- [Events handling](./pages/events.md)
-- [Dynamic Links](./pages/dynamic-links.md)
-- [Colors](./pages/colors.md)
-- [Companion Specifications](./pages/companion-specs.md)
 - [Runtime tags import](./pages/runtime-tags-import.md)
+- [Dynamic Links](./pages/dynamic-links.md)
+
+### OPC/UA
+
+- [OPC/UA](./pages/opcua.md)
+- [Companion Specifications](./pages/companion-specs.md)
+
+### UI
+
+- [DialogBox](./pages/dialog-boxes.md)
+- [Events handling](./pages/events.md)
+- [Colors](./pages/colors.md)
 - [Advanced SVG](./pages/advanced-svg.md)
 - [DataGrid](./pages/datagrids.md)
-- [OPC/UA](./pages/opcua.md)
+
+### Others
+
+- [Log output](./pages/log-output.md)
+- [Database interaction](./pages/database-interaction.md)
+- [Random generation](./pages/random-generation.md)
+- [Execute commands](./pages/execute-command.md)
+- [Translations](./pages/translations.md)
+- [Users and groups](./pages/users-groups.md)

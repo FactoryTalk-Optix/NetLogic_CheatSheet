@@ -113,11 +113,11 @@ var myCustomPanel = InformationModel.MakeObject("MotorWidget", myCustomPanelType
 Project.Current.Get("UI/Screens/Screen1").Add(myCustomPanel);
 ```
 
-## OPC/UA objects
+## IUAObjects
 
-OPC/UA objects are generic containers that can hold variables or other OPC/UA objects and instances
+Objects are generic containers that can hold variables or other OPC/UA objects and instances
 
-### Create a custom OPC/UA Object type
+### Create a custom Object type
 
 ```csharp
 // Create a new Object Type
@@ -129,7 +129,7 @@ newObject.Add(InformationModel.MakeVariable("Power", OpcUa.DataTypes.Bool));
 Project.Current.Get("Model/Templates").Add(newObject);
 ```
 
-### DesignTime creation of custom OPC/UA Object instances
+### DesignTime creation of custom Object instances
 
 After the custom type has been created, new instances can be created with a slightly different syntax
 
@@ -142,7 +142,7 @@ var customTypeInstance = InformationModel.MakeObject("MotorInstance1", customTyp
 Project.Current.Get("Model/instances").Add(customTypeInstance);
 ```
 
-### RunTime creation of custom OPC/UA Object instances
+### RunTime creation of custom Object instances
 
 ```csharp
 // This syntax only works at Runtime, 

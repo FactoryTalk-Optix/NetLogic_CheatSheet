@@ -1,5 +1,31 @@
 # OPC/UA
 
+## Node's references
+
+In OPC/UA, some nodes may have additional references are explicit relationship (a named pointer) from one Node to another
+
+```csharp
+[ExportMethod]
+public void ReadReference(NodeId element)
+{
+    // Get to the element where we want to investigate the OPC/UA references
+    IUANode targetNode = InformationModel.Get(element);
+    // Assuming the node exists
+    if (targetNode != null)
+    {
+        // Loop per each reference and list it in the console output
+        foreach (var item in targetNode.Refs.GetReferences())
+        {
+            Log.Info("References", $"ReferenceTypeId: {item.ReferenceTypeId}, TargetNodeId: {item.TargetNodeId}, TargetNode: {item.TargetNode.BrowseName}");
+        }
+    }
+    else
+    {
+        Log.Info("References", "Cannot find such node in the current project");
+    }
+}
+```
+
 ## Read arbitrary tag from an OPC/UA Server
 
 This method allows to read any OPC/UA variables from a remote server knowing its `NameSpaceIndex` and `ID`. The following examples reads the `Server > ServerStatus > State` (0/2259) variable from the UaAnsiCServer from the OPC Foundation 
