@@ -110,3 +110,18 @@ public void ReadArbitraryValueFromRemoteOpcUaServer(int nameSpaceIndex, uint ide
     Log.Info(output[0].Values[0].ToString());
 }
 ```
+
+## Change the Status property of a Tag (changing the DataValue structure)
+
+This may be needed in some OPC/UA companion specifications where the Status of a tag is used to detect other status that are not only good or bad
+
+```csharp
+var myVariable = Project.Current.GetVariable("Model/MyFolder/Test");
+// The StatusCode shortcut is read-only
+Log.Info($"Original status code: {myVariable.StatusCode}");
+// new DataValue(UAValue value, uint statusCode, DateTime sourceTimestamp)
+// new DataValue(UAValue value, uint statusCode, DateTime sourceTimestamp, DateTime serverTimestamp)
+myVariable.DataValue = new DataValue(myVariable.Value, 100, DateTime.UtcNow);
+// The StatusCode shortcut is read-only
+Log.Info($"New status code: {myVariable.StatusCode}");
+```
