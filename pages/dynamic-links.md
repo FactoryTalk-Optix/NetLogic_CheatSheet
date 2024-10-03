@@ -258,3 +258,20 @@ public void GetBrokenDynamicLinks()
     }
 }
 ```
+
+## Change the EU Mode of a DynamicLink
+
+```csharp
+[ExportMethod]
+public void SetEuModeOfText()
+{
+    // Get to the label that will display the value of the variable
+    var myLabelText = Owner.GetVariable("Label1/Text");
+    // Get the dynamic link at the text property
+    var dynamicLink = myLabelText.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+    // Set the EU mode of the dynamic link to "Localize"
+    ((DynamicLink)dynamicLink).EUMode = DynamicLinkEUMode.SetParentLocalizedEngineeringUnit;
+    // Set the EU mode of the dynamic link to "Set Parent as Source" (no conversion)
+    //((DynamicLink)dynamicLink).EUMode = DynamicLinkEUMode.SetParentEngineeringUnitAsSource;
+}
+```
