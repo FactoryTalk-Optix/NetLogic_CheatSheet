@@ -4,6 +4,8 @@ Please note, this section is a work in progress. The documentation will be compl
 
 ## Add MouseClick event to a Button
 
+This code adds a GeneratePDF method to a button, and a SetVariableValue to a different button
+
 ```csharp
 #region Using directives
 using System;
@@ -29,36 +31,49 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         var button1 = mainWindow.Get<Button>("Button1");
         var button1BackgroundColor = button1.BackgroundColorVariable;
 
+        // Make sure to remove old handlers (if any)
         var oldEventHandlers = generateReportButton.Children.OfType<FTOptix.CoreBase.EventHandler>().ToList();
         oldEventHandlers.AddRange(changeColorButton.Children.OfType<FTOptix.CoreBase.EventHandler>());
         foreach (var oldEventHandler in oldEventHandlers)
             oldEventHandler.Delete();
 
+        // Report object that we want to create with a button
         var report1 = Project.Current.GetObject("Reports/Report1");
-        MakeEventHandler(
-            generateReportButton,
-            FTOptix.UI.ObjectTypes.MouseClickEvent,
-        report1,
-        "GeneratePdf",
-        new List<Tuple<string, NodeId, object>>
-        {
+
+        MakeEventHandler( // Add the GeneratePdf method to the button
+            generateReportButton, // Object where to create the method
+            FTOptix.UI.ObjectTypes.MouseClickEvent, // Method to be created
+            report1, // Object pointer where to call the method
+            "GeneratePdf", // Method name
+            new List<Tuple<string, NodeId, object>> // Method arguments
+            {
+                // Each row is a tuple, each tuple contains a string (name of the argument), a NodeId (DataType) and an Object (value)
                 new("OutputPath", FTOptix.Core.DataTypes.ResourceUri, (string)ResourceUri.FromApplicationRelativePath("MyReport.pdf")),
                 new("LocaleId", OpcUa.DataTypes.String, "en-US")
-        });
-        MakeEventHandler(
-        changeColorButton,
-            FTOptix.UI.ObjectTypes.MouseClickEvent,
-            InformationModel.GetObject(FTOptix.CoreBase.Objects.VariableCommands),
-        "Set",
-        new List<Tuple<string, NodeId, object>>
+            }
+        );
+        
+        MakeEventHandler( // Add the SetVariableValue method to the button
+            changeColorButton, // Object where to create the method
+            FTOptix.UI.ObjectTypes.MouseClickEvent, // Event to be added
+            InformationModel.GetObject(FTOptix.CoreBase.Objects.VariableCommands), // Object that exposes the method
+            "Set", // Name of the method
+            new List<Tuple<string, NodeId, object>> // Method arguments
             {
+                // Each row is a tuple, each tuple contains a string (name of the argument), a NodeId (DataType) and an Object (value)
                 new("VariableToModify", FTOptix.Core.DataTypes.VariablePointer, NodeId.Empty),
                 new("Value", FTOptix.Core.DataTypes.Color, new Color(0xff3480ebu).ARGB),
                 new("ArrayIndex", OpcUa.DataTypes.UInt32, 0u)
-            });
+            }
+        );
+
+        // Set which variable to be modified by the Set method
         var changeColorButtonEventHandler = changeColorButton.Get("EventHandler");
+        // This path can be different depending on the MethodContainer name assigned by the MakeEventHandler method
         var variableToModifyArgumentVariable = changeColorButtonEventHandler.GetVariable("MethodsToCall/MethodContainer1/InputArguments/VariableToModify");
+        // Assign a DynamicLink to the VariableToModify
         variableToModifyArgumentVariable.SetDynamicLink(button1BackgroundColor);
+        // Change the DynamicLink to make sure the NodeId attribute is used (IDE has a fallback to the @Value otherwise)
         var dynamicLink = variableToModifyArgumentVariable.Children.OfType<DynamicLink>().First();
         dynamicLink.Value = dynamicLink.Value + "@NodeId";
     }
@@ -79,7 +94,9 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         eventHandler.ListenEventType = listenEventTypeId;
 
         // Create method container
-        var methodContainer = InformationModel.MakeObject("MethodContainer1");
+        // This must be an unique name if the multiple methods are added to the same button. A random name can also be used
+        var methodIndex = eventHandler.MethodsToCall.Any() ? eventHandler.MethodsToCall.Count + 1 : 1;
+        var methodContainer = InformationModel.MakeObject($"MethodContainer{methodIndex}");
         eventHandler.MethodsToCall.Add(methodContainer);
 
         // Create the ObjectPointer variable and set its value to the object on which the method is to be executed
