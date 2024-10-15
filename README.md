@@ -36,6 +36,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Variables Interaction](./pages/variables-interaction.md)
 - [Runtime tags import](./pages/runtime-tags-import.md)
 - [Dynamic Links](./pages/dynamic-links.md)
+- [PLC Tags](./pages/plc-tags.md)
 
 ### OPC/UA
 

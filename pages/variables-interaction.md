@@ -1,6 +1,6 @@
 # Variables interaction
 
-## Create a Variable
+## Create a simple Variable
 
 ```csharp
 using OpcUa = UAManagedCore.OpcUa;
@@ -166,6 +166,13 @@ private void StuffMakeNewEnumeration(IUANode newEnumerationOwner, string newEnum
 }
 ```
 
+### Creating TagStructure
+
+```csharp
+// Create a new TagStructure variable
+var tagStructure = InformationModel.MakeVariable<FTOptix.CommunicationDriver.TagStructure>("FanArray", OpcUa.DataTypes.Structure, new[] { 11u });
+```
+
 ## Sync to variable change
 
 For each variable that is created in FT Optix, the corresponding class is automatically generated, this is actually creating two properties/classes per each variable
@@ -207,7 +214,9 @@ public override void Stop()
 }
 ```
 
-## Access mono-dimensional arrays
+## Single and multi dimensional arrays
+
+### Access mono-dimensional arrays
 
 ```csharp
 // Get the model variable
@@ -220,7 +229,7 @@ tempVar[0] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver1/E
 MyVar.SetValue(tempVar);
 ```
 
-## Access multi-dimensional arrays
+### Access multi-dimensional arrays
 
 ```csharp
 // Read the model matrix
@@ -234,83 +243,6 @@ tempVar[1, 0] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver
 tempVar[1, 1] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver1/EthernetIPStation1/Tags/Program:MainProgram/AOI_CalcPosMovA/y_Pos").Value;
 // Update the model variable with the new value
 MatrixMover.SetValue(tempVar);
-```
-
-## Variable synchronizer
-
-The `VariableSynchronizer` allows users to keep some variables synched even if not in use by any current page, it will keep all the children elements updated with the field. This method handles an automatic optimization of the Tags in order to minimize the number of read/write from the controller (while the `RemoteRead` performs a request per each tag and it is much slower)
-
-### Please note
-
-- The `ChildrenRemoteRead` is just as "slow" as the `RemoteRead`, it is just a recursive approach to a normal `RemoteRead`
-- The `VariableSynchronizer` is made to sync a small number of tags and may have significant impact on the communication driver, make sure to use it wisely
-
-```csharp
-public override void Start() 
-{
-    // Get the field variable
-    motorSpeed = LogicObject.Owner.GetVariable("Speed");
-    // Create the VariableSynchronizer object
-    variableSynchronizer = new RemoteVariableSynchronizer();
-    // Add the variables to the synchronizer
-    variableSynchronizer.Add(motorSpeed);
-    // Add the event to listen to value changes
-    motorSpeed.VariableChange += MotorSpeed_VariableChange;
-}
-public override void Stop() 
-{
-    // Destroy the synchronized on stop
-    variableSynchronizer?.Dispose();
-}
-private void MotorSpeed_VariableChange(object sender, VariableChangeEventArgs e) 
-{
-    // Event listener when value change is detected
-    if (motorSpeed.Value > 200) {
-        Log.Warning("Speed limit reached!");
-    }
-}
-private IUAVariable motorSpeed;
-private RemoteVariableSynchronizer variableSynchronizer;
-```
-
-## RemoteRead
-
-Remote read is a inline read of the field value, code is stopped to read the value, once the variable is updated, the code keeps running
-
-```csharp
-[ExportMethod]
-public void ReadBitFromPlcInteger(out int value)
-{
-    // Get the plc tag to read
-    var tag1 = Project.Current.Get<FTOptix.RAEtherNetIP.Tag>("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Program:CustomUdtProgram/program_dint_1D");
-    // Create the remote read object
-    var remoteVariables = new List<RemoteVariable>()
-    {
-        // Add the variables to read to the list
-        new RemoteVariable(tag1),
-    };
-    // Read the new values
-    var values = InformationModel.RemoteRead(remoteVariables).ToList();
-    // Get the field values to a C# variable
-    var plcArray = (int[])values[0].Value.Value;
-    // Do something with the values
-    Log.Info($"Value of first element of the array is {plcArray[0]}");
-    Log.Info($"Bit 5 of first element of the array is {GetBitValue(plcArray[0], 5)}");
-}
-
-private bool GetBitValue(int inputValue, int bitPosition)
-{
-    // Read a specific bit from a word
-    var array = new BitArray(new int[] { inputValue });
-    return array[bitPosition];
-}
-```
-
-## Creating TagStructure
-
-```csharp
-// Create a new TagStructure variable
-var tagStructure = InformationModel.MakeVariable<FTOptix.CommunicationDriver.TagStructure>("FanArray", OpcUa.DataTypes.Structure, new[] { 11u });
 ```
 
 ## Creating Guid for NodeID to use NodeFactory.MakeDataType
