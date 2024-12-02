@@ -59,3 +59,4 @@ The examples provided are to be used as a reference for building your applicatio
 - [Execute commands](./pages/execute-command.md)
 - [Translations](./pages/translations.md)
 - [Users and groups](./pages/users-groups.md)
+- [Alarms](./pages/alarming.md)
