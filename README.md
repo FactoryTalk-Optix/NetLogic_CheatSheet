@@ -60,3 +60,4 @@ The examples provided are to be used as a reference for building your applicatio
 - [Translations](./pages/translations.md)
 - [Users and groups](./pages/users-groups.md)
 - [Alarms](./pages/alarming.md)
+- [System Node](./pages/system-node.md)
