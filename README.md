@@ -8,10 +8,11 @@ Rockwell Automation maintains these repositories as a convenience to you and oth
 
 The examples provided are to be used as a reference for building your application and should not be used in production as-is. It is recommended to adapt the example for the purpose, of observing the highest safety standards.
 
-## Please read carefully
+> [!IMPORTANT]
+> This guide does not replace the official FT Optix documentation, it is just a place some code snippets with a brief explanation.
 
-- This guide does not replace the official FT Optix documentation, it is just a place some code snippets with a brief explanation.
-- These snippets *may* use some non-public APIs that may be subject to changes, please refer to official documentation to access the publicly available APIs which are guaranteed to be maintained.
+> [!WARNING]
+> These snippets *may* use some non-public APIs that may be subject to changes, please refer to official documentation to access the publicly available APIs which are guaranteed to be maintained.
 
 ## Sections
 
