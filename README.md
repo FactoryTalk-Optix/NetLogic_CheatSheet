@@ -51,6 +51,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Colors](./pages/colors.md)
 - [Advanced SVG](./pages/advanced-svg.md)
 - [DataGrid](./pages/datagrids.md)
+- [Animations](./pages/ui-animations.md)
 
 ### Others
 
