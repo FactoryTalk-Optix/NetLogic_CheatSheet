@@ -70,6 +70,15 @@ var coreCommandsObject = InformationModel.GetObject(FTOptix.CoreBase.Objects.Cor
 coreCommandsObject.ExecuteMethod("Close");
 ```
 
+```csharp
+// Get the alarms object
+var alarmCommands = InformationModel.GetObject(FTOptix.Alarm.Objects.AlarmCommands);
+// Acknowledge all alarms
+alarmCommands.ExecuteMethod("AcknowledgeAll");
+// Confirm all alarms
+alarmCommands.ExecuteMethod("ConfirmAll");
+```
+
 ## Execute a method from a different NetLogic
 
 ```csharp
