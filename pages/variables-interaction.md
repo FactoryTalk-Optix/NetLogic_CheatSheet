@@ -245,6 +245,27 @@ tempVar[1, 1] = (float)Project.Current.GetVariable("CommDrivers/EthernetIPDriver
 MatrixMover.SetValue(tempVar);
 ```
 
+### Convert an array of bytes to a string
+
+Assuming the array of bytes comes from the PLC and we want to write the string to a Model variable
+
+```csharp
+// Get the array content from the controller. A RemoteRead can also be added if needed.
+byte[] byteArray = (byte[]) Project.Current.GetVariable("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Controller Tags/chsArray").Value.Value;
+// Convert the array of bytes to the output string
+string appStr = System.Text.Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
+```
+
+### Convert a string to an array of bytes
+
+```csharp
+// Convert the string back to a byte array
+byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(appStr);
+// Optionally, you can add a RemoteWrite to force the new value in the controller
+Project.Current.GetVariable("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Controller Tags/chsArray").Value = byteArray;
+```
+
+
 ## Creating Guid for NodeID to use NodeFactory.MakeDataType
 
 ```csharp
@@ -266,53 +287,67 @@ public static Guid CreateGuidFromText(string text)
 
 ```csharp
 #region Using directives
-using System.Collections.Generic;
-using System.Linq;
-using FTOptix.NetLogic;
-using FTOptix.UI;
-using UAManagedCore;
+// Required namespaces for the script
+using System.Collections.Generic; // Provides collections such as List and Dictionary
+using System.Linq; // Provides LINQ methods for querying collections
+using FTOptix.NetLogic; // FTOptix-specific logic and framework utilities
+using FTOptix.UI; // FTOptix UI elements
+using UAManagedCore; // Core OPC UA components for FTOptix
 #endregion
 
 public class DesignTimeNetLogic1 : BaseNetLogic
 {
     /// <summary>
-    /// This method is used when the node is an instance of a type and no other super types are used
+    /// This method is used when the node is an instance of a type and no other super types are used.
+    /// It checks and logs specific properties of the children nodes within a panel.
     /// </summary>
     [ExportMethod]
     public void SimpleInstance()
     {
         Log.Info("Method1 called");
-        // Insert code to be executed by the method
+
+        // Retrieve the panel object by name
         var myPanel = Owner.Get<Panel>("MyPanel1");
+        
+        // Get all child nodes of type IUAVariable within the panel
         var panelChildren = myPanel.GetNodesByType<IUAVariable>();
         Log.Info("Found " + panelChildren.Count().ToString() + " children in panel");
+
+        // Iterate over each child node
         foreach (var item in panelChildren)
         {
-            // Do something with the controls
+            // Check if the variable's value differs from its corresponding object type's value
             if (myPanel.ObjectType.GetVariable(item.BrowseName).Value != myPanel.GetVariable(item.BrowseName).Value)
                 Log.Warning(item.BrowseName + " has a different value from the object type");
 
+            // Check if the variable has a dynamic link
             if (myPanel.GetVariable(item.BrowseName).Refs.GetNode(Optix.CoreBase.ReferenceTypes.HasDynamicLink) != null)
                 Log.Warning(item.BrowseName + " has a dynamic link");
 
+            // Check if the variable has a converter
             if (myPanel.GetVariable(item.BrowseName).Refs.GetNode(FTOptix.CoreBase.ReferenceTypes.HasConverter) != null)
                 Log.Warning(item.BrowseName + " has a converter");
         }
     }
 
-
     /// <summary>
-    /// This approach is used when the instance comes from a type derived from another type (and so on)
-    /// This will go up to all supertypes to extract the values from anywhere
+    /// This method is used for instances derived from a type with multiple levels of inheritance.
+    /// It traverses up the type hierarchy to find and compare values for child nodes.
     /// </summary>
     [ExportMethod]
     public void RecursiveApproach()
     {
+        // Retrieve the panel object by name
         var myPanel = Owner.Get<Panel>("MyPanel1");
+
+        // Get all child nodes of type IUAVariable within the panel
         var panelChildren = myPanel.GetNodesByType<IUAVariable>();
         Log.Info("Found " + panelChildren.Count().ToString() + " children in panel");
+
+        // Browse path used for locating nodes in the hierarchy
         var browsePath = new List<QualifiedName>();
 
+        // Determine the node type or supertype for comparison
         IUANode newMatchingNode;
         if (myPanel.IsObjectTypeOrVariableType())
             newMatchingNode = FindNodeInTypeOrSuperType(myPanel.GetSuperType(), browsePath);
@@ -321,12 +356,14 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         else
             newMatchingNode = null;
 
+        // Log an error if no matching node is found in the hierarchy
         if (newMatchingNode == null)
         {
             Log.Error("Can't get to the node supertype!");
             return;
         }
 
+        // Compare instance values with type values for each child node
         foreach (var node in panelChildren)
         {
             Log.Info(node.BrowseName);
@@ -344,31 +381,37 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         }
     }
 
+    /// <summary>
+    /// Finds a node within a type or its supertypes by traversing the hierarchy.
+    /// </summary>
     private IUANode FindNodeInTypeOrSuperType(IUANode typeNode, List<QualifiedName> browsePath)
     {
         while (typeNode != null)
         {
+            // Attempt to locate the node at the current type level
             var childNode = FindNode(typeNode, browsePath);
             if (childNode != null)
                 return childNode;
 
+            // Move to the supertype and continue searching
             typeNode = typeNode.GetSuperType();
         }
 
         return null;
     }
 
+    /// <summary>
+    /// Locates a node by following a browse path from a parent node.
+    /// </summary>
     private IUANode FindNode(IUANode parentNode, List<QualifiedName> browsePath)
     {
         var currentNode = parentNode;
 
+        // Traverse the browse path in reverse
         for (int i = browsePath.Count - 1; i >= 0; --i)
         {
             var childNode = currentNode.Refs.GetNode(browsePath[i]);
-            if (childNode == null)
-                return null;
-
-            if (childNode.Owner != currentNode)
+            if (childNode == null || childNode.Owner != currentNode)
                 return null;
 
             currentNode = childNode;
@@ -380,6 +423,8 @@ public class DesignTimeNetLogic1 : BaseNetLogic
 
 public static class PrototypeAnalyzerExtensions
 {
+    // Extensions for working with node prototypes and type hierarchies in FTOptix
+
     public static IUANode GetTypeNode(this IUANode node)
     {
         if (node is IUAObject obj)

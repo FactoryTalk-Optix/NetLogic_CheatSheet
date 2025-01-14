@@ -63,3 +63,10 @@ The examples provided are to be used as a reference for building your applicatio
 - [Users and groups](./pages/users-groups.md)
 - [Alarms](./pages/alarming.md)
 - [System Node](./pages/system-node.md)
+
+### Advanced
+
+> [!WARNING]
+> The following topics are very advanced and potentially dangerous, think twice before implementing them as they could lead to unexpected results
+
+- [Register OPC/UA observers](./pages/register-observers.md)

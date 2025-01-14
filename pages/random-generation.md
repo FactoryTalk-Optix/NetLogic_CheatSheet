@@ -7,7 +7,8 @@ When using the random generation, if the loop is particularly fast the system ti
 ```csharp
 Random r = new Random();
 
-public void Start() {
+public void Start() 
+{
     // Create a random integer value
 	Int variableRandom = r.Next(min, max);
     // Create a random double value
@@ -31,7 +32,8 @@ public static string RandomString(int stringLength)
         .Select(s => s[random.Next(s.Length)]).ToArray());
 }
 
-public void Start() {
+public void Start() 
+{
     // Call the method to generate the string
 	String randomString = RandomString(10);
 }

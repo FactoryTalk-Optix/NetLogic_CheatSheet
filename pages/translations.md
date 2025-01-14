@@ -103,66 +103,92 @@ This example provide a collection of array to add multiple records into the dict
 ```csharp
 private void StuffAddDictionaryTranslations(IUAVariable dictionary, List<string[]> valuesToAdd)
 {
-    // A big dictionary may take a long processing time, usage of a LongRunningTask is recommended
+    // A big dictionary may take a long processing time, so using a LongRunningTask is recommended to avoid blocking the main thread.
+    
+    // Validate input: if any of the inputs are null or empty, exit early.
     if (dictionary == null || dictionary.Value.Value == null || valuesToAdd == null || valuesToAdd.Count <= 0)
         return;
+
     string[,] actualDictionaryValues;
     try
     {
+        // Attempt to cast the dictionary's value to a 2D string array (dictionary format).
         actualDictionaryValues = dictionary.Value.Value as string[,];
     }
     catch
     {
-        //Maybe is not a dictionary, so is better to stop execution here
+        // If the dictionary value is not a valid 2D array, stop further execution.
         return;
     }
+
+    // List to store only verified values that can be safely added to the dictionary.
     List<string[]> valuesVerifiedToAdd = new List<string[]>();
+
+    // Iterate through each value set to be added to the dictionary.
     foreach (string[] valueToAdd in valuesToAdd)
     {
         if (valueToAdd == null)
-            continue;
+            continue; // Skip null entries.
+
+        // Check if the number of elements in the value matches the number of columns in the dictionary.
         if (valueToAdd.Length != actualDictionaryValues.GetLength(1))
         {
             Log.Warning(LogicObject.BrowseName, "The count of elements to be added is different from the number of columns in the dictionary, skipped");
             continue;
         }
+
+        // Validate that the first column (key) is not null or empty.
         if (string.IsNullOrEmpty(valueToAdd[0]))
         {
             Log.Warning(LogicObject.BrowseName, "Missing key, skipped");
             continue;
         }
+
+        // Check if the key already exists in the current dictionary.
         string checkIfKeyExist = Enumerable
-       .Range(0, actualDictionaryValues.GetLength(0))
-       .Where(x => actualDictionaryValues[x, 0] == valueToAdd[0])
-       .Select(y => actualDictionaryValues[y, 0])
-       .FirstOrDefault();
+            .Range(0, actualDictionaryValues.GetLength(0)) // Generate row indices.
+            .Where(x => actualDictionaryValues[x, 0] == valueToAdd[0]) // Check if the key matches the first column.
+            .Select(y => actualDictionaryValues[y, 0]) // Get the matching key.
+            .FirstOrDefault(); // Return the first match or null.
+
         if (!string.IsNullOrEmpty(checkIfKeyExist))
         {
-            Log.Warning(LogicObject.BrowseName, $"Key {valueToAdd[0]} already exist, cannot add to dictionary, use Edit method");
+            Log.Warning(LogicObject.BrowseName, $"Key {valueToAdd[0]} already exists, cannot add to dictionary, use Edit method");
             continue;
         }
+
+        // Add the value to the list of verified values for addition.
         valuesVerifiedToAdd.Add(valueToAdd);
-    }        
+    }
+
+    // Create a new dictionary with additional rows for the new entries.
     string[,] newDictionaryValues = new string[actualDictionaryValues.GetLength(0) + valuesVerifiedToAdd.Count, actualDictionaryValues.GetLength(1)];
-    for (int i = 0; i< actualDictionaryValues.GetLength(0); i++) 
+
+    // Copy the existing dictionary values to the new dictionary.
+    for (int i = 0; i < actualDictionaryValues.GetLength(0); i++)
     {
-        for (int j = 0; j < actualDictionaryValues.GetLength(1);j++)
+        for (int j = 0; j < actualDictionaryValues.GetLength(1); j++)
         {
-            newDictionaryValues[i,j] = actualDictionaryValues[i,j];
+            newDictionaryValues[i, j] = actualDictionaryValues[i, j];
         }
     }
+
+    // Add the verified new values to the new dictionary starting from the next available row.
     int rowOffset = 0;
     foreach (string[] valueToAdd in valuesVerifiedToAdd)
     {
         for (int i = 0; i < valueToAdd.Length; i++)
         {
-            int rowIndex = actualDictionaryValues.GetLength(0) + rowOffset;
-            newDictionaryValues[rowIndex, i] = valueToAdd[i];
+            int rowIndex = actualDictionaryValues.GetLength(0) + rowOffset; // Calculate the row index for the new entry.
+            newDictionaryValues[rowIndex, i] = valueToAdd[i]; // Add the value to the corresponding position.
         }
-        rowOffset++;
+        rowOffset++; // Move to the next row for subsequent entries.
     }
+
+    // Update the dictionary's value with the new dictionary containing the added values.
     dictionary.Value = new UAValue(newDictionaryValues);
 }
+
 ```
 
 ### Modify content of a dictionary
@@ -172,50 +198,71 @@ This example provide a collection of array to edit multiple records into the dic
 ```csharp
 private void StuffModifyDictionaryTranslations(IUAVariable dictionary, List<string[]> valuesToEdit)
 {
-    // A big dictionary may take a long processing time, usage of a LongRunningTask is recommended
+    // A big dictionary may take a long time to process, so using a LongRunningTask is recommended to avoid blocking execution.
+    
+    // Validate inputs: check if dictionary or its value is null, or if there are no values to edit.
     if (dictionary == null || dictionary.Value.Value == null || valuesToEdit == null || valuesToEdit.Count <= 0)
         return;
+
     string[,] actualDictionaryValues;
     try
     {
+        // Attempt to cast the dictionary's value to a two-dimensional string array.
         actualDictionaryValues = dictionary.Value.Value as string[,];
     }
     catch
     {
-        //Maybe is not a dictionary, so is better to stop execution here
+        // If the value cannot be cast, it may not be a dictionary, so stop further execution.
         return;
     }
-    foreach (string[] valueToEdit in  valuesToEdit) 
+
+    // Iterate over each entry in the valuesToEdit list.
+    foreach (string[] valueToEdit in valuesToEdit)
     {
+        // Skip null entries.
         if (valueToEdit == null)
             continue;
+
+        // Check if the entry length matches the number of dictionary columns.
         if (valueToEdit.Length != actualDictionaryValues.GetLength(1))
         {
-            Log.Warning(LogicObject.BrowseName, "The count of elements to be edit is different from the number of columns in the dictionary, skipped");
+            Log.Warning(LogicObject.BrowseName, "The count of elements to be edited is different from the number of columns in the dictionary, skipped");
             continue;
         }
+
+        // Ensure the key (first element) is not null or empty.
         if (string.IsNullOrEmpty(valueToEdit[0]))
         {
             Log.Warning(LogicObject.BrowseName, "Missing key, skipped");
             continue;
         }
+
+        // Find the row in the dictionary corresponding to the key.
         int rowNumberToEdit = Enumerable
-       .Range(0, actualDictionaryValues.GetLength(0))
-       .Where(x => actualDictionaryValues[x, 0] == valueToEdit[0])
-       .FirstOrDefault(-1);
+            .Range(0, actualDictionaryValues.GetLength(0)) // Iterate over all rows.
+            .Where(x => actualDictionaryValues[x, 0] == valueToEdit[0]) // Check if the first column matches the key.
+            .FirstOrDefault(-1); // Default to -1 if no match is found.
+
+        // If the key does not exist in the dictionary, log a warning and skip the entry.
         if (rowNumberToEdit == -1)
         {
-            Log.Warning(LogicObject.BrowseName, $"Key {valueToEdit[0]} not exist, cannot edit the dictionary, use Add method");
+            Log.Warning(LogicObject.BrowseName, $"Key {valueToEdit[0]} does not exist, cannot edit the dictionary, use Add method");
             continue;
         }
-        for (int i = 0; i < valueToEdit.Length; i++) 
+
+        // Update the corresponding row with the new values.
+        for (int i = 0; i < valueToEdit.Length; i++)
         {
+            // Only update non-empty values to avoid overwriting existing data with empty values.
             if (!string.IsNullOrEmpty(valueToEdit[i]))
-                actualDictionaryValues[rowNumberToEdit,i] = valueToEdit[i];
+                actualDictionaryValues[rowNumberToEdit, i] = valueToEdit[i];
         }
     }
+
+    // Update the dictionary with the modified values.
     dictionary.Value = new UAValue(actualDictionaryValues);
 }
+
 ```
 
 ### Remove

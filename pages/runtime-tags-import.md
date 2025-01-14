@@ -32,19 +32,19 @@ Browse and import PLC tags
 
 ```csharp
 [ExportMethod]
-    public void Import()
-    {
-        var station = Project.Current.Get<Station>("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1");
+public void Import()
+{
+    var station = Project.Current.Get<Station>("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1");
 
-        Struct[] instances;
-        Struct[] types;
-        station.Browse(out instances, out types);
-        station.Import(instances, types);
+    Struct[] instances;
+    Struct[] types;
+    station.Browse(out instances, out types);
+    station.Import(instances, types);
 
-        var tag = Project.Current.Get<Tag>("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Program:CustomUdtProgram/Increment_INT");
-        Log.Info($"Read value of {tag.BrowseName}");
-        Log.Info($"{tag.RemoteRead()}");
-    }
+    var tag = Project.Current.Get<Tag>("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Program:CustomUdtProgram/Increment_INT");
+    Log.Info($"Read value of {tag.BrowseName}");
+    Log.Info($"{tag.RemoteRead()}");
+}
 ```
 
 The following code contains a method for each of the driver where runtime import is supported
