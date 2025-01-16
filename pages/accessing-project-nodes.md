@@ -1,53 +1,6 @@
 # Accessing project nodes
 
-## Project context
-
-Accessing the path of the node will return the project-level node, this is good for global elements (Model Variables, PLC Tags, etc) but it cannot be used to access session-based elements, as each user session will have a unique instance of windows and pages with uniques NodeIds
-
-### Overview
-
-![Project vs session](../images/session-concept.png)
-
-FactoryTalk Optix graphical interface is based on the object's oriented paradigm, this means that when defining UI elements at design-time, these are actually created as object types. When the runtime starts, and a session is created (NativePresentationEngine creates automatically one UI instance, each client of the WebPresentationEngine creates one UI instance), this session is derived from the UI type that was designed, thus becoming an instance.
-
-Each session lives as an independent object, each session can interact with global objects (such as Model variables or PLC tags) but cannot access other sessions, when calling methods that targets a session object (such as the refresh of a DataGrid), it can only affect the session where the method was called, other instances and sessions are unaffected.
-
-NetLogic are also affected by this functionality:
-- When using the `Project.Current.Get` syntax, only the project definition can be accessed, if a UI element is manipulated using such syntax, the session instance must be destroyed and recreated in order to inherit the new changes (for example navigating to a different page and then coming back)
-- When placing the NetLogic inside a page (Screen) and using the `Owner.Get` syntax, the specific instance where the NetLogic is executed gets manipulated and the UI is immediately refreshed. Only the instance where the NetLogic exists can be accessed, a session-based NetLogic cannot interact with other sessions, only with elements in the current session or global objects (such as PLC tags or Model variables).
-
-### Summary
-
-- Each session of a PresentationEngine creates an instance of the UI types
-- Each session is completely independent from other session
-- A session can only interact with:
-    - Elements in the same session
-    - Global objects (Model variables, PLC tags, alarms, etc)
-- A session cannot interact with other sessions
-- Session changes are discarded when the instance is destroyed (page is changed or reloaded)
-    - Retentivity cannot be applied to session objects
-    - Retentivity should never be applied to any UI object
-- A session can access global objects, but global objects cannot access session objects, for example:
-    - A global NetLogic cannot refresh the DataGrid of a session, a global NetLogic can only access nodes at the project level (such as alarms, PLC tags, Model variables, etc)
-    - A session NetLogic can access all global objects, all elements of the current UI session but cannot access other sessions.
-
-### Examples
-
-#### Refreshing a DataGrid
-
-As the DataGrid is a session object, the NetLogic to refresh a DataGrid must be placed at a session level
-
-#### Creating a new alarm
-
-As the Alarm is a global object, the NetLogic can be either at the session level or at a global level
-
-#### Performing an SQL query
-
-Here it depends on the final goal:
-
-- If just inserting data to a database, the NetLogic can be either at the session level or at a global level, the data can be passed as global variable or as argument of the called method
-- If performing a query (such as a SELECT) depending on some parameters from the user, the NetLogic must be placed at the session level (where TextBox or other controls can be accessed)
-- If performing a query (such as a SELECT or an INSERT) depending on some values from the controller (PLC), the NetLogic can be placed either at a global or session level
+Before reading this page, please make sure to have the concept of [InformationModel and Session](./information-model.md).
 
 ## Navigating to a node
 

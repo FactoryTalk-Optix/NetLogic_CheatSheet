@@ -18,8 +18,9 @@ The examples provided are to be used as a reference for building your applicatio
 
 ### Introduction
 
+- [The InformationModel](./pages/information-model.md)
 - [NetLogic overview](./pages/netlogic-overview.md)
-- [Accessing project nodes and the concept of "session"](./pages/accessing-project-nodes.md)
+- [Accessing project nodes](./pages/accessing-project-nodes.md)
 - [General FT Optix good practices](./pages/good-practices.md)
 
 ### General NetLogic tips and tricks
