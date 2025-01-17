@@ -1,6 +1,8 @@
 # Users and groups
 
-## Creating a new Group
+## Groups
+
+### Creating a new Group
 
 ```csharp
 [ExportMethod]
@@ -21,5 +23,111 @@ public void CreateNewGroup(string groupName) {
     var newGroup = InformationModel.Make<Group>(groupName);
     // Add the group to the folder
     userFolder.Add(newGroup);
+}
+```
+
+### Check if user is part of a group
+
+```csharp
+private static bool UserHasGroup(FTOptix.Core.User user, FTOptix.Core.Group group)
+{
+    if (user == null)
+        return false;
+    
+    if (group == null)
+        return false;
+
+    var userGroups = user.Refs.GetObjects(FTOptix.Core.ReferenceTypes.HasGroup, false);
+
+    foreach (var userGroup in userGroups)
+    {
+        if (userGroup.NodeId == group.NodeId)
+            return true;
+    }
+    return false;
+}
+```
+
+### Assign group to a user
+
+```csharp
+private void AssignUserToGroup(FTOptix.Core.User user, FTOptix.Core.Group group)
+{
+    user.Refs.AddReference(FTOptix.Core.ReferenceTypes.HasGroup, group.NodeId);
+}
+```
+
+### Remove group from a user
+
+```csharp
+private void RemoveUserFromGroup(FTOptix.Core.User user, FTOptix.Core.Group group)
+{
+    user.Refs.RemoveReference(FTOptix.Core.ReferenceTypes.HasGroup, group.NodeId);
+}
+```
+
+## Roles
+
+### Creating a new Role
+
+```csharp
+[ExportMethod]
+public void CreateNewRole(string roleName) {
+    // Get to the base folder to create roles
+    Folder userFolder = Project.Current.Get<Folder>("Security/Roles");
+    if (userFolder == null) {
+        Log.Error("CreateNewRole", "Cannot find Roles folder");
+        return;
+    } else if (string.IsNullOrEmpty(roleName)) {
+        Log.Error("CreateNewRole", "Cannot create role with empty name");
+        return;
+    } else if (userFolder.Get<FTOptix.Core.Role>(roleName) != null) {
+        Log.Error("CreateNewRole", "Role already exists!");
+        return;
+    }
+    // Create a new role
+    var newRole = InformationModel.Make<FTOptix.Core.Role>(roleName);
+    // Add the group to the folder
+    userFolder.Add(newRole);
+}
+```
+
+### Check if user is part of a role
+
+```csharp
+private static bool UserHasGroup(FTOptix.Core.User user, FTOptix.Core.Role role)
+{
+    if (user == null)
+        return false;
+    
+    if (role == null)
+        return false;
+
+    var userRoles = user.Refs.GetObjects(FTOptix.Core.ReferenceTypes.HasRole, false);
+
+    foreach (var userRole in userRoles)
+    {
+        if (userRole.NodeId == role.NodeId)
+            return true;
+    }
+    return false;
+}
+```
+
+### Assign role to a user
+
+```csharp
+private void AssignUserToRole(FTOptix.Core.User user, FTOptix.Core.Role role)
+{
+    user.Refs.AddReference(FTOptix.Core.ReferenceTypes.HasRole, role.NodeId);
+}
+```
+
+### Remove role from a user
+
+```csharp
+private void RemoveUserFromRole(FTOptix.Core.User user, FTOptix.Core.Role role)
+{
+    user.Refs.RemoveReference(FTOptix.Core.ReferenceTypes.HasRole, role.NodeId);
 }
 ```
