@@ -143,7 +143,9 @@ private sealed class StartExamParameters
 private LongRunningTask startExamTask = null;
 ```
 
-### Some general notes on asynchronous tasks
+## Some general notes on asynchronous tasks
+
+### Cancellation token
 
 When a task is called asynchronously (especially in LongRunningTask), then the method itself should check if a cancellation request is pending (see [documentation here](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/task-cancellation)) and act accordingly, for example:
 
@@ -177,5 +179,52 @@ public class LongRunningLogic : BaseNetLogic
     }
 
     private LongRunningTask myTask;
+}
+```
+
+### Check if a task is running
+
+```csharp
+[ExportMethod]
+public void DoStuff()
+{
+    // Initialize the LongRunningTask
+    var myTask = new LongRunningTask(MyMethod, LogicObject);
+
+    // Do some stuff
+
+    // Check if the task is still running
+    while (IsTaskRunning(task))
+    {
+        Log.Info("The task is still running...");
+        Thread.Sleep(100);
+    }
+}
+
+private void MyMethod(LongRunningTask task)
+{
+    // Do some work
+    throw new NotImplementedException();
+}
+
+private static bool IsTaskRunning(LongRunningTask task)
+{
+    // Get the type of the LongRunningTask
+    Type taskType = task.GetType();
+
+    // Get the FieldInfo object for the isRunning field
+    FieldInfo isRunningField = taskType.GetField("isRunning", BindingFlags.NonPublic | BindingFlags.Instance);
+
+    // Check if the field was found
+    if (isRunningField != null)
+    {
+        // Get the value of the isRunning field
+        bool isRunning = (bool) isRunningField.GetValue(task);
+        return isRunning;
+    }
+    else
+    {
+        throw new InvalidOperationException("The isRunning field was not found on the LongRunningTask type.");
+    }
 }
 ```
