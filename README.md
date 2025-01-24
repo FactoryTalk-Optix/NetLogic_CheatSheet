@@ -65,6 +65,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Users and groups](./pages/users-groups.md)
 - [Alarms](./pages/alarming.md)
 - [System Node](./pages/system-node.md)
+- [Template Library](./pages/template-library.md) (starting from FactoryTalk Optix 1.6.X)
 
 ### Advanced
 

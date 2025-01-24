@@ -28,6 +28,9 @@ public void ReadReference(NodeId element)
 
 ## Read arbitrary tag from an OPC/UA Server
 
+> [!WARNING]
+> This method involves some low-level OPC/UA operations and may not be recommended for production usage. It is recommended to use the OPC/UA Client TagImporter instead.
+
 This method allows to read any OPC/UA variables from a remote server knowing its `NameSpaceIndex` and `ID`. The following examples reads the `Server > ServerStatus > State` (0/2259) variable from the UaAnsiCServer from the OPC Foundation 
 
 ```csharp
@@ -116,12 +119,16 @@ public void ReadArbitraryValueFromRemoteOpcUaServer(int nameSpaceIndex, uint ide
 This may be needed in some OPC/UA companion specifications where the Status of a tag is used to detect other status that are not only good or bad
 
 ```csharp
-var myVariable = Project.Current.GetVariable("Model/MyFolder/Test");
-// The StatusCode shortcut is read-only
-Log.Info($"Original status code: {myVariable.StatusCode}");
-// new DataValue(UAValue value, uint statusCode, DateTime sourceTimestamp)
-// new DataValue(UAValue value, uint statusCode, DateTime sourceTimestamp, DateTime serverTimestamp)
-myVariable.DataValue = new DataValue(myVariable.Value, 100, DateTime.UtcNow);
-// The StatusCode shortcut is read-only
+[ExportMethod]
+public void UpdateStatusCode()
+{
+    var myVariable = Project.Current.GetVariable("Model/MyFolder/Test");
+    // The StatusCode shortcut is read-only
+    Log.Info($"Original status code: {myVariable.StatusCode}");
+    // new DataValue(UAValue value, uint statusCode, DateTime sourceTimestamp)
+    // new DataValue(UAValue value, uint statusCode, DateTime sourceTimestamp, DateTime serverTimestamp)
+    myVariable.DataValue = new DataValue(myVariable.Value, 100, DateTime.UtcNow);
+    // The StatusCode shortcut is read-only
 Log.Info($"New status code: {myVariable.StatusCode}");
+}
 ```

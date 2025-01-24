@@ -1,5 +1,9 @@
 # OPC/UA Observers
 
+> [!WARNING]
+> Observers are low-level features and should be used with caution. 
+> This feature is not officially supported and may be subject to changes in future releases.
+
 The OPC/UA protocol implements some ways to monitor changes in the nodes tree, this allows the creation of observers that can monitor some project nodes and triggers some logics based on a set of events (which can be specified using a mask).
 
 This technique allows multiple scenarios like:

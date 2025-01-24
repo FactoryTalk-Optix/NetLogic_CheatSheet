@@ -184,6 +184,9 @@ public class LongRunningLogic : BaseNetLogic
 
 ### Check if a task is running
 
+> [!WARNING]
+> This is a non-public API (accessed using C# reflections) and may be subject to changes, please refer to the official documentation to access the publicly available APIs which are guaranteed to be maintained.
+
 ```csharp
 [ExportMethod]
 public void DoStuff()

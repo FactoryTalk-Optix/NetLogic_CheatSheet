@@ -13,7 +13,86 @@ var speedValue = Owner.GetObject("SpeedLabel").GetVariable("Text");
 myObj.SpeedVariable.SetDynamicLink(speedValue, DynamicLinkMode.Read);
 ```
 
-### Dynamic Link to a bit indexed word
+### Dynamic link manipulation
+
+> [!WARNING]
+> Manipulating a dynamic link is a very advanced topic and should be used with caution. It is recommended to use the default dynamic link APIs unless you have a specific use case.
+
+#### Resolve a DynamicLink
+
+```csharp
+// Get the element containing a DynamicLink
+TrendPen originalPen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
+// Read the variable value
+var myVariable = (String)originalPen.FindVariable("DynamicLink").Value;
+// Resolve the dynamic link target
+var result = LogicObject.Context.ResolvePath(myVariable);
+var test = result.ResolvedNode;
+// Set the target variable somewhere in the project
+Owner.Find<ComboBox>("ComboBox1").SelectedItem = test.Owner.NodeId;
+```
+
+#### Check for a DynamicLink
+
+```csharp
+// Check if the current node has a dynamic link
+var dynamicLink = inputVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+// Retrieve the path of the dynamic link
+var dynamicLinkPath = (string)dynamicLink.Value;
+// Resolve the dynamic link and get to the target node
+var targetVariable = LogicObject.Context.ResolvePath(inputVariable, dynamicLinkPath).ResolvedNode;
+```
+
+#### Check for broken DynamicLink
+
+```csharp
+[ExportMethod]
+public void GetBrokenDynamicLinks()
+{
+    var nodesWithBrokenDynamicLink = new List<string>();
+    var projectNodes = Project.Current.Parent.FindNodesByType<IUANode>();
+ 
+    foreach (var n in projectNodes)
+    {
+        // Check if the current node has a dynamic link
+        var dynamicLink = n.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+        if (dynamicLink == null) continue;
+        // Retrieve the path of the dynamic link
+        var dynamicLinkPath = (string)dynamicLink.Value;
+        // Resolve the dynamic link and get to the target node
+        var targetVariable = LogicObject.Context.ResolvePath(n, dynamicLinkPath).ResolvedNode;
+            if (targetVariable == null)
+        {
+            nodesWithBrokenDynamicLink.Add("Node BrowsePath: " + Log.Node(n));
+        }
+    }
+ 
+    foreach (var info in nodesWithBrokenDynamicLink)
+    {
+        Log.Info(info);
+    }
+}
+```
+
+#### Change the EU Mode of a DynamicLink
+
+```csharp
+[ExportMethod]
+public void SetEuModeOfText()
+{
+    // Get to the label that will display the value of the variable
+    var myLabelText = Owner.GetVariable("Label1/Text");
+    // Get the dynamic link at the text property
+    var dynamicLink = myLabelText.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+    // Set the EU mode of the dynamic link to "Localize"
+    ((DynamicLink)dynamicLink).EUMode = DynamicLinkEUMode.SetParentLocalizedEngineeringUnit;
+    // Set the EU mode of the dynamic link to "Set Parent as Source" (no conversion)
+    //((DynamicLink)dynamicLink).EUMode = DynamicLinkEUMode.SetParentEngineeringUnitAsSource;
+}
+```
+
+
+#### Dynamic Link to a bit indexed word
 
 ```csharp
 [ExportMethod]
@@ -30,7 +109,7 @@ public void AddDynamicLinkToBitOfIntegerVariable()
 }
 ```
 
-### Dynamic Link to a single element of array variable
+#### Dynamic Link to a single element of array variable
 
 ```csharp
 [ExportMethod]
@@ -57,7 +136,7 @@ public void StuffDynamicLinkToArrayElement(IUAVariable sourceVariable, IUAVariab
 }
 ```
 
-### Formatted dynamic link
+#### Formatted dynamic link
 
 A formatted dynamic link is very similar to a string formatter and it is used to dynamically reference different objects in the project, such as using the same widget to control different motors using a SpinBox
 
@@ -93,7 +172,12 @@ public void StuffCreateNewDynamicLinkFormatter()
 }
 ```
 
-## Creating a String Formatter
+### Advanced dynamic links
+
+> [!WARNING]
+> Advanced dynamic links are a very advanced topic and should be used with caution. It is recommended to use the default dynamic link APIs unless you have a specific use case.
+
+#### Creating a String Formatter
 
 ```csharp
 // Create a new variable
@@ -118,7 +202,7 @@ source0.SetDynamicLink(variable1);
 source1.SetDynamicLink(variable2);
 ```
 
-## Creating an Expression Evaluator
+#### Creating an Expression Evaluator
 
 ```csharp
 [ExportMethod]
@@ -145,7 +229,7 @@ public void Method1()
 }
 ```
 
-## Creating a Key-Value Converter
+#### Creating a Key-Value Converter
 
 ```csharp
 private void StuffCreateKeyPair(IUAVariable targetNode, IUAVariable sourceVariable)
@@ -182,7 +266,7 @@ private void StuffCreateKeyPair(IUAVariable targetNode, IUAVariable sourceVariab
 }
 ```
 
-## Creating a Conditional Converter
+#### Creating a Conditional Converter
 
 ```csharp
 private void StuffCreateConditionalConverter(IUAVariable targetNode, IUAVariable sourceVariable)
@@ -200,78 +284,5 @@ private void StuffCreateConditionalConverter(IUAVariable targetNode, IUAVariable
     // Set the dynamic link to the object
     newConditionalConverter.Mode = DynamicLinkMode.Read;
     targetNode.SetConverter(newConditionalConverter);
-}
-```
-
-## Resolve a DynamicLink
-
-```csharp
-// Get the element containing a DynamicLink
-TrendPen originalPen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
-// Read the variable value
-var myVariable = (String)originalPen.FindVariable("DynamicLink").Value;
-// Resolve the dynamic link target
-var result = LogicObject.Context.ResolvePath(myVariable);
-var test = result.ResolvedNode;
-// Set the target variable somewhere in the project
-Owner.Find<ComboBox>("ComboBox1").SelectedItem = test.Owner.NodeId;
-```
-
-## Check for a DynamicLink
-
-```csharp
-// Check if the current node has a dynamic link
-var dynamicLink = inputVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
-// Retrieve the path of the dynamic link
-var dynamicLinkPath = (string)dynamicLink.Value;
-// Resolve the dynamic link and get to the target node
-var targetVariable = LogicObject.Context.ResolvePath(inputVariable, dynamicLinkPath).ResolvedNode;
-```
-
-## Check for broken DynamicLink
-
-```csharp
-[ExportMethod]
-public void GetBrokenDynamicLinks()
-{
-    var nodesWithBrokenDynamicLink = new List<string>();
-    var projectNodes = Project.Current.Parent.FindNodesByType<IUANode>();
- 
-    foreach (var n in projectNodes)
-    {
-        // Check if the current node has a dynamic link
-        var dynamicLink = n.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
-        if (dynamicLink == null) continue;
-        // Retrieve the path of the dynamic link
-        var dynamicLinkPath = (string)dynamicLink.Value;
-        // Resolve the dynamic link and get to the target node
-        var targetVariable = LogicObject.Context.ResolvePath(n, dynamicLinkPath).ResolvedNode;
-            if (targetVariable == null)
-        {
-            nodesWithBrokenDynamicLink.Add("Node BrowsePath: " + Log.Node(n));
-        }
-    }
- 
-    foreach (var info in nodesWithBrokenDynamicLink)
-    {
-        Log.Info(info);
-    }
-}
-```
-
-## Change the EU Mode of a DynamicLink
-
-```csharp
-[ExportMethod]
-public void SetEuModeOfText()
-{
-    // Get to the label that will display the value of the variable
-    var myLabelText = Owner.GetVariable("Label1/Text");
-    // Get the dynamic link at the text property
-    var dynamicLink = myLabelText.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
-    // Set the EU mode of the dynamic link to "Localize"
-    ((DynamicLink)dynamicLink).EUMode = DynamicLinkEUMode.SetParentLocalizedEngineeringUnit;
-    // Set the EU mode of the dynamic link to "Set Parent as Source" (no conversion)
-    //((DynamicLink)dynamicLink).EUMode = DynamicLinkEUMode.SetParentEngineeringUnitAsSource;
 }
 ```

@@ -1,6 +1,8 @@
 # Events handling
 
-Please note, this section is a work in progress. The documentation will be completed as soon as possible.
+> [!WARNING]
+> This section is a work in progress and uses some low-level APIs.
+> The documentation will be completed as soon as possible.
 
 ## Add MouseClick event to a Button
 
