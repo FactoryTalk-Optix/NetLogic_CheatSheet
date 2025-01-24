@@ -14,6 +14,12 @@ The examples provided are to be used as a reference for building your applicatio
 > [!WARNING]
 > These snippets *may* use some non-public APIs that may be subject to changes, please refer to official documentation to access the publicly available APIs which are guaranteed to be maintained.
 
+> [!WARNING]
+> Some of the snippets from this repository may irremediably break your project, use them at your own risk. Make sure to implement proper error handling and testing before deploying them to a production environment.
+
+> [!WARNING]
+> Usage of the version control features of the FactoryTalk Optix IDE is hightly recommended to avoid any data loss. Make sure to commit your changes regularly to recover from any potential issue.
+
 ## Sections
 
 ### Introduction
