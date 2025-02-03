@@ -112,7 +112,7 @@ private void DispatchEventToCore(string username, bool successful, string messag
         Log.Error("LoginButtonLogic", "EventsDispatcher NetLogic not found");
         return;
     }
-
+ 
     // Create the input arguments for the event
     // The arguments are passed as an object array, to find the list of arguments
     // and the expected values, you can use an EventLogger object and generate
