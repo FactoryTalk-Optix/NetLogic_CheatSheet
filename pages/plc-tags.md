@@ -28,7 +28,8 @@ public override void Start()
     // Get the field variable
     motorSpeed = LogicObject.Owner.GetVariable("Speed");
     // Create the VariableSynchronizer object
-    variableSynchronizer = new RemoteVariableSynchronizer(new TimeSpan.FromSeconds(5));
+    var updateRate = TimeSpan.FromSeconds(5);
+    variableSynchronizer = new RemoteVariableSynchronizer(updateRate);
     // Add the variables to the synchronizer
     variableSynchronizer.Add(motorSpeed);
     // Add the event to listen to value changes

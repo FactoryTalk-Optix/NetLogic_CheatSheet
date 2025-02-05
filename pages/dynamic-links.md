@@ -5,12 +5,14 @@
 By default a `DynamicLink` is made as _Read only_ unless you specify different mode
 
 ```csharp
-// Get the element where the dynamic link has to be added
-var myObj = Owner.Get<Motor>("Motor1");
-// Reach the specific variable
-var speedValue = Owner.GetObject("SpeedLabel").GetVariable("Text");
-// Create the dynamic link and specify the mode (optional - read only if empty)
-myObj.SpeedVariable.SetDynamicLink(speedValue, DynamicLinkMode.Read);
+    ...
+    // Get the element where the dynamic link has to be added
+    var myObj = Owner.Get<Motor>("Motor1");
+    // Reach the specific variable
+    var speedValue = Owner.GetObject("SpeedLabel").GetVariable("Text");
+    // Create the dynamic link and specify the mode (optional - read only if empty)
+    myObj.SpeedVariable.SetDynamicLink(speedValue, DynamicLinkMode.Read);
+    ...
 ```
 
 ### Dynamic link manipulation
@@ -21,15 +23,28 @@ myObj.SpeedVariable.SetDynamicLink(speedValue, DynamicLinkMode.Read);
 #### Resolve a DynamicLink
 
 ```csharp
-// Get the element containing a DynamicLink
-TrendPen originalPen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
-// Read the variable value
-var myVariable = (String)originalPen.FindVariable("DynamicLink").Value;
-// Resolve the dynamic link target
-var result = LogicObject.Context.ResolvePath(myVariable);
-var test = result.ResolvedNode;
-// Set the target variable somewhere in the project
-Owner.Find<ComboBox>("ComboBox1").SelectedItem = test.Owner.NodeId;
+    ...
+    // Get the element containing a DynamicLink
+    TrendPen originalPen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
+    // Read the variable value
+    var myVariable = (String)originalPen.FindVariable("DynamicLink").Value;
+    // Resolve the dynamic link target
+    var result = LogicObject.Context.ResolvePath(myVariable);
+    var resolvedNode = result.ResolvedNode;
+    // Set the target variable somewhere in the project
+    Owner.Find<ComboBox>("ComboBox1").SelectedItem = resolvedNode.Owner.NodeId;
+    ...
+```
+
+```csharp
+    ...
+    // Get the element containing a DynamicLink
+    var textVariable = Owner.Children.Get<IUAVariable>("Text");
+    // Get the DynamicLink node
+    var dynamicLinkNode = textVariable.Children.Get("DynamicLink");
+    // Get the pointed node
+    var pointedNode = dynamicLinkNode.Refs.GetNodes(FTOptix.Core.ReferenceTypes.Resolves).First();
+    ...
 ```
 
 #### Check for a DynamicLink
