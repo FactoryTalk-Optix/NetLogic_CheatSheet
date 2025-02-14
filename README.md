@@ -72,6 +72,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Alarms](./pages/alarming.md)
 - [System Node](./pages/system-node.md)
 - [Template Library](./pages/template-library.md) (starting from FactoryTalk Optix 1.6.X)
+- [Reports](./pages/reports.md)
 
 ### Advanced
 
