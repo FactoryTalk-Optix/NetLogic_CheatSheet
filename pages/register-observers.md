@@ -86,3 +86,51 @@ namespace LogsHandler
 }
 
 ```
+
+## Subscribe to methods execution
+
+This script can be put anywhere on the project and will listen to every OPCUA method being called (script or UI)
+
+```csharp
+public class RuntimeNetLogic1 : BaseNetLogic
+{
+    public override void Start()
+    {
+        var serverObject = LogicObject.Context.GetObject(OpcUa.Objects.Server);
+        var eventHandler = new EventsHandler.EventsHandler();
+        eventRegistration = serverObject.RegisterUAEventObserver(eventHandler, UAManagedCore.OpcUa.ObjectTypes.AuditUpdateMethodEventType);
+    }
+
+    public override void Stop()
+    {
+        // Insert code to be executed when the user-defined logic is stopped
+    }
+
+    private IEventRegistration eventRegistration;
+}
+
+namespace EventsHandler
+{
+    public class EventsHandler : IUAEventObserver
+    {
+        public EventsHandler()
+        {
+            Log.Info("EventsHandler", "EventsHandler instance created");
+        }
+
+        public void OnEvent(IUAObject eventNotifier, IUAObjectType eventType, IReadOnlyList<object> eventData, ulong senderId)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append($"Event of type {eventType.BrowseName} triggered");
+            var eventArguments = eventType.EventArguments;
+            foreach (var eventField in eventArguments.GetFields())
+            {
+                var fieldValue = eventArguments.GetFieldValue(eventData, eventField);
+                builder.Append($"\t{eventField} = {fieldValue?.ToString() ?? "null"}");
+            }
+            builder.Append("\n");
+            Log.Info(builder.ToString());
+        }
+    }
+}
+```

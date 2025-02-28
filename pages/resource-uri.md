@@ -2,9 +2,9 @@
 
 ## Important note
 
-Although multiple solutions are shown here to set the target path for a ResourceUri variable, please remember that the WebPresentationEngine only supports accessing elements that are either in the `%PROJECTDIR%` or `%APPLICATIONDIR%` and a relative path is used (example: `%PROJECTDIR%/imgs/logo.svg`), using an absolute path for an element (example: `C:/OptixProjects/NewHMIProject1/Project Files/imgs/logo.svg`), will never work in the WebPresentationEngine for safety reasons.
+Although multiple solutions are shown here to set the target path for a ResourceUri variable, please remember that the WebPresentationEngine only supports accessing elements that are in the `%PROJECTDIR%` and a relative path is used (example: `%PROJECTDIR%/imgs/logo.svg`), using an absolute path for an element (example: `C:/OptixProjects/NewHMIProject1/Project Files/imgs/logo.svg`), will never work in the WebPresentationEngine for safety reasons.
 
-## Create a ResourceUri from scratches
+## Create a ResourceUri from scratch
 
 ```csharp
 // Get the working folder from the current context
