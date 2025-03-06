@@ -262,3 +262,69 @@ public class CreateEventHandler : BaseNetLogic
     }
 }
 ```
+
+## Subscribe to methods execution
+
+This script can be put anywhere on the project and will listen to every OPCUA method being called (script or UI)
+
+```csharp
+public class MethodExecutionAuditLogic : BaseNetLogic, IUAEventObserver
+{
+    public override void Start()
+    {
+        var serverObject = LogicObject.Context.GetObject(OpcUa.Objects.Server);
+        //eventRegistration = serverObject.RegisterUAEventObserver(this, UAManagedCore.OpcUa.ObjectTypes.AuditUpdateMethodEventType);
+    }
+
+    public override void Stop()
+    {
+        // Insert code to be executed when the user-defined logic is stopped
+    }
+
+    public void OnEvent(IUAObject eventNotifier, IUAObjectType eventType, IReadOnlyList<object> eventData, ulong senderId)
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.Append($"Event of type {eventType.BrowseName} triggered");
+
+        var eventArguments = eventType.EventArguments;
+        foreach (var eventField in eventArguments.GetFields())
+        {
+            var fieldValue = eventArguments.GetFieldValue(eventData, eventField);
+            builder.Append($"\t{eventField} = {fieldValue?.ToString() ?? "null"}");
+        }
+
+        builder.Append("\n");
+        Log.Info(builder.ToString());
+    }
+
+  //  private IEventRegistration eventRegistration;
+}
+```
+
+## Add a VariableChanged event to a variable
+
+> [!WARNING]
+> This method can only work at DesignTime
+
+```csharp
+[ExportMethod]
+public void AddVariableChangeEvent()
+{
+    IUAVariable targetVariable = null;
+    try
+    {
+        targetVariable = InformationModel.GetVariable(LogicObject.GetVariable("VariableToAddChangeMethod").Value);
+    }
+    catch
+    {
+        Log.Error("Variable not found");
+        return;
+    }
+
+    var variableOwner = targetVariable.Owner;
+    var variableChangedEventDispatcher = InformationModel.Make<VariableChangedEventDispatcher>($"{targetVariable.BrowseName}Changed");
+    variableChangedEventDispatcher.GetVariable("VariableNodePath").Value = $"../{targetVariable.BrowseName}";
+
+    variableOwner.Add(variableChangedEventDispatcher);
+}
+```
