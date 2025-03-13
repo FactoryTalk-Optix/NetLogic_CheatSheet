@@ -7,61 +7,75 @@ Database interaction is only possible via the FT Optix API
 First you need to access the Database node, then get the Table by its BrowseName and then prepare the object which will contain the rows to add
 
 ```csharp
-// Get the Database object from the current project
-var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-// Get a specific table by name
-var myTable = myStore.Tables.Get<Table>("TicTacToe");
-// Prepare the header for the insert query (list of columns)
-string[] columns = { "Username", "Seed", "GameTime", "Timestamp" };
-// Create the new object, a bidimensional array where the first element
-// is the number of rows to be added, the second one is the number
-// of columns to be added (same size of the columns array)
-var values = new object[1, 4];
-// Set some values for each column
-values[0, 0] = (string)Owner.Owner.Get<Label>("LbUser").Text;
-values[0, 1] = (string)Owner.Owner.Get<Label>("LbSeed").Text;
-values[0, 2] = (DateTime.Now - startGameTime).TotalSeconds;
-values[0, 3] = DateTime.Now;
-// Perform the insert query
-myTable.Insert(columns, values);
-// Some log for users
-Log.Info("TicTacToe.Score", "Inserting " + values[0, 1]);
+private void InsertData()
+{
+    // Get the Database object from the current project
+    var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
+    // Get a specific table by name
+    var myTable = myStore.Tables.Get<Table>("TableName");
+    // Prepare the header for the insert query (list of columns)
+    string[] columns = { "Username", "Apples", "Bananas", "Timestamp" };
+    // Create the new object, a bidimensional array where the first element
+    // is the number of rows to be added, the second one is the number
+    // of columns to be added (same size of the columns array)
+    var values = new object[1, 4];
+    // Set some values for each column
+    values[0, 0] = (string)Owner.Owner.Get<Label>("LbUser").Text;
+    values[0, 1] = (int)Owner.Owner.Get<SpinBox>("Apples").Value;
+    values[0, 2] = (int)Owner.Owner.Get<SpinBox>("Bananas").Value;
+    values[0, 3] = DateTime.Now;
+    // Perform the insert query
+    myTable.Insert(columns, values);
+    // Some log for users
+    Log.Info("InsertData", "Inserting data for user " + values[0, 0]);
+}
 ```
 
 ## Update
 
 ```csharp
-// Get the Database from the current project
-var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-// Create the output to get the result (mandatory)
-Object[,] ResultSet;
-String[] Header;
-// Perform the query
-myStore.Query("UPDATE MyTable SET ColumnName=NewValue", out Header, out ResultSet);
+private void UpdateData()
+{
+    // Get the Database from the current project
+    var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
+    // Create the output to get the result (mandatory)
+    Object[,] ResultSet;
+    String[] Header;
+    // Perform the query
+    myStore.Query("UPDATE MyTable SET ColumnName=NewValue", out Header, out ResultSet);
+}
 ```
 
 ## Delete
 
 ```csharp
-// Get the Database from the current project
-var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-// Create the output to get the result (mandatory)
-Object[,] ResultSet;
-String[] Header;
-// Perform the query
-myStore.Query("DELETE FROM MyTable WHERE ColumnName=NewValue", out Header, out ResultSet);
+private void DeleteData()
+{
+    // Get the Database from the current project
+    var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
+    // Create the output to get the result (mandatory)
+    Object[,] ResultSet;
+    String[] Header;
+    // Perform the query
+    myStore.Query("DELETE FROM MyTable WHERE ColumnName=NewValue", out Header, out ResultSet);
+}
 ```
 
 ### Select
 
 ```csharp
-// Get the Database from the current project
-var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-// Create the output to get the result (mandatory)
-Object[,] ResultSet;
-String[] Header;
-// Perform the query
-myStore.Query("SELECT * FROM TableName", out Header, out ResultSet);
+private void SelectData()
+{
+    // Get the Database from the current project
+    var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
+    // Create the output to get the result (mandatory)
+    Object[,] ResultSet;
+    String[] Header;
+    // Perform the query
+    myStore.Query("SELECT * FROM TableName", out Header, out ResultSet);
+    // Get the result
+    Log.Info("SelectData", "Result: " + ResultSet[0, 0]);
+}
 ```
 
 ### Get the list of columns name from a DataBase
@@ -69,13 +83,16 @@ myStore.Query("SELECT * FROM TableName", out Header, out ResultSet);
 #### From ODBC
 
 ```csharp
-// Get the Database from the current project
-var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-// Create the output to get the result (mandatory)
-Object[,] ResultSet;
-String[] Header;
-// Perform the query
-myStore.Query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'AlarmsEventLogger1'", out Header, out ResultSet);
+private void ExtractColumnNames()
+{
+    // Get the Database from the current project
+    var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
+    // Create the output to get the result (mandatory)
+    Object[,] ResultSet;
+    String[] Header;
+    // Perform the query
+    myStore.Query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'AlarmsEventLogger1'", out Header, out ResultSet);
+}
 ```
 
 #### From EmbeddedDatabase
@@ -83,23 +100,32 @@ myStore.Query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NA
 The EmbeddedDatabase uses a SQLite technology which only supports a subset of features from a normal store, we will need some additional steps
 
 ```csharp
-Regex regexTable = new Regex("(?<=\\bFROM\\s)(\\w+)");
-String tableName = regexTable.Match(Owner.GetVariable("Query").Value.Value.ToString(), 0, Owner.GetVariable("Query").Value.Value.ToString().Length).Value;
-               
-// Check if we are using EmbeddedDatabase or SQL
-if (dataSource.GetType().FullName.ToString().Contains("SQLite")) {
-    // Extract list of tables
-    var tablesList = myStore.Children.ToList()[0].Children.ToList();
-    foreach (var table in tablesList) {
-    // Check if current table matches input query table
-    if (((QPlatform.SQLiteStore.SQLiteStoreTable)table).BrowseName == tableName) {
-        var columnList = ((QPlatform.SQLiteStore.SQLiteStoreTable)table).Columns.ToList();
-        // Extract columns name
-        for (int i = 1; i < (columnList.Count - 2); i++) {
-            if (i == 1) {
-                dataNames = columnList[i].BrowseName.ToString();
-            } else {
-                dataNames += ", " + columnList[i].BrowseName.ToString();
+private void ExtractColumnNames()
+{
+    Regex regexTable = new Regex("(?<=\\bFROM\\s)(\\w+)");
+    String tableName = regexTable.Match(Owner.GetVariable("Query").Value.Value.ToString(), 0, Owner.GetVariable("Query").Value.Value.ToString().Length).Value;
+
+    // Check if we are using EmbeddedDatabase or SQL
+    if (dataSource.GetType().FullName.ToString().Contains("SQLite")) 
+    {
+        // Extract list of tables
+        var tablesList = myStore.Children.ToList()[0].Children.ToList();
+        foreach (var table in tablesList) 
+        {
+        // Check if current table matches input query table
+        if (((QPlatform.SQLiteStore.SQLiteStoreTable)table).BrowseName == tableName) 
+        {
+            var columnList = ((QPlatform.SQLiteStore.SQLiteStoreTable)table).Columns.ToList();
+            // Extract columns name
+            for (int i = 1; i < (columnList.Count - 2); i++) 
+            {
+                if (i == 1) 
+                {
+                    dataNames = columnList[i].BrowseName.ToString();
+                } else 
+                {
+                    dataNames += ", " + columnList[i].BrowseName.ToString();
+                }
             }
         }
     }
@@ -147,3 +173,16 @@ private static object GetRandomValue(Type dataType, Random random)
 }
 
 ```
+
+## Sample queries
+
+### Populate a PieChard with the count of unique values in a column
+
+This query returns the count of unique values in the column `Code` of the table `SQLiteStoreTable1` to populate a pie chard. Each slice of the pie chart will represent a unique value in the column `Code` and the size of the slice will be the count of the occurrences of that value.
+
+The PieChard object should be populated with:
+
+- Model: `EmbeddedDatabase1`
+- Query: `SELECT Code, COUNT(*) AS Count FROM SQLiteStoreTable1 GROUP BY Code ORDER BY Count DESC`
+- Label: `{Item}/Code`
+- Value: `{Item}/Count`

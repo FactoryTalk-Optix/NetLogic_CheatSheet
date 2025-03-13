@@ -498,3 +498,15 @@ public override void Start()
     }
 }
 ```
+
+## Remove the value from a NodeId variable
+
+```csharp
+private void ClearNodeIdValue()
+{
+    // Get the variable
+    var myVar = Project.Current.GetVariable("Model/MyNodeIdVariable");
+    // Clear the value
+    myVar.Value = NodeId.Empty;
+}
+```
