@@ -370,3 +370,48 @@ public void Method1()
     StuffRemoveDictionaryTranslations(translation.GetVariable("MyNewDictionary"), removeToThisDict);
 }
 ```
+
+## Send the current locale to the PLC
+
+> [!NOTE] 
+> This code might limit the flexibility of locales switching in FactoryTalk Optix. 
+
+By default, each session has its own independent locale. This means that the script will be triggered every time any connected session changes its locale. The last session to change the locale will update the value in the controller.
+
+This setup works fine if you are using only one session. However, if you are using multiple sessions, you should use a different approach. For example, you could log the locale change for each session separately into different variables.
+
+```csharp
+public class RuntimeNetLogic1 : BaseNetLogic
+{
+    // Place this code in the RuntimeNetLogic1.cs file
+    // in the MainWindow object of the project
+
+    public override void Start()
+    {
+        // Subscribe to the LocaleId variable change event
+        Session.ActualLocaleIdVariable.VariableChange += Session_LocaleIdVariable_VariableChange;
+        // You can also log the initial LocaleId value if needed
+        Log.Info("Initial LocaleId: " + Session.ActualLocaleId);
+    }
+
+    private void Session_LocaleIdVariable_VariableChange(object sender, VariableChangeEventArgs e)
+    {
+        // This code will be executed when the LocaleId variable changes
+        // You can add your custom logic here
+        var newLocaleId = e.NewValue;
+        // For example, you can log the new LocaleId
+        Log.Info("New LocaleId: " + newLocaleId);
+        // Or send the new LocaleId to the PLC
+        Project.Current.Get<Variable>("CommDrivers/PLC1/Tags/LocaleId").Value = newLocaleId;
+    }
+
+    public override void Stop()
+    {
+        // Unsubscribe from the variable change event
+        if (Session.LocaleIdVariable != null)
+        {
+            Session.ActualLocaleIdVariable.VariableChange -= Session_LocaleIdVariable_VariableChange;
+        }
+    }
+}
+```
