@@ -61,7 +61,7 @@ private void DeleteData()
 }
 ```
 
-### Select
+## Select
 
 ```csharp
 private void SelectData()
@@ -75,6 +75,27 @@ private void SelectData()
     myStore.Query("SELECT * FROM TableName", out Header, out ResultSet);
     // Get the result
     Log.Info("SelectData", "Result: " + ResultSet[0, 0]);
+}
+```
+
+```csharp
+[ExportMethod]
+public void SelectData(NodeId minDateTimePickerNodeId, NodeId maxDateTimePickerNodeId, out double averageValue)
+{
+    // Get the Database from the current project
+    var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase1");
+    var minDateTimePicker = InformationModel.Get<DateTimePicker>(minDateTimePickerNodeId);
+    var minDate = minDateTimePicker.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+    var maxDateTimePicker = InformationModel.Get<DateTimePicker>(maxDateTimePickerNodeId);
+    var maxDate = maxDateTimePicker.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+    // Create the output to get the result (mandatory)
+    Object[,] ResultSet;
+    String[] Header;
+    var query = $"SELECT AVG(Speed) AS AverageSpeed FROM prod1_table WHERE Machine_state = \"RUN\" AND (Timestamp BETWEEN \"{minDate}\" AND \"{maxDate}\") ORDER BY AverageSpeed DESC";
+    // Perform the query
+    myStore.Query(query, out Header, out ResultSet);
+    // Get the result
+    averageValue = (double)ResultSet[0, 0];
 }
 ```
 
@@ -186,3 +207,12 @@ The PieChard object should be populated with:
 - Query: `SELECT Code, COUNT(*) AS Count FROM SQLiteStoreTable1 GROUP BY Code ORDER BY Count DESC`
 - Label: `{Item}/Code`
 - Value: `{Item}/Count`
+
+### Populate a Histogram chart with the count of unique values in a column
+
+This query returns the count of unique values in the column `StatusMachine` of the table `SQLiteStoreTable1` to populate a histogram chart. Each bar of the histogram will represent a unique value in the column `StatusMachine` and the height of the bar will be the count of the occurrences of that value.
+
+- Model: `EmbeddedDatabase1`
+- Query: `SELECT StatusMachine, COUNT(*) AS Occurrences FROM Machine_state WHERE StatusMachine >= 0 GROUP BY StatusMachine ORDER BY Occurrences DESC`
+- Label: `{Item}/StatusMachine`
+- Value: `{Item}/Occurrences`
