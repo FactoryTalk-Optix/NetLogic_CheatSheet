@@ -67,7 +67,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Database interaction](./pages/database-interaction.md)
 - [Random generation](./pages/random-generation.md)
 - [Execute commands](./pages/execute-command.md)
-- [Translations](./pages/translations.md)
+- [Locales and Translations](./pages/translations.md)
 - [Users and groups](./pages/users-groups.md)
 - [Alarms](./pages/alarming.md)
 - [System Node](./pages/system-node.md)

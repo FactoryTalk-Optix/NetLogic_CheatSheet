@@ -2,6 +2,9 @@
 
 Importing of PLC tags while the application is running is currently only supported for:
 
+> [!NOTE]
+> Runtime import of extended tag attributes from the RA Ethernet/IP driver is not supported yet.
+
 - TwinCAT
 - RA Ethernet/IP
 - Siemens S7 Profinet
