@@ -195,6 +195,73 @@ private static object GetRandomValue(Type dataType, Random random)
 
 ```
 
+## Dynamic creation of a DataGrid
+
+```csharp
+[ExportMethod]
+public void QueryOnStore(string tableName)
+{
+    queryTask?.Dispose();
+    var arguments = new object[] { tableName };
+    queryTask = new LongRunningTask(QueryAndUpdate, arguments, LogicObject);
+    queryTask.Start();
+}
+
+private void QueryAndUpdate(LongRunningTask myTask, object args)
+{
+    // Get the table name from the arguments
+    var argumentsArray = (object[])args;
+    var tableName = (string)argumentsArray[0];
+
+    if (string.IsNullOrEmpty(tableName))
+        return;
+
+    // Get the DataGrid and Store
+    var store = Project.Current.Get<Store>("DataStores/EmbeddedDatabase1");
+    var dataGrid = Owner.Get<DataGrid>("DataGrid");
+
+    if (store == null || dataGrid == null)
+        return;
+
+    // Reset the grid
+    dataGrid.Query = "";
+
+    // Prepare the query
+    var query = $"SELECT * FROM {tableName}";
+
+    // Execute the query
+    store.Query(query, out String[] header, out Object[,] resultSet);
+
+    if (header == null || resultSet == null)
+        return;
+
+    // Clear existing rows
+    dataGrid.Columns.Clear();
+
+    DynamicLink lastDynamicLink = null;
+
+    // Create columns based on the header
+    foreach (var columnName in header)
+    {
+        var newDataGridColumn = InformationModel.MakeObject<DataGridColumn>(columnName);
+        newDataGridColumn.Title = columnName;
+        newDataGridColumn.DataItemTemplate = InformationModel.MakeObject<DataGridLabelItemTemplate>("DataItemTemplate");
+        var dynamicLink = InformationModel.MakeVariable<DynamicLink>("DynamicLink", FTOptix.Core.DataTypes.NodePath);
+        dynamicLink.Value = "{Item}/" + NodePath.EscapeNodePathBrowseName(columnName);
+        newDataGridColumn.DataItemTemplate.GetVariable("Text").Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, dynamicLink);
+        newDataGridColumn.OrderBy = dynamicLink.Value;
+        dataGrid.Columns.Add(newDataGridColumn);
+        lastDynamicLink = dynamicLink;
+    }
+
+    // Set last column as sort item - not really needed
+    dataGrid.SortColumnVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, lastDynamicLink);
+
+    // Add the new query to the grid
+    dataGrid.Query = query + " ORDER BY Timestamp DESC";
+}
+```
+
 ## Sample queries
 
 ### Populate a PieChard with the count of unique values in a column

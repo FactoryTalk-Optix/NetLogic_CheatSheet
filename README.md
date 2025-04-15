@@ -64,7 +64,7 @@ The examples provided are to be used as a reference for building your applicatio
 ### Others
 
 - [Log output](./pages/log-output.md)
-- [Database interaction](./pages/database-interaction.md)
+- [Database interaction (queries)](./pages/database-interaction.md)
 - [Random generation](./pages/random-generation.md)
 - [Execute commands](./pages/execute-command.md)
 - [Locales and Translations](./pages/translations.md)
