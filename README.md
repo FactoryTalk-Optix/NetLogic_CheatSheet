@@ -40,6 +40,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Managing aliases](./pages/managing-aliases.md)
 - [Resource URI](./pages/resource-uri.md)
 - [Variables formatting](./pages/variables-formatting.md)
+- [Variables properties](./pages/variables-properties.md)
 - [RegEx](./pages/regex.md)
 - [Variables Interaction](./pages/variables-interaction.md)
 - [Runtime tags import](./pages/runtime-tags-import.md)
