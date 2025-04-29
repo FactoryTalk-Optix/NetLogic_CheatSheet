@@ -44,6 +44,9 @@ public void OpenDialogBox(string DialogBoxName, NodeId[] AliasArray = null)
 
 ## Close all DialogBoxes
 
+> [!TIP]
+> The following snippet must be placed in a session-based object (e.g. the `MainWindow` of a project).
+
 ```csharp
 [ExportMethod]
 public void CloseAllDialogs()
