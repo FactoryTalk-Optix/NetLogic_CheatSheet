@@ -60,30 +60,39 @@ public struct TypeConflictResolutionChoice
 
 ### Conflict resolution example
 
- The following example will overwrite the existing element:
+ The following example will import the LoginForm from the TeamplateLibrary by overwriting the existing element (if any):
 
 ```csharp
-[ExportMethod]
-public void ImportLoginFormFromLibrary()
+using UAManagedCore;
+using FTOptix.HMIProject;
+using FTOptix.NetLogic;
+using System.Collections.Generic;
+using static UAManagedCore.TemplateLibrary;
+
+public class DesignTimeNetLogic1 : BaseNetLogic
 {
-    // Conflict resolution strategy
-    var conflictResolutionChoices = new List<TypeConflictResolutionChoice>
+    [ExportMethod]
+    public void ImportLoginFormFromLibrary()
     {
-        // This is the list of elements which are inside the LoginForm object, we can specify how to handle each of them
-        new TypeConflictResolutionChoice("LoginForm", NodeClass.ObjectType, ConflictResolution.Replace),
-        new TypeConflictResolutionChoice("Login", NodeClass.ObjectType, ConflictResolution.Replace),
-        new TypeConflictResolutionChoice("LoginPasswordExpiredDialog", NodeClass.ObjectType, ConflictResolution.Replace),
-        new TypeConflictResolutionChoice("LoginChangePasswordForm", NodeClass.ObjectType, ConflictResolution.Replace),
-        new TypeConflictResolutionChoice("Logout", NodeClass.ObjectType, ConflictResolution.Replace),
-        new TypeConflictResolutionChoice("OAuth2Login", NodeClass.ObjectType, ConflictResolution.Replace)
-    };
-    // The place where the object will be imported
-    var targetFolder = Project.Current.Get("UI");
-    // Import the object
-    // Syntax: ImportLibraryItem(<item destination>, <node class (type or instance)>, <name of the library>, <name of the library item>)
-    var myWidget = TemplateLibrary.ImportLibraryItem(targetFolder, NodeClass.ObjectType, "Widgets", "LoginForm", conflictResolutionChoices);
-    // Log the result
-    Log.Info($"Imported LoginForm from library to: {Log.Node(myWidget)}");
+        // Conflict resolution strategy
+        var conflictResolutionChoices = new List<TypeConflictResolutionChoice>
+        {
+            // This is the list of elements which are inside the LoginForm object, we can specify how to handle each of them
+            new TypeConflictResolutionChoice("LoginForm", NodeClass.ObjectType, ConflictResolution.Replace),
+            new TypeConflictResolutionChoice("Login", NodeClass.ObjectType, ConflictResolution.Replace),
+            new TypeConflictResolutionChoice("LoginPasswordExpiredDialog", NodeClass.ObjectType, ConflictResolution.Replace),
+            new TypeConflictResolutionChoice("LoginChangePasswordForm", NodeClass.ObjectType, ConflictResolution.Replace),
+            new TypeConflictResolutionChoice("Logout", NodeClass.ObjectType, ConflictResolution.Replace),
+            new TypeConflictResolutionChoice("OAuth2Login", NodeClass.ObjectType, ConflictResolution.Replace)
+        };
+        // The place where the object will be imported
+        var targetFolder = Project.Current.Get("UI");
+        // Import the object
+        // Syntax: ImportLibraryItem(<item destination>, <node class (type or instance)>, <name of the library>, <name of the library item>)
+        var myWidget = TemplateLibrary.ImportLibraryItem(targetFolder, NodeClass.ObjectType, "Widgets", "LoginForm", conflictResolutionChoices);
+        // Log the result
+        Log.Info($"Imported LoginForm from library to: {Log.Node(myWidget)}");
+    }
 }
 ```
 
