@@ -265,7 +265,6 @@ byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(appStr);
 Project.Current.GetVariable("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Controller Tags/chsArray").Value = byteArray;
 ```
 
-
 ## Creating Guid for NodeID to use NodeFactory.MakeDataType
 
 ```csharp

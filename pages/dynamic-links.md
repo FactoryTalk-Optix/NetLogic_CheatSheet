@@ -106,7 +106,6 @@ public void SetEuModeOfText()
 }
 ```
 
-
 #### Dynamic Link to a bit indexed word
 
 ```csharp
@@ -127,8 +126,7 @@ public void AddDynamicLinkToBitOfIntegerVariable()
 #### Dynamic Link to a single element of array variable
 
 ```csharp
-[ExportMethod]
-public void StuffDynamicLinkToArrayElement(IUAVariable sourceVariable, IUAVariable targetDynamicLink, uint sourceVariableArrayIndex, int targetDynamicLinkArrayIndex, DynamicLinkMode dynamicLinkMode)
+private void StuffDynamicLinkToArrayElement(IUAVariable sourceVariable, IUAVariable targetDynamicLink, uint sourceVariableArrayIndex, int targetDynamicLinkArrayIndex, DynamicLinkMode dynamicLinkMode)
 {
     // Prepare the BrowseName for the dynamic link variable
     string dynamicLinkVariableBrowseName = $"DynamicLink_{sourceVariableArrayIndex}";
@@ -137,7 +135,14 @@ public void StuffDynamicLinkToArrayElement(IUAVariable sourceVariable, IUAVariab
     // Set the dynamic link values
     newDynamicLink.Value = DynamicLinkPath.MakePath(sourceVariable, targetDynamicLink);
     newDynamicLink.Mode = dynamicLinkMode;
-    newDynamicLink.ParentArrayIndexVariable.Value = sourceVariableArrayIndex;
+    // Get the parent element access variable as Struct for getting the values
+    Struct parentElementAccess = newDynamicLink.ParentElementAccessVariable.Value;
+    // Generate the new values for the parent element access variable (the first element is the index in case of an array, the second is the field index in case of struct)
+    var newValues = parentElementAccess.Values.ToList();
+    // Set the target index as array of uint (OPCUA specs)
+    newValues[0] = new uint[]{sourceVariableArrayIndex};
+    // Overwrite the struct with the new values
+    newDynamicLink.ParentElementAccessVariable.Value = new Struct(parentElementAccess.DataTypeId,newValues);
     // Check if the target of dynamic link is an array
     if (targetDynamicLinkArrayIndex >= 0)
     {
