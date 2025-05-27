@@ -56,7 +56,7 @@ public class RuntimeLoggerMonitor : BaseNetLogic
         // Get the server object
         var serverObject = LogicObject.Context.GetObject(OpcUa.Objects.Server);
         // Create a new observer
-        var logsObserver = new LogsEventObserver();
+        var logsObserver = new LogsHandler.LogsEventObserver();
         // Register the observer to the server node
         logsRegistration = serverObject.RegisterUAEventObserver(logsObserver, FTOptix.Core.ObjectTypes.LogEvent);
     }
