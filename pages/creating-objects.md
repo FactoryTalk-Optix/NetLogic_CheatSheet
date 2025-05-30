@@ -236,3 +236,56 @@ private NodeId RecursiveSearch(IUANode inputObject, String screenType) {
 }
 
 ```
+
+## Find types derived from a specific type
+
+In the OPC/UA model, types can be derived from other types. This means that a type can inherit properties and methods from another type. To find all types derived from a specific type, you need to navigate through the references of the starting type type.
+
+> [!NOTE]
+> The routine might be called recursively, as derived types can have their own derived types, and so on. This is useful for exploring the hierarchy of types in the OPC/UA model.
+
+### Find all types derived from BaseEventType
+
+```csharp
+public class FindBaseEventTypesRecursively : BaseNetLogic
+{
+    [ExportMethod]
+    public void FindBaseEventTypeSubtypes()
+    {
+        recursiveTypesSearchTask = new LongRunningTask(RecursiveSearchMethod, LogicObject);
+        recursiveTypesSearchTask.Start();
+    }
+
+    private void RecursiveSearchMethod()
+    {
+        RecursiveSearch(null);
+        Log.Info($"Found {foundSubtypes.Count} subtypes of BaseEventType.");
+        recursiveTypesSearchTask.Dispose();
+    }
+
+    private void RecursiveSearch(IUANode baseEventType = null)
+    {
+        if (baseEventType == null)
+        {
+            baseEventType = InformationModel.Get(OpcUa.ObjectTypes.BaseEventType);
+            if (baseEventType == null)
+            {
+                Log.Error("BaseEventType not found in the information model.");
+                return;
+            }
+        }
+
+        var subtypes = baseEventType.Refs.GetNodes(OpcUa.ReferenceTypes.HasSubtype);
+
+        foreach (var subtype in subtypes)
+        {
+            Log.Info($"Found subtype: {subtype.BrowseName}");
+            foundSubtypes.Add(subtype);
+            RecursiveSearch(subtype);
+        }
+    }
+
+    private LongRunningTask recursiveTypesSearchTask;
+    private List<IUANode> foundSubtypes = new List<IUANode>();
+}
+```
