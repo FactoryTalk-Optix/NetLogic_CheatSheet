@@ -1,4 +1,19 @@
-# Users and groups
+# Users, groups and roles
+
+Groups and roles are used to manage user permissions in FactoryTalk Optix. Users can be assigned to groups and roles, which can then be used to control access to various parts of the system.
+
+Both Roles and Groups are reference types, meaning that they can be assigned to users by adding a reference between the user and the group or role. This allows for flexible management of user permissions.
+
+For example:
+
+```csharp
+// Get all groups the user is part of
+var userGroups = newUser.Refs.GetObjects(FTOptix.Core.ReferenceTypes.HasGroup, false);
+// Get all roles the user is part of
+var userGroups = newUser.Refs.GetObjects(FTOptix.Core.ReferenceTypes.HasRole, false);
+```
+
+Roles can be assigned to groups and users, groups can be assigned to roles and users, you can make any combination of these to create a flexible permission system.
 
 ## Groups
 
@@ -168,3 +183,7 @@ private void RemoveUserFromRole(FTOptix.Core.User user, FTOptix.Core.Role role)
     user.Refs.RemoveReference(FTOptix.Core.ReferenceTypes.HasRole, role.NodeId);
 }
 ```
+
+## Get the list of groups associated to the user which is logging in
+
+Please see: [Register OPC/UA observers](./register-observers.md).

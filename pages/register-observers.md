@@ -104,6 +104,7 @@ public class RuntimeNetLogic1 : BaseNetLogic
     public override void Stop()
     {
         // Insert code to be executed when the user-defined logic is stopped
+        eventRegistration?.Dispose();
     }
 
     private IEventRegistration eventRegistration;
@@ -130,6 +131,83 @@ namespace EventsHandler
             }
             builder.Append("\n");
             Log.Info(builder.ToString());
+        }
+    }
+}
+```
+
+## Track the login and logout of users and get the list of groups for the current user
+
+This example leverages the observers to track the login and logout of users, as well as to get the list of groups for the current user.
+
+```csharp
+public class RuntimeNetLogic1 : BaseNetLogic
+{
+    public override void Start()
+    {
+        var serverObject = LogicObject.Context.GetObject(OpcUa.Objects.Server);
+        var eventHandler = new EventsHandler.EventsHandler();
+        eventRegistration = serverObject.RegisterUAEventObserver(eventHandler, FTOptix.Core.ObjectTypes.UserSessionEvent);
+    }
+
+    public override void Stop()
+    {
+        // Insert code to be executed when the user-defined logic is stopped
+        eventRegistration?.Dispose();
+    }
+
+    private IEventRegistration eventRegistration;
+}
+
+namespace EventsHandler
+{
+    public class EventsHandler : IUAEventObserver
+    {
+        public EventsHandler()
+        {
+            Log.Info("EventsHandler", "EventsHandler instance created");
+        }
+
+        public void OnEvent(IUAObject eventNotifier, IUAObjectType eventType, IReadOnlyList<object> eventData, ulong senderId)
+        {
+            // Log the event to the console
+            StringBuilder builder = new StringBuilder();
+            builder.Append($"Event of type {eventType.BrowseName} triggered");
+            var eventArguments = eventType.EventArguments;
+            foreach (var eventField in eventArguments.GetFields())
+            {
+                var fieldValue = eventArguments.GetFieldValue(eventData, eventField);
+                builder.Append($"\t{eventField} = {fieldValue?.ToString() ?? "null"}");
+            }
+            Log.Debug(builder.ToString());
+
+            // Optional: only operate on Login event
+            if ((string)eventArguments.GetFieldValue(eventData, "SourceName") == "Login")
+            {
+                // Get the groups linked to the current user
+                var userNodeId = (NodeId)eventArguments.GetFieldValue(eventData, "UserId");
+                // Get the user object from the node ID
+                var newUser = InformationModel.Get<User>(userNodeId);
+                // Get all groups the user is part of
+                var userGroups = newUser.Refs.GetObjects(FTOptix.Core.ReferenceTypes.HasGroup, false);
+                // Create a string with the groups and log it
+                builder = new StringBuilder();
+                builder.Append($"User {newUser.BrowseName} is part of the following groups: ");
+                foreach (var group in userGroups)
+                {
+                    builder.Append($"{group.BrowseName}, ");
+                }
+                // Remove the last comma and space
+                if (userGroups.Count > 0)
+                {
+                    builder.Length -= 2; // Remove the last comma and space
+                }
+                else
+                {
+                    builder.Append("No groups found");
+                }
+                Log.Info(builder.ToString());
+            }
         }
     }
 }
