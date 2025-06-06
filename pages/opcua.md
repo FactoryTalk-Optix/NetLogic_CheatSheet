@@ -132,3 +132,20 @@ public void UpdateStatusCode()
 Log.Info($"New status code: {myVariable.StatusCode}");
 }
 ```
+
+## Manually create an OPC/UA Client Tag
+
+This script presumes that the OPC/UA Client is already configured in the project and at least a tag was imported (needed to get the NameSpaceIndex). It creates a new tag in the project that will be used to read a variable from the OPC/UA Server.
+
+```csharp
+[ExportMethod]
+public void CreateArbitraryTag()
+{
+    // Get the NameSpaceIndex of the OPC/UA Client, the best solution would be to read it from an imported tag.
+    // This must be in the `.optix` file of the project, so it must be a known index.
+    var nxIndex = LogicObject.Context.GetNamespaceIndex("0ccdea9893ed5102b4fae754ef1732f7#http://www.unifiedautomation.com/DemoServer/");
+    // Create a new variable in the project with the NodeId of the OPC/UA variable to read in the remote server
+    var variable = LogicObject.Context.NodeFactory.MakeVariable(new NodeId(nxIndex, "Demo.Static.Scalar.Double"+), "Double", OpcUa.DataTypes.Double, OpcUa.VariableTypes.BaseDataVariableType);
+    // Add the variable to the Objects folder of the OPC/UA client project
+    LogicObject.Owner.GetObject("Objects").Add(variable);
+}
