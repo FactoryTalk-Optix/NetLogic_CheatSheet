@@ -18,15 +18,23 @@ private void GenerateEUInfo(NodeId targetVariable, uint eUID)
         if (variableToAnalyze.GetVariable("EngineeringUnits") is IUAVariable euInfo)
         {
             euInfo.GetVariable("UnitId").Value = eUID;
+            // Ensure the ModellingRule is set to Mandatory
+            if (euInfo.ModellingRule != NamingRuleType.Mandatory)
+            {
+                euInfo.ModellingRule = NamingRuleType.Mandatory;
+                euInfo.SetModellingRuleRecursive();
+            }
         }
         // If it doesn't, create a new EngineeringUnits property and set the UnitId value
         else
         {
             euInfo = InformationModel.MakeVariable<EUInformation>("EngineeringUnits", OpcUa.DataTypes.EUInformation);
-            euInfo.QualifiedBrowseName = new QualifiedName(0,"EngineeringUnits");
+            euInfo.QualifiedBrowseName = new QualifiedName(0, "EngineeringUnits");
             euInfo.GetVariable("UnitId").Value = eUID;
+            euInfo.ModellingRule = NamingRuleType.Mandatory;
+            euInfo.SetModellingRuleRecursive();
             variableToAnalyze.Refs.AddReference(OpcUa.ReferenceTypes.HasProperty, euInfo);
-        }          
+        }
     }
 }
 ```
