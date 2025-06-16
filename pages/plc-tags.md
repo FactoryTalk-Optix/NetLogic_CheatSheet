@@ -4,9 +4,76 @@ Field tags are functionally identical to Model variables (global variables), but
 
 Field tags can be forced to read or write a value to the field device (a.k.a. PLC) or to force the value to be synched to the controller with a specific refresh time.
 
-## Variable synchronizer
+> [!NOTE]
+> Tags are automatically synchronized with the controller when they are used in:
+> - A page being displayed in any of the UI sessions
+> - Used in a DataLogger or EventLogger
+> - Used as InputVariable of an Alarm
+> - A ValueChange event is subscribed to the tag
+>
+> If none of these conditions are met, the tag will not be synchronized with the controller and will not be updated, so the following techniques to read or write values to the controller are needed.
 
-The `VariableSynchronizer` allows users to keep some variables synched even if not in use by any current page, it will keep all the children elements updated with the field. This method handles an automatic optimization of the Tags in order to minimize the number of read/write from the controller (while the `RemoteRead` performs a request per each tag and it is much slower)
+## Introduction
+
+Field tags in FactoryTalk Optix provide several methods for efficiently communicating with PLCs, each with different performance characteristics and use cases. Understanding these methods helps optimize both application performance and network traffic.
+
+### Tags access methods
+
+1. **RemoteVariableSynchronizer**
+
+   - Optimizes data exchange by bundling requests and minimizing network traffic
+   - Efficient for continuous monitoring of multiple tags at specified intervals
+   - Expensive during initial setup but provides optimized ongoing communication
+   - After setup, exchanges tag values in the most optimized way possible
+   - Best for scenarios requiring regular polling of many dispersed tags
+
+2. **RemoteRead/RemoteWrite**
+
+   - Provides synchronous, on-demand reading/writing of specific tags
+   - Best for atomic operations when immediate values are needed
+   - Less efficient for large numbers of tags
+   - InformationModel.RemoteRead() can bundle multiple tag reads for better performance
+
+### RA Ethernet/IP Controller Array Reading (Optix 1.6+)
+
+Starting from FactoryTalk Optix 1.6.x, a major optimization was introduced in the RA Ethernet/IP driver, which allows reading large arrays directly from the controller, significantly improving performance for bulk data operations. The user does not need to manually specify the read mode, as the system automatically optimizes the read operation for large arrays if possible.
+
+This new algorithm:
+- Is highly efficient for reading large blocks of contiguous data
+- Can read large arrays (e.g., 10K DINT array) in ~200ms
+- Requires data to be organized in arrays within the controller
+
+Example:
+
+```csharp
+var tag = Project.Current.Get<Tag>("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Controller Tags/DINT_A10K");
+var value = tag.RemoteRead();
+var arrayInts = (int[])value.Value;
+```
+
+### Performance Considerations
+
+- **Network Traffic**: The `RemoteVariableSynchronizer` drastically reduces network load. For example, reading 10K DINTs with the RA Ethernet/IP driver will require 10x less network traffic when using a `RemoteVariableSynchronizer` compared to a `RemoteRead`.
+- **Cached Values**: Using `Project.Current.GetVariable("MyTag").Value` accesses the last cached value without triggering new controller communication
+- **Hardware Impact**: Consider your network infrastructure, PLC capabilities and host machine capabilities when designing communication patterns
+- **Synchronization Frequency**: Always specify appropriate refresh intervals in Remote Variable Synchronizer to prevent overwhelming the controller (`TimeSpan.FromSeconds()`)
+
+Learning to use these methods effectively can greatly enhance the performance and responsiveness of your FactoryTalk Optix applications, especially in scenarios involving large datasets or frequent updates.
+
+For example:
+
+- A `RemoteVariableSynchronizer` can be created in a global NetLogic to continuously monitor and synchronize multiple tags, ensuring they are always up-to-date without excessive network traffic.
+- All the NetLogic in the project can simply access the synchronized variables using the `Project.Current.GetVariable("MyTag").Value` (either getting or setting the value) method without needing to perform individual reads, which is particularly useful for applications with many tags that need regular updates.
+
+## Remote Variable synchronizer
+
+The `RemoteVariableSynchronizer` allows users to keep some variables synched even if not in use by any current page, it will keep all the children elements updated with the field. This method handles an automatic optimization of the Tags in order to minimize the number of read/write from the controller (while the `RemoteRead` performs a request per each tag and it is much slower)
+
+> [!NOTE]
+> When the `RemoteVariableSynchronizer` is created, it will collect all the children variables and create an optimized read request to the controller, so it is important to create it only once and not every time a page is opened or a variable is needed.
+
+> [!WARNING]
+> The `RemoteVariableSynchronizer` might have significant impact on the communication driver, especially if used with a large number of tags. It is recommended to use it wisely and only for a small number of tags.
 
 ### Providing a TimeSpan argument
 
@@ -17,17 +84,14 @@ Use this instead: `variableSynchronizer = new RemoteVariableSynchronizer(new Tim
 
 The argument can be configure as needed, depending on the speed of the synchronization which is required.
 
-### Please note
-
-- The `ChildrenRemoteRead` is just as "slow" as the `RemoteRead`, it is just a recursive approach to a normal `RemoteRead`
-- The `VariableSynchronizer` is made to sync a small number of tags and may have significant impact on the communication driver, make sure to use it wisely
+### RemoteVariableSynchronizer example
 
 ```csharp
 public override void Start() 
 {
     // Get the field variable
     motorSpeed = LogicObject.Owner.GetVariable("Speed");
-    // Create the VariableSynchronizer object
+    // Create the VariableSynchronizer object and request the update every 5 seconds
     var updateRate = TimeSpan.FromSeconds(5);
     variableSynchronizer = new RemoteVariableSynchronizer(updateRate);
     // Add the variables to the synchronizer
@@ -54,6 +118,9 @@ private RemoteVariableSynchronizer variableSynchronizer;
 ## RemoteRead
 
 Remote read is a inline read of the field value, code is stopped to read the value, once the variable is updated, the code keeps running
+
+> [!NOTE]
+> The `ChildrenRemoteRead` is just as "slow" as the `RemoteRead`, it is just a recursive approach to a normal `RemoteRead`
 
 ### Read simple tags
 
