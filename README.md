@@ -18,7 +18,7 @@ The examples provided are to be used as a reference for building your applicatio
 > Some of the snippets from this repository may irremediably break your project, use them at your own risk. Make sure to implement proper error handling and testing before deploying them to a production environment.
 
 > [!WARNING]
-> Usage of the version control features of the FactoryTalk Optix IDE is hightly recommended to avoid any data loss. Make sure to commit your changes regularly to recover from any potential issue.
+> Usage of the version control features of the FactoryTalk Optix IDE is highly recommended to avoid any data loss. Make sure to commit your changes regularly to recover from any potential issue.
 
 ## Sections
 
@@ -75,6 +75,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [System Node](./pages/system-node.md)
 - [Template Library](./pages/template-library.md) (starting from FactoryTalk Optix 1.6.X)
 - [Reports](./pages/reports.md)
+- [Recipes](./pages/recipes.md)
 
 ### Advanced
 
