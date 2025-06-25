@@ -85,6 +85,10 @@ The examples provided are to be used as a reference for building your applicatio
 - [Register OPC/UA observers](./pages/register-observers.md)
 - [Dispatch OPC/UA events](./pages/dispatch-events.md)
 
+## Debugging
+
+- [Debugging tips](./pages/debugging-tips.md)
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=FactoryTalk-Optix/NetLogic_CheatSheet&type=Date)](https://www.star-history.com/#FactoryTalk-Optix/NetLogic_CheatSheet&Date)
