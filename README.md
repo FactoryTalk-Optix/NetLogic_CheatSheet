@@ -43,9 +43,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Variables properties](./pages/variables-properties.md)
 - [RegEx](./pages/regex.md)
 - [Variables Interaction](./pages/variables-interaction.md)
-- [Runtime tags import](./pages/runtime-tags-import.md)
 - [Dynamic Links](./pages/dynamic-links.md)
-- [PLC Tags](./pages/plc-tags.md)
 - [Audit signature](./pages/audit-signature.md)
 
 ### OPC/UA
@@ -76,6 +74,12 @@ The examples provided are to be used as a reference for building your applicatio
 - [Template Library](./pages/template-library.md) (starting from FactoryTalk Optix 1.6.X)
 - [Reports](./pages/reports.md)
 - [Recipes](./pages/recipes.md)
+
+### Communication drivers
+
+- [PLC Tags](./pages/plc-tags.md)
+- [Runtime tags import](./pages/runtime-tags-import.md)
+- [Designtime tags import](./pages/designtime-tags-import.md)
 
 ### Advanced
 
