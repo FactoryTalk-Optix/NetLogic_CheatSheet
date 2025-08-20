@@ -35,7 +35,11 @@ These documents provide comprehensive details on the structure, types, and handl
 > [!WARNING]
 > Events are not directly supported in the FactoryTalk Optix IDE, and the code provided here is an example of how to manually trigger them using custom logic. This code is for reference only and should be adapted to your specific use case.
 
-### 1. Creating the dispatch method
+### UserSessionEvent
+
+This event can be used to trigger custom messages to the UserSessionEvent logger, for example to notify about expiring passwords and more
+
+#### 1. Creating the dispatch method
 
 ```csharp
 [ExportMethod]
@@ -91,7 +95,7 @@ public static ByteString GenerateEventIdFromNodeId(Guid nodeId)
 }
 ```
 
-### 2. Triggering the event
+#### 2. Triggering the event
 
 ```csharp
 
@@ -128,5 +132,62 @@ private void DispatchEventToCore(string username, bool successful, string messag
 
     // Trigger the event
     eventsDispatcherLogic.ExecuteMethod("TriggerUserSessionEvent", [inputArgs]);
+}
+```
+
+### AlarmConditionEvent
+
+This fires an AlarmConditionEvent with no need to generate the corresponding alarm and can be used to add lines to an AlarmsEventLogger without triggering the actual alarm.
+
+```csharp
+[ExportMethod]
+public void TriggerAlarmConditionEvent(string message, UInt16 severity, string sourceName)
+{
+    // Convert input arguments to the expected types
+    var sourceNode = LogicObject.NodeId;
+    var eventMessage = new LocalizedText(message, "en-US");
+
+    // Get the UserSessionEvent object type
+    var alarmConditionEvent = (IUAObjectType)InformationModel.Get(OpcUa.ObjectTypes.AlarmConditionType);
+
+    // Create a list to store the event arguments
+    List<object> argumentList = [];
+    if (alarmConditionEvent.EventArguments != null)
+    {
+        argumentList.AddRange(new object[alarmConditionEvent.EventArguments.GetFields().Count]);
+        foreach (var field in alarmConditionEvent.EventArguments.GetFields())
+        {
+            // Set the field value based on the field name
+            object fieldValue = field switch
+            {
+                "ActiveState_Id" => true,
+                "AckedState_Id" => true,
+                "ConfirmedState_Id" => true,
+                "EventId" => GenerateEventIdFromNodeId(Guid.NewGuid()),
+                "ConditionName" => sourceName, // Column "Name" in the AlarmLogger
+                "EnabledState_Id" => false,
+                "SourceName" => LogicObject.BrowseName, // Column "Source Variable" in the AlarmLogger
+                "Time" => DateTime.UtcNow,
+                "Message" => eventMessage, // Column "Message" in the AlarmLogger
+                "Severity" => severity, // Column "Severity" in the AlarmLogger
+                "ConditionId" => sourceNode,
+                _ => null
+            };
+            if (fieldValue != null)
+            {
+                alarmConditionEvent.EventArguments.SetFieldValue(argumentList, field, fieldValue);
+            }
+        }
+        // Dispatch the event to the Server object
+        LogicObject.Context.GetObject(OpcUa.Objects.Server).DispatchUAEvent(OpcUa.ObjectTypes.AlarmConditionType, argumentList.AsReadOnly());
+    }
+}
+
+public static ByteString GenerateEventIdFromNodeId(Guid nodeId)
+{
+    string baseString = nodeId.ToString() + DateTime.UtcNow.Ticks.ToString();
+    using SHA256 sha256 = SHA256.Create();
+    byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(baseString));
+    return new ByteString(hashBytes);
 }
 ```
