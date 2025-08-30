@@ -92,6 +92,12 @@ namespace LogsHandler
 This script can be put anywhere on the project and will listen to every OPCUA method being called (script or UI)
 
 ```csharp
+using System.Collections.Generic;
+using System.Text;
+using FTOptix.NetLogic;
+using OpcUa = UAManagedCore.OpcUa;
+using UAManagedCore;
+
 public class RuntimeNetLogic1 : BaseNetLogic
 {
     public override void Start()
@@ -141,6 +147,12 @@ namespace EventsHandler
 This example leverages the observers to track the login and logout of users, as well as to get the list of groups for the current user.
 
 ```csharp
+using System.Collections.Generic;
+using System.Text;
+using FTOptix.NetLogic;
+using OpcUa = UAManagedCore.OpcUa;
+using UAManagedCore;
+
 public class RuntimeNetLogic1 : BaseNetLogic
 {
     public override void Start()
@@ -208,6 +220,63 @@ namespace EventsHandler
                 }
                 Log.Info(builder.ToString());
             }
+        }
+    }
+}
+```
+
+## Subscribe to alarm events
+
+This code subscribes to every event being performed on any alarm in the project, specific filtering can be added on the `OnEvent` to perform different operations when different actions are triggered on the alarm (like acknowledging or silencing the alarm).
+
+```csharp
+using System.Collections.Generic;
+using System.Text;
+using FTOptix.NetLogic;
+using OpcUa = UAManagedCore.OpcUa;
+using UAManagedCore;
+using FTOptix.Alarm;
+
+public class RuntimeNetLogic1 : BaseNetLogic
+{
+    public override void Start()
+    {
+        var serverObject = LogicObject.Context.GetObject(OpcUa.Objects.Server);
+        var eventHandler = new EventsHandler.EventsHandler();
+        // Subscribe to alarm events
+        eventRegistration = serverObject.RegisterUAEventObserver(eventHandler, UAManagedCore.OpcUa.ObjectTypes.AlarmConditionType);
+    }
+
+    public override void Stop()
+    {
+        // Insert code to be executed when the user-defined logic is stopped
+        eventRegistration?.Dispose();
+    }
+
+    private IEventRegistration eventRegistration;
+}
+
+namespace EventsHandler
+{
+    public class EventsHandler : IUAEventObserver
+    {
+        public EventsHandler()
+        {
+            Log.Info("EventsHandler", "EventsHandler instance created");
+        }
+
+        public void OnEvent(IUAObject eventNotifier, IUAObjectType eventType, IReadOnlyList<object> eventData, ulong senderId)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append($"Event of type {eventType.BrowseName} triggered");
+            var eventArguments = eventType.EventArguments;
+            foreach (var eventField in eventArguments.GetFields())
+            {
+                var fieldValue = eventArguments.GetFieldValue(eventData, eventField);
+                builder.Append($"\t{eventField} = {fieldValue?.ToString() ?? "null"}");
+            }
+            builder.Append("\n");
+            Log.Info(builder.ToString());
         }
     }
 }
