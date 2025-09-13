@@ -38,9 +38,27 @@ pdfPathStr = new ResourceUri(((IUAVariable)myPathNode).Value).Uri;
 
 ## Set the path of an Image to the ProjectFiles
 
+### Using absolute path
+
+> [!TIP]
+> This method is not recommended as it will not work if the project is moved to another folder or computer, and might have issues with the WebPresentationEngine. Use the relative path below.
+
 ```csharp
 // Note: the Path.DirectorySeparatorChar is used to make the application cross-platform capable
 singlePiece.Get<Image>("PuzzleImage").Path = ResourceUri.FromProjectRelativePath("").Uri + Path.DirectorySeparatorChar + "imgs" + Path.DirectorySeparatorChar + "Puzzle" + Path.DirectorySeparatorChar + "Piece" + (i + 1).ToString() + ".png";
+```
+
+### Using relative path
+
+```csharp
+[ExportMethod]
+public void Method2()
+{
+    // Insert code to be executed by the method
+    var image = Owner.Get<AdvancedSVGImage>("AdvancedSVGImage1");
+    // Set the path to %PROJECTDIR%/logo.svg
+    image.PathVariable.Value = ResourceUri.FromProjectRelativePath("logo.svg");
+}
 ```
 
 ## Get a file from ProjectFiles
