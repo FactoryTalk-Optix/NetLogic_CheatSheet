@@ -81,17 +81,25 @@ The examples provided are to be used as a reference for building your applicatio
 - [Runtime tags import](./pages/runtime-tags-import.md)
 - [Designtime tags import](./pages/designtime-tags-import.md)
 
-### Advanced
-
-> [!WARNING]
-> The following topics are very advanced and potentially dangerous, think twice before implementing them as they could lead to unexpected results
-
-- [Register OPC/UA observers](./pages/register-observers.md)
-- [Dispatch OPC/UA events](./pages/dispatch-events.md)
-
 ### Debugging
 
 - [Debugging tips](./pages/debugging-tips.md)
+
+### Advanced
+
+> [!WARNING]
+> The following topics are very advanced and potentially dangerous, make sure you know what you're doing before implementing them as they could lead to unexpected results or even break your project.
+
+- [Register OPC/UA observers](./pages/register-observers.md)
+- [Dispatch OPC/UA events](./pages/dispatch-events.md)
+- [Manipulate Optix nodes](./pages/manipulate-nodes.md)
+
+### Extras
+
+> [!TIP]
+> These snippets are not directly involved with FactoryTalk Optix C# APIs but can be useful in some scenarios
+
+- [FactoryTalk Optix Studio CLI](./pages/fto-studio-cli.md)
 
 ## Star History
 
