@@ -89,7 +89,7 @@ The examples provided are to be used as a reference for building your applicatio
 - [Register OPC/UA observers](./pages/register-observers.md)
 - [Dispatch OPC/UA events](./pages/dispatch-events.md)
 
-## Debugging
+### Debugging
 
 - [Debugging tips](./pages/debugging-tips.md)
 
