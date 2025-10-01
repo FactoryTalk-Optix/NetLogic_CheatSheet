@@ -79,7 +79,7 @@ The examples provided are to be used as a reference for building your applicatio
 
 - [PLC Tags](./pages/plc-tags.md)
 - [Runtime tags import](./pages/runtime-tags-import.md)
-- [Designtime tags import](./pages/designtime-tags-import.md)
+- [Designtime tags import](./pages/designtime-tags-import.md) (starting from FactoryTalk Optix 1.7.X)
 
 ### Debugging
 
@@ -99,7 +99,7 @@ The examples provided are to be used as a reference for building your applicatio
 > [!TIP]
 > These snippets are not directly involved with FactoryTalk Optix C# APIs but can be useful in some scenarios
 
-- [FactoryTalk Optix Studio CLI](./pages/fto-studio-cli.md)
+- [FactoryTalk Optix Studio CLI](./pages/fto-studio-cli.md) (starting from FactoryTalk Optix 1.6.X)
 
 ## Star History
 
