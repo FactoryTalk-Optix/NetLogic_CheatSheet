@@ -20,6 +20,25 @@ The examples provided are to be used as a reference for building your applicatio
 > [!WARNING]
 > Usage of the version control features of the FactoryTalk Optix IDE is highly recommended to avoid any data loss. Make sure to commit your changes regularly to recover from any potential issue.
 
+## Tips
+
+### NetLogic cheat sheet MCP server
+
+You can configure your GitHub Copilot (or any AI agent supporting MCP) to use this repository as a custom cheat sheet for FactoryTalk Optix NetLogic with GitMCP, just follow these steps:
+
+1. Open your AI agent settings
+2. Locate the MCP server configuration section
+3. Add the following URL as a new MCP server: `https://gitmcp.io/FactoryTalk-Optix/NetLogic_CheatSheet` and set the type to `sse`
+4. Save the settings and restart your AI agent if necessary
+
+This can significantly improve the quality of the code suggestions related to FactoryTalk Optix NetLogic when using your AI agent (for example GitHub Copilot in both Visual Studio and Visual Studio Code).
+
+> [!TIP]
+> Browse to [this link](https://gitmcp.io/FactoryTalk-Optix/NetLogic_CheatSheet) to see additional configuration instructions for your AI agent or software.
+
+> [!WARNING]
+> This service is provided by GitMCP ([Website](https://gitmcp.io) | [GitHub](https://github.com/idosal/git-mcp)) and is not affiliated with Rockwell Automation.
+
 ## Sections
 
 ### Introduction
@@ -100,7 +119,3 @@ The examples provided are to be used as a reference for building your applicatio
 > These snippets are not directly involved with FactoryTalk Optix C# APIs but can be useful in some scenarios
 
 - [FactoryTalk Optix Studio CLI](./pages/fto-studio-cli.md) (starting from FactoryTalk Optix 1.6.X)
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=FactoryTalk-Optix/NetLogic_CheatSheet&type=Date)](https://www.star-history.com/#FactoryTalk-Optix/NetLogic_CheatSheet&Date)
