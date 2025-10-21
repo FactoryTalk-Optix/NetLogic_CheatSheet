@@ -80,3 +80,72 @@ public class RuntimeNetLogic1 : BaseNetLogic
     FTOptix.System.System systemNode;
 }
 ```
+
+## Example: system and session variables (user, time, USB, IP)
+
+```csharp
+/// <summary>
+/// Periodically populate NetLogic variables with system and session information
+/// (active user, locale, current time components, random values and network/IP).
+/// Intended for Runtime NetLogic.
+/// </summary>
+private Random rnd = new Random();
+
+private void OneSecondSystemVariables()
+{
+    // User and session info
+    LogicObject.GetVariable("ActiveUser").Value = Session.User.BrowseName;
+    LogicObject.GetVariable("ActiveUserLocaleId").Value = Session.User.LocaleIds[0];
+    try { LogicObject.GetVariable("ActiveUserLanguage").Value = Session.User.Languages[0]; }
+    catch { LogicObject.GetVariable("ActiveUserLanguage").Value = "Language not selected"; }
+
+    // Time information
+    LogicObject.GetVariable("ActTimeSec").Value = DateTime.Now.Second;
+    LogicObject.GetVariable("ActTimeMin").Value = DateTime.Now.Minute;
+    LogicObject.GetVariable("ActTimeHour").Value = DateTime.Now.Hour;
+    LogicObject.GetVariable("ActTimeDay").Value = DateTime.Now.Day;
+    LogicObject.GetVariable("ActTimeMonth").Value = DateTime.Now.Month;
+    LogicObject.GetVariable("ActTimeYear").Value = DateTime.Now.Year;
+    LogicObject.GetVariable("ActTimeDayOfWeek").Value = (int)DateTime.Now.DayOfWeek;
+    LogicObject.GetVariable("ActTimeString").Value = DateTime.Now.ToShortTimeString();
+    LogicObject.GetVariable("ActDateString").Value = DateTime.Now.ToShortDateString();
+
+    // Random numbers
+    LogicObject.GetVariable("SimRandInt").Value = rnd.Next(32768);
+    LogicObject.GetVariable("SimSinDouble").Value = Math.Sin(Math.PI * rnd.Next(361) / 180.0);
+    LogicObject.GetVariable("SimCosDouble").Value = Math.Cos(Math.PI * rnd.Next(361) / 180.0);
+
+    // Active alarms count (safe navigation)
+    IContext context = LogicObject.Context;
+    var retainedAlarms = context.GetNode(QPlatform.Alarm.Objects.RetainedAlarms);
+    var localizedAlarmsVariable = retainedAlarms?.Children.Get<IUAVariable>("LocalizedAlarms");
+    var localizedAlarmsNodeId = localizedAlarmsVariable != null ? (NodeId)localizedAlarmsVariable.Value : NodeId.Empty;
+    IUANode localizedAlarmsContainer = null;
+    if (localizedAlarmsNodeId != null && !localizedAlarmsNodeId.IsEmpty)
+        localizedAlarmsContainer = context.GetNode(localizedAlarmsNodeId);
+    LogicObject.Children.Get<IUAVariable>("NumActiveAlarms").Value = localizedAlarmsContainer?.Children.Count ?? 0;
+    LogicObject.Children.Get<IUAVariable>("LastAlarmText").Value = localizedAlarmsContainer?.Children.LastOrDefault()?.BrowseName ?? "";
+
+    // USB present detection using ResourceUri catch
+    var pathUsbResourceUri = new ResourceUri("%USB1%");
+    try { var uri = pathUsbResourceUri.Uri; LogicObject.GetVariable("UsbPresent").Value = true; }
+    catch { LogicObject.GetVariable("UsbPresent").Value = false; }
+
+    // Network parameters (Windows only)
+    if (LogicObject.GetVariable("Windows").Value)
+    {
+        try
+        {
+            string hostName = Dns.GetHostName();
+            var host = Dns.GetHostEntry(hostName);
+            var ipv4s = host.AddressList.Where(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToArray();
+            if (ipv4s.Length > 0) LogicObject.GetVariable("IP1").Value = ipv4s[0].ToString();
+            if (ipv4s.Length > 1) LogicObject.GetVariable("IP2").Value = ipv4s[1].ToString();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning("OneSecondSystemVariables", "Unable to read IP addresses: " + ex.Message);
+        }
+    }
+}
+```

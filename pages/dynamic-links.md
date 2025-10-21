@@ -156,6 +156,71 @@ private void StuffDynamicLinkToArrayElement(IUAVariable sourceVariable, IUAVaria
 }
 ```
 
+### Create a dynamic link to a specific element of an array variable
+
+```csharp
+/// <summary>
+/// Creates a DynamicLink variable that points to a single element of a target array variable.
+/// Useful when you want to map one element of an array to another array element.
+/// </summary>
+[ExportMethod]
+public void StuffDynamicLinkToArrayElement(IUAVariable targetVariable, IUAVariable targetDynamicLink, uint arrayIndexToLink, int targetDynamicLinkArrayIndex, DynamicLinkMode dynamicLinkMode)
+{
+    // Prepare the BrowseName for the dynamic link variable
+    string dynamicLinkVariableBrowseName = $"DynamicLink_{arrayIndexToLink}";
+    // Create the dynamic link object
+    DynamicLink newDynamicLink = InformationModel.MakeVariable<DynamicLink>(dynamicLinkVariableBrowseName, FTOptix.Core.DataTypes.NodePath);
+    // Set the dynamic link base path and mode
+    newDynamicLink.Value = DynamicLinkPath.MakePath(targetVariable, targetDynamicLink);
+    newDynamicLink.Mode = dynamicLinkMode;
+    newDynamicLink.ParentArrayIndexVariable.Value = arrayIndexToLink;
+    // If the target is an array element, append the index
+    if (targetDynamicLinkArrayIndex >= 0)
+    {
+        newDynamicLink.Value = $"{newDynamicLink.Value.Value}[{targetDynamicLinkArrayIndex}]";
+    }
+    // Add the dynamic link reference to the source variable
+    targetVariable.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink, newDynamicLink);
+    // Ensure modelling rules are set
+    newDynamicLink.SetModellingRuleRecursive();
+}
+```
+
+### Find broken dynamic links in the project
+
+> [!TIP]
+> This feature is now available as native functionality in FactoryTalk Optix starting from version 1.6.x.
+
+```csharp
+/// <summary>
+/// Scans project nodes searching for DynamicLink variables that cannot be resolved.
+/// Logs the browse path of nodes with broken dynamic links.
+/// </summary>
+[ExportMethod]
+public void GetBrokenDynamicLinks()
+{
+    var nodesWithBrokenDynamicLink = new List<string>();
+    var projectNodes = Project.Current.Parent.FindNodesByType<IUANode>();
+
+    foreach (var n in projectNodes)
+    {
+        var dynamicLink = n.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+        if (dynamicLink == null) continue;
+        var dynamicLinkPath = (string)dynamicLink.Value;
+        var targetVariable = LogicObject.Context.ResolvePath(n, dynamicLinkPath).ResolvedNode;
+        if (targetVariable == null)
+        {
+            nodesWithBrokenDynamicLink.Add("Node BrowsePath: " + Log.Node(n));
+        }
+    }
+
+    foreach (var info in nodesWithBrokenDynamicLink)
+    {
+        Log.Info(info);
+    }
+}
+```
+
 #### Formatted dynamic link
 
 A formatted dynamic link is very similar to a string formatter and it is used to dynamically reference different objects in the project, such as using the same widget to control different motors using a SpinBox

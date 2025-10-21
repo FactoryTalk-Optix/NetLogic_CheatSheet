@@ -166,6 +166,23 @@ private void StuffMakeNewEnumeration(IUANode newEnumerationOwner, string newEnum
 }
 ```
 
+### Read Enumeration DataType fields
+
+```csharp
+/// <summary>
+/// Read the fields of an Enumeration DataType and log Value, DisplayName and Description.
+/// </summary>
+var enumerationDataType = Project.Current.Get<IUADataType>("Model/Enumeration1");
+if (enumerationDataType != null)
+{
+    var fields = enumerationDataType.EnumDefinition.Fields;
+    foreach (EnumField field in fields)
+    {
+        Log.Info("Value: " + field.Value + ", DisplayName: " + field.DisplayName.Text + ", Description: " + field.Description.Text);
+    }
+}
+```
+
 ### Creating TagStructure
 
 ```csharp
@@ -263,6 +280,47 @@ string appStr = System.Text.Encoding.UTF8.GetString(byteArray, 0, byteArray.Leng
 byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(appStr);
 // Optionally, you can add a RemoteWrite to force the new value in the controller
 Project.Current.GetVariable("CommDrivers/RAEtherNet_IPDriver1/RAEtherNet_IPStation1/Tags/Controller Tags/chsArray").Value = byteArray;
+```
+
+### Read an array from a PLC (RemoteRead) and modify it
+
+```csharp
+// Read a PLC array variable
+var arrayPLC = Project.Current.GetVariable("CommDrivers/CODESYSDriver1/CODESYSStation1/Tags/Application/PLC_PRG/arrayFloat");
+// Perform a remote read to get the full array into local memory
+float[] localArray = arrayPLC.RemoteRead();
+for (int i = 0; i < localArray.Length; i++)
+{
+    // Modify values as needed
+    localArray[i]++;
+    Log.Info(localArray[i].ToString());
+}
+// Write the modified array back to the PLC variable
+arrayPLC.Value = new UAValue(localArray);
+```
+
+### Work with two-dimensional arrays
+
+```csharp
+[ExportMethod]
+public void ArrayBidimensionalExample()
+{
+    var test = Project.Current.GetVariable("Model/Variable2");
+    int[,] array = new int[5,10];
+    array[1,5] = 50;
+    test.Value = new UAValue(array);
+}
+```
+
+### Use ChildrenRemoteRead to inspect an aliased object structure
+
+```csharp
+var refLight = LogicObject.GetAlias("LightPointer");
+if (refLight != null)
+{
+    var structure = refLight.ChildrenRemoteRead();
+    Log.Info("IntermittentMode value in LightPointer structure: " + structure.SingleOrDefault(item => item.RelativePath == "IntermittentMode").Value);
+}
 ```
 
 ## Creating Guid for NodeID to use NodeFactory.MakeDataType

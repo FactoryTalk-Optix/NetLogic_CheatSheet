@@ -58,3 +58,15 @@ public void CloseAllDialogs()
     }
 }
 ```
+
+## Close a DropDownButton
+
+```csharp
+/// <summary>
+/// Close a DropDownButton UI widget by executing its Close method.
+/// Input: assume `Owner` is the DropDownButton or that the code can access it via Owner.
+/// </summary>
+var drop = (DropDownButton)Owner;
+// Execute the Close action exposed by the widget
+drop.ExecuteMethod("Close");
+```

@@ -113,6 +113,80 @@ var myCustomPanel = InformationModel.MakeObject("MotorWidget", myCustomPanelType
 Project.Current.Get("UI/Screens/Screen1").Add(myCustomPanel);
 ```
 
+### Create a Polyline
+
+```csharp
+/// <summary>
+/// Create a PolyLine UI object and add it to the current owner.
+/// </summary>
+public void CreatePolyline()
+{
+    var myLine = InformationModel.Make<PolyLine>("MyPolyline");
+    myLine.Width = 200;
+    myLine.Height = 0;
+    myLine.LeftMargin = 50;
+    myLine.TopMargin = 50;
+    myLine.LineThickness = 3;
+    myLine.FillColor = Colors.Black;
+    // SVG path describing the polyline
+    myLine.Path = "M 0.00000 0.00000 L 1.00000 1.00000";
+    Owner.Add(myLine);
+}
+```
+
+### Open / Close all Accordion widgets from a starting node
+
+```csharp
+/// <summary>
+/// Recursively search from a starting node and open or close all Accordion widgets found.
+/// Inputs: a NodeId of the starting node and a boolean `open` (true=open, false=close).
+/// Caution: this method traverses the children tree and may be slow on large projects — run in a background task if needed.
+/// </summary>
+[ExportMethod]
+public void ToggleAccordions(NodeId startingNode, bool open)
+{
+    var root = InformationModel.Get(startingNode);
+    if (root == null)
+    {
+        Log.Error("ToggleAccordions", "Starting node not found");
+        return;
+    }
+    NavigateProjectNodes(root, open);
+}
+
+private void NavigateProjectNodes(IUANode obj, bool open)
+{
+    foreach (var item in obj.Children)
+    {
+        switch (item.NodeClass)
+        {
+            case NodeClass.Object:
+                try
+                {
+                    if (((UAManagedCore.UAObject)item).ObjectType.BrowseName == "Accordion")
+                    {
+                        var acc = (Accordion)item;
+                        acc.Expanded = open;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning("ToggleAccordions", "Skipped a node while traversing: " + ex.Message);
+                }
+                // Recurse into children
+                NavigateProjectNodes(item, open);
+                break;
+            case NodeClass.Variable:
+                // ignore variables
+                break;
+            default:
+                break;
+        }
+    }
+}
+```
+
+
 ## IUAObjects
 
 Objects are generic containers that can hold variables or other OPC/UA objects and instances
@@ -289,3 +363,4 @@ public class FindBaseEventTypesRecursively : BaseNetLogic
     private List<IUANode> foundSubtypes = new List<IUANode>();
 }
 ```
+

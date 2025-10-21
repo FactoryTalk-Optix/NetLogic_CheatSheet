@@ -80,10 +80,14 @@ This can significantly improve the quality of the code suggestions related to Fa
 - [Animations](./pages/ui-animations.md)
 - [Trends](./pages/trends.md)
 
+### Databases
+
+- [Database interaction](./pages/database-interaction.md)
+- [Queries](./pages/queries.md)
+
 ### Others
 
 - [Log output](./pages/log-output.md)
-- [Database interaction (queries)](./pages/database-interaction.md)
 - [Random generation](./pages/random-generation.md)
 - [Execute commands](./pages/execute-command.md)
 - [Locales and Translations](./pages/translations.md)

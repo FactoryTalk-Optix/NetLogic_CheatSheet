@@ -281,3 +281,66 @@ namespace EventsHandler
     }
 }
 ```
+
+## Monitor adding/removing users at runtime
+
+```csharp
+/// <summary>
+/// Example Runtime NetLogic to observe additions and removals of users under Security/Users.
+/// The observer registers to forward reference added/removed events and logs the change.
+/// </summary>
+public class UserCreationObserverLogic : BaseNetLogic
+{
+    private IEventRegistration userCreationObserver;
+    private uint affinityId; // store affinity to avoid cross-thread issues
+
+    public override void Start()
+    {
+        // Get the affinity ID of the current NetLogic to avoid cross thread issues
+        affinityId = LogicObject.Context.AssignAffinityId();
+        // Create and register the observer
+        StartObserver();
+    }
+
+    public override void Stop()
+    {
+        // Dispose the observer when stopping
+        userCreationObserver?.Dispose();
+    }
+
+    public void StartObserver()
+    {
+        // Get the user folder server object
+        var userObject = LogicObject.Context.GetNode(Project.Current.Get("Security/Users").NodeId);
+        // Create a new observer instance
+        var logsObserver = new LogsHandler.UserCreationObserver();
+        // Register the observer to the server node
+        userCreationObserver = userObject.RegisterEventObserver(
+            logsObserver,
+            EventType.ForwardReferenceAdded | // when users are created
+            EventType.ForwardReferenceRemoved, // when users are deleted
+            affinityId);
+    }
+}
+
+namespace LogsHandler
+{
+    class UserCreationObserver : IReferenceObserver
+    {
+        public UserCreationObserver()
+        {
+            Log.Info("LogsEventObserver", "Starting users observer");
+        }
+
+        public void OnReferenceAdded(IUANode sourceNode, IUANode targetNode, NodeId referenceTypeId, ulong senderId)
+        {
+            Log.Info("LogsEventObserver", $"{targetNode.BrowseName} user is added");
+        }
+
+        public void OnReferenceRemoved(IUANode sourceNode, IUANode targetNode, NodeId referenceTypeId, ulong senderId)
+        {
+            Log.Info("LogsEventObserver", $"{targetNode.BrowseName} user got removed");
+        }
+    }
+}
+```

@@ -33,6 +33,26 @@ string myString = new ResourceUri(csvPathVariable.Value).Uri;
 ```
 
 ```csharp
+/// <summary>
+/// Examples to log common ResourceUri locations: project, application and USB.
+/// This helps when debugging paths used by NetLogic or UI resources.
+/// </summary>
+// Project files
+Log.Info(ResourceUri.FromProjectRelativePath("").Uri);
+// Application files
+Log.Info(ResourceUri.FromApplicationRelativePath("").Uri);
+// USB device 1 (may throw if not present)
+try
+{
+    Log.Info(ResourceUri.FromUSBRelativePath(1, "").Uri);
+}
+catch (Exception ex)
+{
+    Log.Warning("ResourceUri", "USB1 not available: " + ex.Message);
+}
+```
+
+```csharp
 pdfPathStr = new ResourceUri(((IUAVariable)myPathNode).Value).Uri;
 ```
 
@@ -80,4 +100,91 @@ var templatePath = ResourceUri.FromProjectRelativePath("Template-line-smooth.htm
 templatePath = ResourceUri.FromProjectRelativePath(templatePath.Uri.Replace("Template-", ""));
 // Write the new content to the file
 File.WriteAllText(templatePath.Uri, text);
+```
+
+## USB Check (Windows)
+
+```csharp
+/// <summary>
+/// Periodically checks for removable USB drives (Windows) and logs their presence.
+/// Inputs: none. This is intended for a Runtime NetLogic.
+/// Notes: Uses System.IO.DriveInfo and will only run on platforms that expose drive letters (Windows).
+/// </summary>
+private PeriodicTask task;
+
+public override void Start()
+{
+    task = new PeriodicTask(CheckUSB, 1000, LogicObject);
+    task.Start();
+}
+
+private void CheckUSB()
+{
+    var usbDevices = System.IO.DriveInfo.GetDrives();
+    foreach (var device in usbDevices)
+    {
+        if (device.DriveType == System.IO.DriveType.Removable && device.IsReady)
+        {
+            Log.Info("RuntimeNetLogic1", $"USB device found: {device.Name} - {device.VolumeLabel}");
+        }
+    }
+}
+
+public override void Stop()
+{
+    task.Dispose();
+}
+```
+
+## Ensure a directory exists and write a file (Windows)
+
+```csharp
+/// <summary>
+/// Create a folder if missing and write a small test file. Useful when exporting logs or CSV files.
+/// Inputs: NetLogic variables `FolderPath` (string) and `FileName` (string).
+/// </summary>
+[ExportMethod]
+public void CreateFileTest()
+{
+    var folder = LogicObject.GetVariable("FolderPath");
+    var fileName = LogicObject.GetVariable("FileName");
+
+    bool exists = System.IO.Directory.Exists(folder.Value.ToString());
+
+    if (!exists)
+        System.IO.Directory.CreateDirectory(folder.Value.ToString());
+
+    using (var writer = new StreamWriter(System.IO.Path.Combine(folder.Value.ToString(), fileName.Value.ToString())))
+    {
+        // Write some data rows
+        writer.WriteLine("Test file created from NetLogic");
+    }
+
+}
+```
+
+## Project / Application / USB resource URIs
+
+```csharp
+/// <summary>
+/// Examples showing how to log or inspect the different ResourceUri roots available from C#.
+/// Use these to resolve files inside the project, application or on attached USB devices.
+/// </summary>
+// Project files root
+Log.Info(ResourceUri.FromProjectRelativePath("").Uri);
+
+// Application files root
+Log.Info(ResourceUri.FromApplicationRelativePath("").Uri);
+
+// Access USB slot 1 (if present)
+// [!WARNING]
+// Accessing USB paths at runtime can throw if the device is not present — always guard with try/catch.
+try
+{
+    Log.Info(ResourceUri.FromUSBRelativePath(1, "").Uri);
+}
+catch (Exception ex)
+{
+    Log.Warning("ResourceUri", "USB not available: " + ex.Message);
+}
 ```

@@ -65,6 +65,19 @@ Although not directly related to the page load time, this tab shows the warnings
 > [!TIP]
 > If you see any warnings in this tab, it is recommended to investigate them and fix them, as they might be causing the page to load slowly or might cause issues in the future.
 
+## Measure code execution time with Stopwatch
+
+```csharp
+// Start stopwatch
+Stopwatch stopwatch = new Stopwatch();
+stopwatch.Start();
+
+// code to measure
+
+stopwatch.Stop();
+Log.Info("Execution time (ms): " + stopwatch.Elapsed.TotalMilliseconds);
+```
+
 ### Errors
 
 This tab shows the errors that were logged during the page load. This can help you identify potential issues in your code that might be causing the page to fail to load or to load slowly.

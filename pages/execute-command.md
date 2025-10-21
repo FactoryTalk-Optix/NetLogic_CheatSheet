@@ -81,6 +81,51 @@ alarmCommands.ExecuteMethod("AcknowledgeAll");
 alarmCommands.ExecuteMethod("ConfirmAll");
 ```
 
+## Execute system shutdown (Windows only)
+
+```csharp
+/// <summary>
+/// Trigger a Windows shutdown using the system 'shutdown' command.
+/// Use with caution; this will stop the entire machine.
+/// </summary>
+[ExportMethod]
+public void SystemShutDown()
+{
+    var psi = new ProcessStartInfo("shutdown", "/s /t 0");
+    psi.CreateNoWindow = true;
+    psi.UseShellExecute = false;
+    Process.Start(psi);
+}
+```
+
+## Execute a .BAT or external executable
+
+```csharp
+/// <summary>
+/// Execute a BAT file or external program. Adjust filename and parameters as needed.
+/// On Windows, you can call cmd with /k or /c; /k keeps the window open.
+/// </summary>
+private void ExecuteExternalCommand()
+{
+    var Test = new Process();
+    string filename = @"C:\Path\To\Script.bat";
+    string parameters = $"/k \"{filename}\"";
+    Process.Start("cmd", parameters);
+}
+```
+
+```csharp
+// Example: launch VLC with parameters
+[ExportMethod]
+public void OpenVLC()
+{
+   Process VLC = new Process();
+   VLC.StartInfo.FileName = @"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe";
+   VLC.StartInfo.Arguments = " --fullscreen --play-and-exit C:\\path\\to\\video.mp4";
+   VLC.Start();
+}
+```
+
 ## Execute a method from a different NetLogic
 
 Calling a NetLogic instance with `var myNetLogic = new MyNetLogic();` will create a new instance of the NetLogic, but it will not be the same as the one that is running in the project so it should be avoided. To call a method from a different NetLogic, you need to get the NetLogic object from the project and then call the method on that object.

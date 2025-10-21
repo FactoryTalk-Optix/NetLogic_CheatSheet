@@ -21,3 +21,33 @@
 - NetLogic objects can be browsed from the NetSolution
     - Don't delete a NetLogic from the solution, remove it from Studio instead!
     - Don't move a NetLogic from any external editor, move it from Studio (better to copy paste the NetLogic in the new position and then delete it from the unused place)
+
+## DesignTime helper: create a Runtime NetLogic (Blinker example)
+
+```csharp
+/// <summary>
+/// DesignTime helper that scaffolds a runtime NetLogic source file and supporting model nodes (Blinkers example).
+/// Inputs: none. This is executed at DesignTime (Exported method).
+/// Output: new folder/variables under Model, a NetLogic object under NetLogic and a .cs file written into NetSolution.
+/// Caution: This writes files into the project - use only in design phase.
+/// </summary>
+[ExportMethod]
+public void AddBlinkers() {
+    var varModelFolder = Project.Current.Get("Model");
+    varModelFolder.Add(InformationModel.Make<Folder>("Blinkers"));
+
+    var varBlinkersFolder = Project.Current.Get("Model/Blinkers");
+    varBlinkersFolder.Add(InformationModel.MakeVariable("P1ms", OpcUa.DataTypes.Boolean));
+    varBlinkersFolder.Add(InformationModel.MakeVariable("P10ms", OpcUa.DataTypes.Boolean));
+    varBlinkersFolder.Add(InformationModel.MakeVariable("P100ms", OpcUa.DataTypes.Boolean));
+    varBlinkersFolder.Add(InformationModel.MakeVariable("P1s", OpcUa.DataTypes.Boolean));
+    varBlinkersFolder.Add(InformationModel.MakeVariable("P10s", OpcUa.DataTypes.Boolean));
+
+    var varNetLogicFolder = Project.Current.Get("NetLogic");
+    varNetLogicFolder.Add(InformationModel.Make<NetLogicObject>("BlinkerNetLogic"));
+
+    var varNetLogicFileUri = ResourceUri.FromProjectRelativePath("NetSolution/BlinkerNetLogic.cs");
+    // The `varBlinkersNetLogicContent` variable should contain the runtime NetLogic source text (omitted here for brevity)
+    File.WriteAllText(varNetLogicFileUri.Uri, varBlinkersNetLogicContent);
+}
+```

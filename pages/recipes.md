@@ -9,6 +9,9 @@ Recipes in FT Optix provide a structured way to store and manage sets of paramet
 > [!NOTE]
 > The recipes engine in FactoryTalk Optix allows a maximum of 2048 ingredients per recipe. This limit is imposed by the underlying database system and cannot be changed.
 
+> [!NOTE]
+> The content of this page can only be applied to the legacy recipe module of FactoryTalk Optix. A new Recipe module is coming with release 1.7.x, which will provide enhanced functionality and flexibility.
+
 ## Recipe System Overview
 
 The recipe system in FT Optix consists of three main components:
@@ -232,6 +235,100 @@ public void PopulateRecipeSchema()
             // Process single variable
             AddNodeToSchema(node, recipeSchema);
         }
+    }
+}
+```
+
+### Modify an existing Recipe Schema programmatically
+
+```csharp
+/// <summary>
+/// Add variables and corresponding store columns to an existing RecipeSchema.
+/// Inputs: two model variables present in the project (Model/Variable2, Model/Variable3).
+/// This is a DesignTime helper typically executed from a DesignTime NetLogic or exported method.
+/// </summary>
+[ExportMethod]
+public void ModifyRecipeSchema()
+{
+    // Get variables from the model
+    IUAVariable var2 = Project.Current.GetVariable("Model/Variable2");
+    IUAVariable var3 = Project.Current.GetVariable("Model/Variable3");
+
+    // Get the recipe schema to modify
+    RecipeSchema recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/RecipeSchema1");
+
+    // Add variables to the EditModel (UI edit form)
+    IUAObject editModelObj = recipeSchema.GetObject("EditModel");
+    IUAVariable var2ToAddEditModel = InformationModel.MakeVariable(var2.BrowseName, var2.DataType);
+    IUAVariable var3ToAddEditModel = InformationModel.MakeVariable(var3.BrowseName, var3.DataType);
+    editModelObj.Add(var2ToAddEditModel);
+    editModelObj.Add(var3ToAddEditModel);
+
+    // Add variables to the Root (actual storage mapping)
+    IUAObject rootObj = recipeSchema.GetObject("Root");
+    IUAVariable var2ToAddRoot = InformationModel.MakeVariable(var2.BrowseName, var2.DataType);
+    IUAVariable var3ToAddRoot = InformationModel.MakeVariable(var3.BrowseName, var3.DataType);
+    rootObj.Add(var2ToAddRoot);
+    rootObj.Add(var3ToAddRoot);
+
+    // Create corresponding columns in the store table
+    var DB_Table_Columns = Project.Current.Get("DataStores/EmbeddedDatabase1/Tables/RecipeSchema1/Columns");
+    var TableColumn_Var2 = InformationModel.Make<StoreColumn>("/" + var2.BrowseName);
+    TableColumn_Var2.DataType = var2.DataType;
+    var TableColumn_Var3 = InformationModel.Make<StoreColumn>("/" + var3.BrowseName);
+    TableColumn_Var3.DataType = var3.DataType;
+    DB_Table_Columns.Add(TableColumn_Var2);
+    DB_Table_Columns.Add(TableColumn_Var3);
+}
+```
+
+## Clear EditModel content recursively
+
+```csharp
+/// <summary>
+/// Helper methods to clear the EditModel of a recipe schema by resetting variables to default values.
+/// Use with caution: this will set variables to empty/zero values depending on type.
+/// </summary>
+private void ClearEditModel(IUANode obj)
+{
+    foreach (var item in obj.Children)
+    {
+        switch (item.NodeClass)
+        {
+            case NodeClass.Object:
+                // Recurse into nested objects
+                ClearEditModel(item);
+                break;
+            case NodeClass.Variable:
+                // Reset the variable value based on its current type
+                ResetVariableValue(item as IUAVariable);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+private void ResetVariableValue(IUAVariable iUAVariable)
+{
+    var val = iUAVariable.Value.Value;
+    switch (val)
+    {
+        case string:
+            iUAVariable.Value = string.Empty;
+            break;
+        case int:
+        case short:
+        case long:
+        case float:
+            iUAVariable.Value = 0;
+            break;
+        case bool:
+            iUAVariable.Value = false;
+            break;
+        default:
+            iUAVariable.Value = 0;
+            break;
     }
 }
 ```

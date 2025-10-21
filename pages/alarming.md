@@ -314,3 +314,114 @@ public class AlarmGridLogic : BaseNetLogic
     private IUAVariable alarmsDataGridModel;
 }
 ```
+
+### Acknowledge and Confirm All Alarms
+
+```csharp
+/// <summary>
+/// Execute the AlarmCommands object methods to acknowledge and confirm all active alarms.
+/// This is a global action and requires proper permissions.
+/// </summary>
+var alarmCommands = InformationModel.GetObject(FTOptix.Alarm.Objects.AlarmCommands);
+alarmCommands.ExecuteMethod("AcknowledgeAll");
+alarmCommands.ExecuteMethod("ConfirmAll");
+```
+
+### Log list of active alarms
+
+```csharp
+/// <summary>
+/// Write to the log the list of retained (active) localized alarms.
+/// </summary>
+[ExportMethod]
+public void LogActiveAlarms()
+{
+    var retainedAlarmsObject = LogicObject.Context.GetNode(FTOptix.Alarm.Objects.RetainedAlarms);
+    // Get the object containing the actual list of alarms
+    var localizedAlarmsObject = retainedAlarmsObject.GetVariable("LocalizedAlarms");
+    var localizedAlarmsNodeId = (NodeId)localizedAlarmsObject.Value;
+    IUANode localizedAlarmsContainer = null;
+    if (localizedAlarmsNodeId?.IsEmpty == false)
+        localizedAlarmsContainer = LogicObject.Context.GetNode(localizedAlarmsNodeId);
+    if (localizedAlarmsContainer == null)
+    {
+        Log.Error("AlarmsObserverLogic", "LocalizedAlarms node not found");
+        return;
+    }
+    foreach (var item in localizedAlarmsContainer.Children)
+    {
+        Log.Info(item.BrowseName);
+    }
+}
+```
+
+### Generate alarms for every bit of an array element
+
+> [!WARNING]
+> This helper will create a large number of alarms (one per bit per array element). Use carefully and prefer to run at DesignTime when possible.
+
+```csharp
+/// <summary>
+/// Create digital alarms for each bit of an array of integer/word values.
+/// Input: a NodeId variable "VarArrayPLC" pointing to the PLC array variable.
+/// Behavior: the method creates a folder under Alarms and an alarm for each bit found in the array.
+/// </summary>
+[ExportMethod]
+public void CreateBitAlarms()
+{
+    var plc = InformationModel.GetVariable(LogicObject.GetVariable("VarArrayPLC").Value);
+    var dataTypeBrowse = InformationModel.Get(plc.DataType).BrowseName;
+
+    int numBits = dataTypeBrowse switch
+    {
+        "Int32" => 32,
+        "UInt32" => 32,
+        "Int16" => 16,
+        "UInt16" => 16,
+        _ => 0
+    };
+
+    if (numBits == 0)
+    {
+        Log.Error("CreateBitAlarms", "Unsupported data type: " + dataTypeBrowse);
+        return;
+    }
+
+    var newFolder = InformationModel.Make<Folder>(plc.BrowseName);
+    Project.Current.Get("Alarms").Add(newFolder);
+
+    // Assume plc is a UAVariable array; iterate over elements and bits
+    var arrayLength = ((UAManagedCore.UAVariable)plc).ArrayDimensions[0];
+    for (int i = 1; i < arrayLength; i++)
+    {
+        for (int j = 0; j < numBits; j++)
+        {
+            var alarm = InformationModel.Make<DigitalAlarm>($"Alarm_{plc.BrowseName}_{i}_{j}");
+            // Create a dynamic link to the element and then point to the bit index
+            alarm.InputValueVariable.SetDynamicLink((IUAVariable)plc, (uint)i, DynamicLinkMode.ReadWrite);
+            var dynamicLink = alarm.InputValueVariable.GetVariable("DynamicLink");
+            alarm.InputValueVariable.GetVariable("DynamicLink").Value = dynamicLink.Value + "." + j;
+            alarm.Message = $"Alarm_{plc.BrowseName}_{i}_{j}";
+            Project.Current.Get($"Alarms/{plc.BrowseName}").Add(alarm);
+        }
+    }
+}
+```
+
+### Adding localized message to an existing alarm
+
+```csharp
+/// <summary>
+/// Build a LocalizedText entry for an alarm and add it to the InformationModel translations if missing.
+/// </summary>
+private void AddLocalizedMessageToAlarm(AlarmController alarmInstance)
+{
+    var alarm = (DigitalAlarm)item;
+    var localizedMessage = new LocalizedText(alarmInstance.BrowseName + "_" + item.BrowseName, alarmInstance.BrowseName + "_" + item.BrowseName, "en-US");
+    if (!InformationModel.LookupTranslation(localizedMessage).HasTranslation)
+    {
+        InformationModel.AddTranslation(localizedMessage);
+    }
+    alarm.LocalizedMessage = localizedMessage;
+}
+```

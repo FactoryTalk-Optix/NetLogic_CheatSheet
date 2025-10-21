@@ -40,3 +40,19 @@ public void AddYAxisToPen(NodeId penId)
     pen.YAxes.Add(yAxis);
 }
 ```
+
+## Remove a pen from a trend
+
+```csharp
+/// <summary>
+/// Remove Trend pens at runtime using ComboBoxes to select DataLogger and Variable.
+/// </summary>
+[ExportMethod]
+public void RemovePen()
+{
+    // Remove a pen from a trend by name
+    var nameCombo = Owner.Owner.Get<ComboBox>("ComboBox1");
+    var myTrend = Owner.Owner.Owner.Owner.Get<Trend>("Trend1");
+    myTrend.Pens.Remove(((UAManagedCore.LocalizedText)nameCombo.SelectedValue).Text);
+}
+```

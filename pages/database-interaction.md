@@ -1,6 +1,6 @@
 # Database Interaction
 
-Database interaction is only possible via the FT Optix API
+There are different ways to interact with database in FactoryTalk Optix, the native approach is to leverage the `Store` APIs to perform operations. The list of supported queries is documented [here](./queries.md).
 
 ## Insert
 
@@ -262,24 +262,167 @@ private void QueryAndUpdate(LongRunningTask myTask, object args)
 }
 ```
 
-## Sample queries
+## CSV interaction
 
-### Populate a PieChard with the count of unique values in a column
+A simple way to import or export data from a database is to use CSV files, here are some examples of how to read and write CSV files using C# in FT Optix.
 
-This query returns the count of unique values in the column `Code` of the table `SQLiteStoreTable1` to populate a pie chard. Each slice of the pie chart will represent a unique value in the column `Code` and the size of the slice will be the count of the occurrences of that value.
+### Read / Write CSV files
 
-The PieChard object should be populated with:
+```csharp
+/// <summary>
+/// Read or write a CSV file from the file system.
+/// Inputs: file path (string). Outputs: none.
+/// Error modes: file not found, IO exceptions. Success: file is created/read.
+/// </summary>
+// READ CSV FILE
+using System.IO;
 
-- Model: `EmbeddedDatabase1`
-- Query: `SELECT Code, COUNT(*) AS Count FROM SQLiteStoreTable1 GROUP BY Code ORDER BY Count DESC`
-- Label: `{Item}/Code`
-- Value: `{Item}/Count`
+// Path to the CSV file
+string filePath = "path/to/file.csv";
 
-### Populate a Histogram chart with the count of unique values in a column
+// Read the contents of the CSV file
+using (var reader = new StreamReader(filePath))
+{
+    while (!reader.EndOfStream)
+    {
+        // Read the current line
+        var line = reader.ReadLine();
 
-This query returns the count of unique values in the column `StatusMachine` of the table `SQLiteStoreTable1` to populate a histogram chart. Each bar of the histogram will represent a unique value in the column `StatusMachine` and the height of the bar will be the count of the occurrences of that value.
+        // Split the line into an array of values (CSV separated by commas)
+        var values = line.Split(',');
 
-- Model: `EmbeddedDatabase1`
-- Query: `SELECT StatusMachine, COUNT(*) AS Occurrences FROM Machine_state WHERE StatusMachine >= 0 GROUP BY StatusMachine ORDER BY Occurrences DESC`
-- Label: `{Item}/StatusMachine`
-- Value: `{Item}/Occurrences`
+        // TODO: process values (e.g., map to variables, insert into DB, etc.)
+    }
+}
+
+// WRITE CSV FILE - Solution 1: overwrite/create
+using (var writer = new StreamWriter(filePath))
+{
+    // Write the header row
+    writer.WriteLine("Column1,Column2,Column3");
+
+    // Write some data rows
+    writer.WriteLine("Value1,Value2,Value3");
+    writer.WriteLine("Value4,Value5,Value6");
+}
+
+// WRITE CSV FILE - Solution 2: ensure file exists then write
+try
+{
+    if (!File.Exists(filePath))
+    {
+        // Create a file to write to.
+        using (StreamWriter sw = File.CreateText(filePath))
+        {
+            sw.WriteLine("Hello");
+            sw.WriteLine("And");
+            sw.WriteLine("Welcome");
+        }
+    }
+    else
+    {
+        using (var writer = new StreamWriter(filePath))
+        {
+            writer.WriteLine("New row!");
+        }
+    }
+    // Example: set a UI variable or log to notify success
+    // result.Value = "File correctly created: " + filePath;
+}
+catch (Exception ex)
+{
+    // result.Value = "Impossible to create the file: " + ex.Message;
+    Log.Error("CSV", "Unable to create or write CSV: " + ex.Message);
+}
+
+```
+
+### Create an ODBC/Embedded DB table from a CSV schema file
+
+```csharp
+/// <summary>
+/// Reads a CSV file that describes a table schema and creates a corresponding table in the specified ODBC/Embedded store.
+/// CSV format expected: each line contains: ColumnName;ColumnType
+/// Supported ColumnType values: String, Bool, Real, Int
+/// </summary>
+[ExportMethod]
+public void TableCreation()
+{
+    var csvPath = GetCSVFilePath();
+    if (string.IsNullOrEmpty(csvPath) || !System.IO.File.Exists(csvPath))
+    {
+        Log.Error("TableCreation", "CSV not found. Please configure the CSV to parse in the NetLogic configuration");
+        return;
+    }
+
+    var storePointer = LogicObject.GetVariable("Store")?.Value;
+    var storeDB = InformationModel.Get<ODBCStore>(storePointer);
+    if (storeDB == null)
+    {
+        Log.Error("TableCreation", "Store is not correct or not configured");
+        return;
+    }
+
+    Table myTable = null;
+    using (var reader = new StreamReader(csvPath))
+    {
+        int lineIndex = 0;
+        while (!reader.EndOfStream)
+        {
+            var line = reader.ReadLine();
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            // First non-empty line is expected to be the table name
+            if (lineIndex == 0)
+            {
+                var tableName = line.Trim();
+                if (storeDB.Find<Table>(tableName) != null)
+                {
+                    Log.Error("TableCreation", "The table already exists: " + tableName);
+                    return;
+                }
+                myTable = InformationModel.Make<Table>(tableName);
+                storeDB.Tables.Add(myTable);
+                lineIndex++;
+                continue;
+            }
+
+            // Parse column definition: name;type
+            var values = line.Split(';');
+            if (values.Length < 2)
+            {
+                Log.Warning("TableCreation", "Skipping invalid line: " + line);
+                continue;
+            }
+
+            var colName = values[0].Trim();
+            var colType = values[1].Trim();
+            var myColumn = InformationModel.Make<StoreColumn>(colName);
+
+            switch (colType)
+            {
+                case "String":
+                    myColumn.DataType = OpcUa.DataTypes.String;
+                    break;
+                case "Bool":
+                    myColumn.DataType = OpcUa.DataTypes.Boolean;
+                    break;
+                case "Real":
+                    myColumn.DataType = OpcUa.DataTypes.Float;
+                    break;
+                case "Int":
+                    myColumn.DataType = OpcUa.DataTypes.Int16;
+                    break;
+                default:
+                    Log.Error("TableCreation", "Unsupported column type: " + colType + ". Table creation not completed.");
+                    return;
+            }
+
+            myTable.Columns.Add(myColumn);
+        }
+    }
+
+    Log.Info("TableCreation", "The table " + (myTable?.BrowseName ?? "(unknown)") + " has been correctly created!");
+}
+```

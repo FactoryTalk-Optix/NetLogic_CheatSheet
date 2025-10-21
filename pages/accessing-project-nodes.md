@@ -60,3 +60,54 @@ Using this casting option, the node is returned as null only if completely missi
 ### Summary
 
 Result is very similar, as best practice we suggest to use the type passing approach unless casting is a specific requirement to achieve the result
+
+## Accessing an object by NodeId (pointer)
+
+```csharp
+/// <summary>
+/// Access an object by passing a NodeId pointer to a NetLogic variable. This keeps references valid even if the object is moved in the project tree.
+/// </summary>
+// Example: assume a NodeId variable named "ObjectPointer" exists and contains the NodeId of the target object
+var myObjectNodeId = LogicObject.GetVariable("ObjectPointer").Value;
+var myRectangle = InformationModel.Get<Rectangle>(myObjectNodeId);
+// Now use myRectangle as the referenced object
+```
+
+## Use ChildrenRemoteRead to inspect an aliased object structure
+
+```csharp
+/// <summary>
+/// When an object is aliased (for example via an Alias pointer), `ChildrenRemoteRead` lets you fetch a lightweight view
+/// of the aliased object's children without creating full session objects. This is handy to read a structure's values.
+/// </summary>
+// Example: assume `LightPointer` is an alias variable pointing to a UI object.
+var refLight = LogicObject.GetAlias("LightPointer");
+if (refLight != null)
+{
+    var structure = refLight.ChildrenRemoteRead();
+    Log.Info("IntermittentMode value: " + structure.SingleOrDefault(item => item.RelativePath == "IntermittentMode").Value);
+}
+```
+
+## Count nodes under a specific page/object
+
+```csharp
+/// <summary>
+/// Count the number of nodes under a given NodeId and log the result.
+/// Input: NodeId of the starting node.
+/// Output: Logs the count to Info.
+/// </summary>
+[ExportMethod]
+public static int GetNodesNumber(NodeId nodeId) => InformationModel.Get(nodeId).FindNodesByType<IUANode>().Count();
+
+[ExportMethod]
+public void CounNodes()
+{
+    // Example: log node counts for two screens
+    var unit02 = Project.Current.Get("UI/Screens/Pages/Un02/Em02_Pref/Unit02Em02");
+    var unit00 = Project.Current.Get("UI/Screens/Pages/Un00/Unit00");
+
+    Log.Info("Unit02Em02: " + GetNodesNumber(unit02.NodeId).ToString());
+    Log.Info("Unit00: " + GetNodesNumber(unit00.NodeId).ToString());
+}
+```
