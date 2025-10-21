@@ -24,6 +24,9 @@ The examples provided are to be used as a reference for building your applicatio
 
 ### NetLogic cheat sheet MCP server
 
+> [!WARNING]
+> This service is provided by GitMCP ([Website](https://gitmcp.io) | [GitHub](https://github.com/idosal/git-mcp)) and is not affiliated with Rockwell Automation.
+
 You can configure your GitHub Copilot (or any AI agent supporting MCP) to use this repository as a custom cheat sheet for FactoryTalk Optix NetLogic with GitMCP, just follow these steps:
 
 1. Open your AI agent settings
@@ -35,9 +38,6 @@ This can significantly improve the quality of the code suggestions related to Fa
 
 > [!TIP]
 > Browse to [this link](https://gitmcp.io/FactoryTalk-Optix/NetLogic_CheatSheet) to see additional configuration instructions for your AI agent or software.
-
-> [!WARNING]
-> This service is provided by GitMCP ([Website](https://gitmcp.io) | [GitHub](https://github.com/idosal/git-mcp)) and is not affiliated with Rockwell Automation.
 
 ## Sections
 
@@ -100,10 +100,6 @@ This can significantly improve the quality of the code suggestions related to Fa
 - [Runtime tags import](./pages/runtime-tags-import.md)
 - [Designtime tags import](./pages/designtime-tags-import.md) (starting from FactoryTalk Optix 1.7.X)
 
-### Debugging
-
-- [Debugging tips](./pages/debugging-tips.md)
-
 ### Advanced
 
 > [!WARNING]
@@ -119,3 +115,4 @@ This can significantly improve the quality of the code suggestions related to Fa
 > These snippets are not directly involved with FactoryTalk Optix C# APIs but can be useful in some scenarios
 
 - [FactoryTalk Optix Studio CLI](./pages/fto-studio-cli.md) (starting from FactoryTalk Optix 1.6.X)
+- [Debugging tips](./pages/debugging-tips.md)
