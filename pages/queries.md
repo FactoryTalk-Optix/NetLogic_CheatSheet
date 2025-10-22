@@ -1,8 +1,28 @@
-# Sample queries
+# Database queries
+
+## Guidance and Best Practices
+
+### Best practices and gotchas
+
+When writing queries for use in FactoryTalk Optix or similar embedded database contexts, keep these recommendations in mind:
+
+- Prefer explicit column lists instead of `SELECT *` in production code to avoid unexpected schema changes and reduce bandwidth.
+- When using `DISTINCT`, be explicit about the columns you need — `DISTINCT *` removes duplicate entire rows which can be expensive.
+- Avoid updating temporary tables when portability is a concern; some backends restrict updates on temporary objects.
+- Use table aliases (for example `t1`, `t2`) when joining multiple tables to prevent ambiguity and improve readability.
+- Be cautious with deep subqueries or multiple nested levels - they can impact performance and readability.
+
+### SQL compatibility and versions
+
+Some features documented here are available starting from specific versions of FactoryTalk Optix (noted inline). Always test queries on the target database before deploying to production.
+
+### Security & parameterization
+
+FactoryTalk Optix always provides parameterized queries when inserting data to the database using the dedicated `Insert` method of the store. This helps prevent SQL injection attacks and ensures data integrity.
 
 ## Queries on UI objects
 
-### Populate a PieChard with the count of unique values in a column
+### Populate a PieChart with the count of unique values in a column
 
 This query returns the count of unique values in the column `Code` of the table `SQLiteStoreTable1` to populate a pie chard. Each slice of the pie chart will represent a unique value in the column `Code` and the size of the slice will be the count of the occurrences of that value.
 
@@ -167,7 +187,9 @@ SELECT
 	END 
 FROM Table1 
 WHERE Id IN (1, 2, 3)
+```
 
+```sql
 SELECT 
 	CASE 
 		WHEN Id = 1 THEN 'A' 
@@ -175,14 +197,18 @@ SELECT
 		ELSE 'X' 
 	END 
 FROM Table1
+```
 
+```sql
 UPDATE Table1 SET Value = 
 	CASE 
 		WHEN Id = 1 THEN 'A' 
 		WHEN Id = 2 THEN 'B'
 		ELSE 'X'
 	END
+```
 
+```sql
 UPDATE Table1 SET Value = 
 	CASE 
 		WHEN Id = 1 THEN 'A' 
@@ -1012,3 +1038,59 @@ Updates values in a table, supporting schema-qualified table names.
 ```sql
 UPDATE schem1.table1 SET column1 = 3, ...
 ```
+
+## DELETE Queries
+
+### Basic DELETE
+
+Deletes rows from a table based on a condition.
+
+```sql
+DELETE FROM DeleteTestDemo WHERE id = 1;
+```
+
+### Delete multiple rows using IN
+
+```sql
+DELETE FROM DeleteTestDemo WHERE id IN (2,3,4);
+```
+
+### Delete using a subquery
+
+```sql
+DELETE FROM DeleteTestDemo WHERE id IN (SELECT id FROM OtherTable WHERE Flag = 1);
+```
+
+### Delete all rows (use with caution)
+
+```sql
+DELETE FROM DeleteTestDemo;
+```
+
+### DELETE using a subquery (non-correlated example)
+
+```sql
+DELETE FROM DeleteTestDemo WHERE GroupID IN (SELECT GroupID FROM OtherTable WHERE Flag = 1);
+```
+
+### Pattern and range deletes
+
+```sql
+DELETE FROM DeleteTestExtra2 WHERE Val LIKE 'a%';
+DELETE FROM DeleteTestExtra2 WHERE Salary BETWEEN 50000 AND 53000;
+```
+
+### Notes on unsupported or dialect-specific DELETE forms
+
+During testing the server did not accept several DELETE variants:
+
+- Correlated EXISTS deletes in the form `DELETE ... WHERE EXISTS (SELECT ... WHERE o.col = target.col ...)` are not supported.
+- Multi-table DELETE / DELETE with JOIN (MySQL/SQL Server style) are not supported.
+- CTE-based DELETE (`WITH ... DELETE ...`) are not supported.
+- `DELETE ... RETURNING` and explicit transaction control (BEGIN/ROLLBACK) are not supported.
+
+If you depend on any of the unsupported forms, ask for help translating to an equivalent supported pattern (for example, using `IN` with a subquery instead of a correlated `EXISTS`).
+
+## INSERT Queries
+
+INSERT queries are only allowed using the `Insert` method of the store. See the [Database interactions](./database-interaction.md) for details.
