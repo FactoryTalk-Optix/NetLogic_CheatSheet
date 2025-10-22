@@ -8,7 +8,7 @@ When writing queries for use in FactoryTalk Optix or similar embedded database c
 
 - Prefer explicit column lists instead of `SELECT *` in production code to avoid unexpected schema changes and reduce bandwidth.
 - When using `DISTINCT`, be explicit about the columns you need — `DISTINCT *` removes duplicate entire rows which can be expensive.
-- Avoid updating temporary tables when portability is a concern; some backends restrict updates on temporary objects.
+- Avoid updating temporary tables when portability is a concern some backends restrict updates on temporary objects.
 - Use table aliases (for example `t1`, `t2`) when joining multiple tables to prevent ambiguity and improve readability.
 - Be cautious with deep subqueries or multiple nested levels - they can impact performance and readability.
 
@@ -19,28 +19,6 @@ Some features documented here are available starting from specific versions of F
 ### Security & parameterization
 
 FactoryTalk Optix always provides parameterized queries when inserting data to the database using the dedicated `Insert` method of the store. This helps prevent SQL injection attacks and ensures data integrity.
-
-## Queries on UI objects
-
-### Populate a PieChart with the count of unique values in a column
-
-This query returns the count of unique values in the column `Code` of the table `SQLiteStoreTable1` to populate a pie chard. Each slice of the pie chart will represent a unique value in the column `Code` and the size of the slice will be the count of the occurrences of that value.
-
-The PieChard object should be populated with:
-
-- Model: `EmbeddedDatabase1`
-- Query: `SELECT Code, COUNT(*) AS Count FROM SQLiteStoreTable1 GROUP BY Code ORDER BY Count DESC`
-- Label: `{Item}/Code`
-- Value: `{Item}/Count`
-
-### Populate a Histogram chart with the count of unique values in a column
-
-This query returns the count of unique values in the column `StatusMachine` of the table `SQLiteStoreTable1` to populate a histogram chart. Each bar of the histogram will represent a unique value in the column `StatusMachine` and the height of the bar will be the count of the occurrences of that value.
-
-- Model: `EmbeddedDatabase1`
-- Query: `SELECT StatusMachine, COUNT(*) AS Occurrences FROM Machine_state WHERE StatusMachine >= 0 GROUP BY StatusMachine ORDER BY Occurrences DESC`
-- Label: `{Item}/StatusMachine`
-- Value: `{Item}/Occurrences`
 
 ## SELECT queries
 
@@ -222,8 +200,8 @@ WHERE Id IN (1, 2, 3)
 Filters rows based on NULL values.
 
 ```sql
-SELECT * FROM TestTable1 WHERE DepartmentID IS NULL;
-SELECT * FROM TestTable1 WHERE DepartmentID IS NOT NULL;
+SELECT * FROM TestTable1 WHERE DepartmentID IS NULL
+SELECT * FROM TestTable1 WHERE DepartmentID IS NOT NULL
 ```
 
 ### Basic Aggregates
@@ -927,12 +905,174 @@ GROUP BY Day
 ORDER BY Day
 ```
 
+## UPDATE Queries
+
+### Basic UPDATE
+
+Simple single-row update (set Salary for a single Id):
+
+```sql
+UPDATE UpdateTest SET Salary = 56000 WHERE Id = 2
+```
+
+Update rows by matching text column (rename a person):
+
+```sql
+UPDATE UpdateTest SET Name = 'Eve-Updated' WHERE Name = 'Eve'
+```
+
+Update multiple rows using IN:
+
+```sql
+UPDATE UpdateTest SET Salary = Salary + 1000 WHERE Id IN (1, 3)
+```
+
+### Grouped UPDATE queries
+
+These are used as a CASE/branching workaround when CASE expressions inside UPDATE may not be accepted by the store (FactoryTalk Optix versions prior to 1.7.x):
+
+```sql
+-- set High for very large salaries
+UPDATE UpdateTest SET Status = 'High' WHERE Salary >= 80000
+
+-- set Medium for mid-range salaries
+UPDATE UpdateTest SET Status = 'Medium' WHERE Salary >= 65000 AND Salary < 80000
+
+-- set Low for lower salaries
+UPDATE UpdateTest SET Status = 'Low' WHERE Salary < 65000
+```
+
+### Update with CASE WHEN:
+
+> [!NOTE]
+> This feature is available starting from FactoryTalk Optix version 1.7.x.
+
+```sql
+UPDATE UpdateTest
+SET Status = CASE
+       WHEN Salary >= 80000 THEN 'High'
+       WHEN Salary >= 65000 THEN 'Medium'
+       ELSE 'Low'
+END
+```
+
+If that raises a syntax error on your target (FactoryTalk Optix versions prior to 1.7.x), use the grouped-update workaround demonstrated earlier.
+
+### UPDATE with schema-qualified table names
+
+> [!NOTE]
+> This feature is available starting from FactoryTalk Optix version 1.7.x.
+
+Updates values in a table, supporting schema-qualified table names.
+
+```sql
+UPDATE schema1.table1 SET column1 = 3, ...
+```
+
+### Notes on unsupported or dialect-specific UPDATE forms
+
+The following UPDATE forms were tested against the embedded database. Results are summarized and example workarounds are provided.
+
+#### Subquery in SET (UPDATE ... SET col = (SELECT ...))
+
+Attempting to set a column using a scalar subquery (for example, mapping values from another table in a single UPDATE statement) is currently not supported. 
+
+Example of unsupported query (will fail):
+
+```sql
+UPDATE UpdateTest
+SET Status = (SELECT NewStatus FROM StatusMap WHERE StatusMap.OldStatus = UpdateTest.Status)
+WHERE Status IN (SELECT OldStatus FROM StatusMap)
+```
+
+Workaround: perform one simple UPDATE per mapping row (this is compatible and fast for small mapping tables):
+
+```sql
+-- mapping table has rows (OldStatus, NewStatus) = ('Active','Enabled'), ('Inactive','Disabled')
+UPDATE UpdateTest SET Status = 'Enabled' WHERE Status = 'Active'
+UPDATE UpdateTest SET Status = 'Disabled' WHERE Status = 'Inactive'
+```
+
+#### UPDATE ... FROM / join-style UPDATE
+
+Some SQL dialects support `UPDATE ... FROM <join>` to update rows using a join with another table. These queries are not supported and will produce a syntax error.
+
+Example of unsupported query (will fail):
+
+```sql
+UPDATE UpdateTest SET Status = StatusMap.NewStatus FROM StatusMap WHERE UpdateTest.Status = StatusMap.OldStatus
+```
+
+Workaround: use per-mapping UPDATE statements as shown above, or run a small client-side loop that queries mapping rows and issues single UPDATE statements for each mapping.
+
+#### Correlated EXISTS in UPDATE WHERE
+
+Running `UPDATE ... WHERE EXISTS (SELECT 1 FROM Other WHERE Other.key = Target.key ...)` is currently not supported. If you rely on correlated `EXISTS` for updates, translate to an explicit set of `WHERE` conditions or use per-row updates retrieved by a separate `SELECT`.
+
+FactoryTalk Optix reliably accepts straightforward `UPDATE ... SET ... WHERE <condition>` forms. More advanced forms that embed subqueries inside the `SET` expression, use correlated `EXISTS` in `WHERE`, or use `UPDATE ... FROM` may fail depending on FactoryTalk Optix version. When unsupported, the recommended approach is to break the update into multiple simple `UPDATE` statements or perform the logic in the client and apply targeted `UPDATE`s.
+
+## DELETE Queries
+
+### Basic DELETE
+
+Deletes rows from a table based on a condition.
+
+```sql
+DELETE FROM DeleteTestDemo WHERE id = 1
+```
+
+### Delete multiple rows using IN
+
+```sql
+DELETE FROM DeleteTestDemo WHERE id IN (2,3,4)
+```
+
+### Delete using a subquery
+
+```sql
+DELETE FROM DeleteTestDemo WHERE id IN (SELECT id FROM OtherTable WHERE Flag = 1)
+```
+
+### Delete all rows (use with caution)
+
+```sql
+DELETE FROM DeleteTestDemo
+```
+
+### DELETE using a subquery (non-correlated example)
+
+```sql
+DELETE FROM DeleteTestDemo WHERE GroupID IN (SELECT GroupID FROM OtherTable WHERE Flag = 1)
+```
+
+### Pattern and range deletes
+
+```sql
+DELETE FROM DeleteTestExtra2 WHERE Val LIKE 'a%'
+DELETE FROM DeleteTestExtra2 WHERE Salary BETWEEN 50000 AND 53000
+```
+
+### Notes on unsupported or dialect-specific DELETE forms
+
+During testing the server did not accept several DELETE variants:
+
+- Correlated EXISTS deletes in the form `DELETE ... WHERE EXISTS (SELECT ... WHERE o.col = target.col ...)` are not supported.
+- Multi-table DELETE / DELETE with JOIN (MySQL/SQL Server style) are not supported.
+- CTE-based DELETE (`WITH ... DELETE ...`) are not supported.
+- `DELETE ... RETURNING` and explicit transaction control (BEGIN/ROLLBACK) are not supported.
+
+If you depend on any of the unsupported forms, ask for help translating to an equivalent supported pattern (for example, using `IN` with a subquery instead of a correlated `EXISTS`).
+
+## INSERT Queries
+
+INSERT queries are only allowed using the `Insert` method of the store. See the [Database interactions](./database-interaction.md) for details.
+
 ## Temporary Tables
 
 Temporary tables provide a way to store intermediate results during query execution. Key characteristics include:
 
 - Temporary tables, identified by the `##` prefix, can be created and accessed using double-quoted identifiers.
-- Supported operations include querying, joining, and aggregations; however, update operations are not permitted.
+- Supported operations include querying, joining, and aggregations however, update operations are not permitted.
 - Temporary tables can be dropped successfully, facilitating proper resource management.
 
 ### Temporary Tables with Quoted Names
@@ -1026,71 +1166,24 @@ Counts high-salary employees from the filtered temporary table.
 SELECT COUNT(*) AS HighSalaryCount FROM "##FilteredTemp"
 ```
 
-## UPDATE Queries
+## Queries on UI objects
 
-### Basic UPDATE
+### Populate a PieChart with the count of unique values in a column
 
-> [!NOTE]
-> This feature is available starting from FactoryTalk Optix version 1.7.x.
+This query returns the count of unique values in the column `Code` of the table `SQLiteStoreTable1` to populate a pie chard. Each slice of the pie chart will represent a unique value in the column `Code` and the size of the slice will be the count of the occurrences of that value.
 
-Updates values in a table, supporting schema-qualified table names.
+The PieChard object should be populated with:
 
-```sql
-UPDATE schem1.table1 SET column1 = 3, ...
-```
+- Model: `EmbeddedDatabase1`
+- Query: `SELECT Code, COUNT(*) AS Count FROM SQLiteStoreTable1 GROUP BY Code ORDER BY Count DESC`
+- Label: `{Item}/Code`
+- Value: `{Item}/Count`
 
-## DELETE Queries
+### Populate a Histogram chart with the count of unique values in a column
 
-### Basic DELETE
+This query returns the count of unique values in the column `StatusMachine` of the table `SQLiteStoreTable1` to populate a histogram chart. Each bar of the histogram will represent a unique value in the column `StatusMachine` and the height of the bar will be the count of the occurrences of that value.
 
-Deletes rows from a table based on a condition.
-
-```sql
-DELETE FROM DeleteTestDemo WHERE id = 1;
-```
-
-### Delete multiple rows using IN
-
-```sql
-DELETE FROM DeleteTestDemo WHERE id IN (2,3,4);
-```
-
-### Delete using a subquery
-
-```sql
-DELETE FROM DeleteTestDemo WHERE id IN (SELECT id FROM OtherTable WHERE Flag = 1);
-```
-
-### Delete all rows (use with caution)
-
-```sql
-DELETE FROM DeleteTestDemo;
-```
-
-### DELETE using a subquery (non-correlated example)
-
-```sql
-DELETE FROM DeleteTestDemo WHERE GroupID IN (SELECT GroupID FROM OtherTable WHERE Flag = 1);
-```
-
-### Pattern and range deletes
-
-```sql
-DELETE FROM DeleteTestExtra2 WHERE Val LIKE 'a%';
-DELETE FROM DeleteTestExtra2 WHERE Salary BETWEEN 50000 AND 53000;
-```
-
-### Notes on unsupported or dialect-specific DELETE forms
-
-During testing the server did not accept several DELETE variants:
-
-- Correlated EXISTS deletes in the form `DELETE ... WHERE EXISTS (SELECT ... WHERE o.col = target.col ...)` are not supported.
-- Multi-table DELETE / DELETE with JOIN (MySQL/SQL Server style) are not supported.
-- CTE-based DELETE (`WITH ... DELETE ...`) are not supported.
-- `DELETE ... RETURNING` and explicit transaction control (BEGIN/ROLLBACK) are not supported.
-
-If you depend on any of the unsupported forms, ask for help translating to an equivalent supported pattern (for example, using `IN` with a subquery instead of a correlated `EXISTS`).
-
-## INSERT Queries
-
-INSERT queries are only allowed using the `Insert` method of the store. See the [Database interactions](./database-interaction.md) for details.
+- Model: `EmbeddedDatabase1`
+- Query: `SELECT StatusMachine, COUNT(*) AS Occurrences FROM Machine_state WHERE StatusMachine >= 0 GROUP BY StatusMachine ORDER BY Occurrences DESC`
+- Label: `{Item}/StatusMachine`
+- Value: `{Item}/Occurrences`
