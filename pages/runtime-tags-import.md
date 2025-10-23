@@ -1,6 +1,6 @@
-# Importing PLC tags
+# Run time import of PLC tags
 
-## Runtime Tags Import
+## Introduction
 
 Importing of PLC tags while the application is running is currently only supported for:
 

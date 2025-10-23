@@ -1065,7 +1065,7 @@ If you depend on any of the unsupported forms, ask for help translating to an eq
 
 ## INSERT Queries
 
-INSERT queries are only allowed using the `Insert` method of the store. See the [Database interactions](./database-interaction.md) for details.
+`INSERT` queries are only allowed using the `Insert` method of the store. See the [Database interactions](./database-interaction.md) for details.
 
 ## Temporary Tables
 

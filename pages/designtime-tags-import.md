@@ -1,18 +1,14 @@
-## Tags import using TagImporter
-
-The TagImporter is a node that can be used to import tags from a PLC at design time. It is available for all communication drivers that support tag import, but controlling the TagImporter from NetLogic is only supported for a limited set of drivers.
+# Design time import of PLC tags
 
 >[!NOTE]
-> Controlling the TagImporter from NetLogic was introduced starting from FactoryTalk Optix 1.7.x
+> This feature is available starting from FactoryTalk Optix 1.7.x
+
+## TwinCAT
+
+To import tags from a TwinCAT PLC, you can use the `TwinCAT` driver. The import process allows you to filter tags based on specific criteria, such as tag name or data type.
 
 >[!NOTE]
 > As per FactoryTalk Optix 1.7.x, only the TwinCAT driver supports online and offline import of tags via NetLogic.
-
-### TwinCAT
-
-To import tags from a TwinCAT PLC, you can use the `TwinCAT` driver. The import process allows you to filter tags based on tag name or data type.
-
-#### Offline import
 
 ```csharp
 #region Using directives
@@ -45,8 +41,6 @@ public class DesignTimeNetLogic1 : BaseNetLogic
 
         // Set the file path to the TwinCAT TPY file you want to import
         tagImporter.FilePath = ResourceUri.FromAbsoluteFilePath("D:\\test\\Optix\\Tools\\TwinCAT\\tpy\\AllSimpleType.tpy");
-
-        // Set the import mode to offline
         tagImporter.Mode = FetchMode.Offline;
 
         // Fire and forget, import is executed in a background thread
@@ -56,16 +50,10 @@ public class DesignTimeNetLogic1 : BaseNetLogic
     [ExportMethod]
     public void OfflineImportWithContinuation()
     {
-        // First get the existing TwinCAT station from the project
         var station = Project.Current.Get<FTOptix.TwinCAT.Station>("CommDrivers/TwinCATDriver1/TwinCATStation1");
-
-        // Then get the tag importer node from the station
         var tagImporter = station.TagImporter;
 
-        // Set the file path to the TwinCAT TPY file you want to import
         tagImporter.FilePath = ResourceUri.FromAbsoluteFilePath("D:\\test\\Optix\\Tools\\TwinCAT\\tpy\\AllSimpleType.tpy");
-
-        // Set the import mode to offline
         tagImporter.Mode = FetchMode.Offline;
 
         // Import is executed in a background thread,
@@ -73,8 +61,6 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         var task = tagImporter.Import(Filter);
         task.ContinueWith((t) =>
         {
-            // This method is executed after the import is completed
-            // You can check the task status and handle errors or cancellation
             if (t.IsFaulted)
             {
                 Log.Error("Import task failed: " + t.Exception?.GetBaseException().Message);
@@ -90,6 +76,17 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         });
     }
 
+    [ExportMethod]
+    public void OnlineImport()
+    {
+        var station = Project.Current.Get<FTOptix.TwinCAT.Station>("CommDrivers/TwinCATDriver1/TwinCATStation1");
+        var tagImporter = station.TagImporter;
+
+        tagImporter.Mode = FetchMode.Online;
+        _ = tagImporter.Import(Filter);
+    }
+
+
     private bool Filter(string tag, string type)
     {
         // Filter by tag name
@@ -102,8 +99,6 @@ public class DesignTimeNetLogic1 : BaseNetLogic
     }
 }
 ```
-
-##### Sample TPY file
 
 An example of TPY file that can be used for testing:
 
@@ -326,54 +321,4 @@ An example of TPY file that can be used for testing:
       </Symbol>
 	</Symbols>
 </PlcProjectInfo>
-```
-
-
-#### Online import
-
-```csharp
-#region Using directives
-using System;
-using UAManagedCore;
-using OpcUa = UAManagedCore.OpcUa;
-using FTOptix.UI;
-using FTOptix.HMIProject;
-using FTOptix.NativeUI;
-using FTOptix.Retentivity;
-using FTOptix.CoreBase;
-using FTOptix.Core;
-using FTOptix.NetLogic;
-using FTOptix.TwinCAT;
-using FTOptix.CommunicationDriver;
-using static UAManagedCore.TagImporterAPI;
-using System.Threading.Tasks;
-#endregion
-
-public class RuntimeNetLogic1 : BaseNetLogic
-{
-    [ExportMethod]
-    public void OnlineImport()
-    {
-         // First get the existing TwinCAT station from the project
-         var station = Project.Current.Get<FTOptix.TwinCAT.Station>("CommDrivers/TwinCATDriver1/TwinCATStation1");
-         // Then get the tag importer node from the station
-         var tagImporter = station.TagImporter;
-
-         // Set the file path to the TwinCAT TPY file you want to import
-         tagImporter.Mode = FetchMode.Online;
-         // Start the import process
-         _ = tagImporter.Import(Filter);
-    }
-
-    private bool Filter(string tag, string type)
-    {
-        // Filter by tag name
-        return tag.Contains("int");
-
-        // or
-
-        // Filter by type
-        // return type == "INT";
-    }
-}
 ```
