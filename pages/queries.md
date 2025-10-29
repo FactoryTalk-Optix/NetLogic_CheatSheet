@@ -69,6 +69,34 @@ SELECT * FROM TestTable1 WHERE Salary > 60000 AND DepartmentID = 101
 SELECT * FROM TestTable1 WHERE DepartmentID = 101 OR DepartmentID = 102
 SELECT * FROM TestTable1 WHERE NOT DepartmentID = 103
 SELECT * FROM TestTable2 WHERE Location = 'Chicago'
+SELECT Username FROM Users WHERE PrivateKey = 'test1234' AND Username <> 'test-user'
+SELECT Username FROM Users WHERE PrivateKey = 'test1234' AND NOT (A = 6)
+```
+
+### IN
+
+Filters rows where a column value matches any value in a specified list.
+
+```sql
+SELECT * FROM Table1 WHERE Column1 IN (10, 20, 30)
+```
+
+### BETWEEN
+
+Filters rows where a column value falls within a specified range, inclusive of the boundaries.
+
+```sql
+SELECT * FROM Table1 WHERE Column1 BETWEEN 100 AND 200
+```
+
+### LIKE
+
+Filters rows using pattern matching with wildcards. Supports escape characters for literal matching.
+
+```sql
+SELECT * FROM Table1 WHERE column1 LIKE '%a'
+SELECT * FROM Table1 WHERE column1 LIKE '%a%'
+SELECT * FROM Table1 WHERE column1 LIKE '%bbpi!%ppo%' ESCAPE '!'
 ```
 
 ### Sorting Results
@@ -202,6 +230,16 @@ Filters rows based on NULL values.
 ```sql
 SELECT * FROM TestTable1 WHERE DepartmentID IS NULL
 SELECT * FROM TestTable1 WHERE DepartmentID IS NOT NULL
+```
+
+### NOT
+
+The NOT operator negates conditions and applies to all other operators, such as IN, BETWEEN, EXISTS, IS NULL, etc.
+
+```sql
+SELECT * FROM Table1 WHERE column1 IS NOT NULL
+SELECT * FROM Table1 WHERE column1 NOT IN (10, 20)
+SELECT * FROM Table1 WHERE column1 NOT BETWEEN 100 AND 200
 ```
 
 ### Basic Aggregates
