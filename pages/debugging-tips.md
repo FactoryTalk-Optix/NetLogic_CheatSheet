@@ -71,6 +71,30 @@ This tab shows the errors that were logged during the page load. This can help y
 
 Before attempting any app optimization, it is recommended to check this tab and fix any errors that might be causing the page to fail to load or to load slowly.
 
+## Getting total count of project nodes
+
+- `LogicObject.Context.NodeCount` -> returns the total number of nodes (whole project)
+
+## Reading debug logs
+
+When debug logs are enabled, the output of some rendering methods is logged to the output, here is an example:
+
+```txt
+2024-10-22 10:55:05     NativeUI    StartNetLogics,10,6,600.000
+```
+
+The syntax is:
+
+```txt
+[Timestamp]    [Module Name]    [Method Name];[Total time in ms],[Number of processed items],[Items per second]
+```
+
+So, in the example above we get the NativeUI:
+
+- Executing the `Start` method of all NetLogics in the page
+- Starting a total of 6 NetLogics
+- Running at a theoretical 600 NetLogics per second can be loaded (this is something like benchmarking)
+
 ## Measure code execution time with Stopwatch
 
 Using `DateTime.Now` to measure code execution time is not accurate, as it is affected by system time changes and has a low resolution. Instead, use the `Stopwatch` class from the `System.Diagnostics` namespace, which provides a high-resolution timer specifically designed for measuring elapsed time.
@@ -111,6 +135,7 @@ using FTOptix.UI;
 using UAManagedCore;
 using FTOptix.RAEtherNetIP;
 using OpcUa = UAManagedCore.OpcUa;
+using FTOptix.Alarm;
 #endregion
 
 public class SimpleProfiler : BaseNetLogic
@@ -122,14 +147,14 @@ public class SimpleProfiler : BaseNetLogic
         // Initialize the logger with a directory path
         // Logs will be stored in the project's ApplicationData folder
         string logDirectory = ResourceUri.FromApplicationRelativePath("").Uri;
-        
+
         // Create logger with:
         // - Log directory path
         // - File prefix "SimpleProfiler"
         // - Max 10 MB per file
         // - Keep maximum 5 log files
         logger = new FileLogger(logDirectory, "Profiler", maxFileSizeMB: 10, maxFileCount: 5);
-        
+
         // Example usage
         logger.WriteLog("SimpleProfiler started");
 
@@ -141,23 +166,88 @@ public class SimpleProfiler : BaseNetLogic
     private void LogMemoryUsage()
     {
         var stringBuilder = new System.Text.StringBuilder();
-        var cpuTask = GetMemoryUsageForProcess();
-        cpuTask.Wait();
-        var memoryUsage = cpuTask.Result;
-        stringBuilder.Append($"RAM:{memoryUsage / 1024}KB;");
-        var cpuUsageTask = GetCpuUsageForProcess();
-        cpuUsageTask.Wait();
-        double cpuUsage = cpuUsageTask.Result;
-        stringBuilder.Append($"CPU:{cpuUsage:F2}%;");
-        long variablesCount = GetInstancesOfTypeRecursive(InformationModel.Get(OpcUa.VariableTypes.BaseVariableType)).Count;
-        stringBuilder.Append($"Vars:{variablesCount};");
-        long retainedAlarmsCount = GetRetainedAlarmsCount();
-        stringBuilder.Append($"ActiveAlarms:{retainedAlarmsCount};");
-        long tagsCount = GetInstancesOfTypeRecursive(InformationModel.Get(FTOptix.CommunicationDriver.VariableTypes.Tag)).Count;
-        stringBuilder.Append($"Tags:{tagsCount};");
-        long sessionsCount = GetInstancesOfTypeRecursive(InformationModel.Get(FTOptix.Core.ObjectTypes.Session)).Count;
-        stringBuilder.Append($"Sessions:{sessionsCount};");
-        logger.WriteLog(stringBuilder.ToString());
+        try
+        {
+            var cpuTask = GetMemoryUsageForProcess();
+            cpuTask.Wait();
+            var memoryUsage = cpuTask.Result;
+            stringBuilder.Append($"RAM:{memoryUsage / 1024}KB;");
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("ERROR", $"Failed to get memory usage: {ex.Message}");
+        }
+
+        try
+        {
+            var cpuUsageTask = GetCpuUsageForProcess();
+            cpuUsageTask.Wait();
+            double cpuUsage = cpuUsageTask.Result;
+            stringBuilder.Append($"CPU:{cpuUsage:F2}%;");
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("ERROR", $"Failed to get CPU usage: {ex.Message}");
+        }
+
+        try
+        {
+            long variablesCount = GetInstancesOfTypeRecursive(InformationModel.Get(OpcUa.VariableTypes.BaseVariableType)).Count;
+            stringBuilder.Append($"Vars:{variablesCount};");
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("ERROR", $"Failed to get variables count: {ex.Message}");
+        }
+
+        try
+        {
+            long retainedAlarmsCount = GetRetainedAlarmsCount();
+            stringBuilder.Append($"ActiveAlarms:{retainedAlarmsCount};");
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("ERROR", $"Failed to get retained alarms count: {ex.Message}");
+        }
+
+        try
+        {
+            long tagsCount = GetInstancesOfTypeRecursive(InformationModel.Get(FTOptix.CommunicationDriver.VariableTypes.Tag)).Count;
+            stringBuilder.Append($"Tags:{tagsCount};");
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("ERROR", $"Failed to get tags count: {ex.Message}");
+        }
+
+        try
+        {
+            long sessionsCount = GetInstancesOfTypeRecursive(InformationModel.Get(FTOptix.Core.ObjectTypes.Session)).Count;
+            stringBuilder.Append($"Sessions:{sessionsCount};");
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("ERROR", $"Failed to get sessions count: {ex.Message}");
+        }
+
+        try
+        {
+            long nodesCount = LogicObject.Context.NodeCount;
+            stringBuilder.Append($"TotalNodes:{nodesCount};");
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("ERROR", $"Failed to get total nodes count: {ex.Message}");
+        }
+
+        if (stringBuilder.Length > 0)
+        {
+            logger.WriteLog(stringBuilder.ToString());
+        }
+        else
+        {
+            logger.WriteLog("No profiling data collected.");
+        }
     }
 
     public override void Stop()
@@ -167,7 +257,7 @@ public class SimpleProfiler : BaseNetLogic
         {
             logger.WriteLog("SimpleProfiler stopped");
         }
-        
+
         profilerTask?.Dispose();
         logger = null;
         profilerTask = null;
@@ -203,7 +293,7 @@ public class SimpleProfiler : BaseNetLogic
         {
             Log.Warning("SimpleProfiler", $"Failed to get retained alarms count: {ex.Message}");
         }
-        
+
         return 0;
     }
 
@@ -219,7 +309,7 @@ public class SimpleProfiler : BaseNetLogic
 
         // Get all subtypes of this type
         var subtypes = typeNode.Refs.GetNodes(OpcUa.ReferenceTypes.HasSubtype, false);
-        
+
         // Recursively get instances from each subtype
         foreach (var subtype in subtypes)
         {
@@ -364,7 +454,7 @@ public class FileLogger
             foreach (var file in logFiles)
             {
                 string nameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
-                
+
                 // Check if this is the base file (no number)
                 if (nameWithoutExtension == _logFilePrefix)
                 {
@@ -422,7 +512,7 @@ public class FileLogger
                             newNumber++;
                             newFileName = Path.Combine(_logDirectory, $"{_logFilePrefix}_{newNumber}.txt");
                         }
-                        
+
                         file.MoveTo(newFileName);
                     }
                     catch (Exception ex)

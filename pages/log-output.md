@@ -20,27 +20,3 @@ Different log levels can be triggered and then filtered in `Optix Studio Output`
 ## Get the node path for any project node
 
 - `Log.Node(IUANode);` -> Returns a string containing the node path for a specific element
-
-## Getting total count of project nodes
-
-- `LogicObject.Context.NodeCount` -> returns the total number of nodes (whole project)
-
-## Reading debug logs
-
-When debug logs are enabled, the output of some rendering methods is logged to the output, here is an example:
-
-```txt
-2024-10-22 10:55:05     NativeUI    StartNetLogics,10,6,600.000
-```
-
-The syntax is:
-
-```txt
-[Timestamp]    [Module Name]    [Method Name];[Total time in ms],[Number of processed items],[Items per second]
-```
-
-So, in the example above we get the NativeUI:
-
-- Executing the `Start` method of all NetLogics in the page
-- Starting a total of 6 NetLogics
-- Running at a theoretical 600 NetLogics per second can be loaded (this is something like benchmarking)
