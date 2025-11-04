@@ -97,6 +97,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 - [Template Library](./pages/template-library.md) (starting from FactoryTalk Optix 1.6.X)
 - [Reports](./pages/reports.md)
 - [Recipes](./pages/recipes.md)
+- [Serial port](./pages/serial-port.md)
 
 ### Communication drivers
 
