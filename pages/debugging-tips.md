@@ -3,6 +3,35 @@
 > [!NOTE]
 > The following tips are meant to help you debug your FactoryTalk Optix projects. They might help you find issues in your code or understand how the system works. Use them wisely!
 
+## Debugging the `Start` method of NetLogics
+
+To debug the `Start` method of NetLogics, you can use the following approach:
+
+```csharp
+#region Using directives
+using System.Diagnostics;
+using FTOptix.NetLogic;
+#endregion
+
+public class RuntimeNetLogic1 : BaseNetLogic
+{
+    public override void Start()
+    {
+        // Prompt the user to attach a debugger
+        Debugger.Launch();
+
+        // Rest of the Start method code goes here
+        // ...
+    }
+
+    public override void Stop()
+    {
+        // Insert code to be executed when the user-defined logic is stopped
+    }
+}
+
+```
+
 ## Debugging page load time
 
 To debug the page load time, the NativeUI and WebUI debug logs can be used, these will provide you detailed information about the page load time, including the time taken to load each component and the time taken to execute each script.
