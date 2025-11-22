@@ -4,6 +4,122 @@
 
 Although multiple solutions are shown here to set the target path for a ResourceUri variable, please remember that the WebPresentationEngine only supports accessing elements that are in the `%PROJECTDIR%` and a relative path is used (example: `%PROJECTDIR%/imgs/logo.svg`), using an absolute path for an element (example: `C:/OptixProjects/NewHMIProject1/Project Files/imgs/logo.svg`), will never work in the WebPresentationEngine for safety reasons.
 
+## Check if a file is within the project directory and use relative URIs
+
+When working with file operations, it's essential to determine whether a file is located within the project directory. If it is, you should use a project-relative URI for WebPresentationEngine compatibility. This is particularly important for components like the WebPresentationEngine that **only accept relative resource URIs**.
+
+```csharp
+/// <summary>
+/// Attempts to get the project-relative path if the file is within the project directory.
+/// </summary>
+/// <param name="filePath">The file path to check (can be URI or absolute path)</param>
+/// <returns>The relative path within the project directory, or null if the file is not within the project</returns>
+private string TryGetProjectRelativePath(string filePath)
+{
+    try
+    {
+        // Get the absolute file path from the input (could be a file URI)
+        string absoluteFilePath = GetAbsolutePathFromUri(filePath);
+        if (string.IsNullOrEmpty(absoluteFilePath))
+            return null;
+
+        // Get the project directory
+        string projectDirectory = Project.Current.ProjectDirectory;
+        if (string.IsNullOrEmpty(projectDirectory))
+            return null;
+
+        // Normalize both paths to ensure consistent comparison
+        string normalizedFilePath = Path.GetFullPath(absoluteFilePath);
+        string normalizedProjectPath = Path.GetFullPath(projectDirectory);
+
+        // Ensure project path ends with directory separator for proper containment check
+        if (!normalizedProjectPath.EndsWith(Path.DirectorySeparatorChar.ToString()) && 
+            !normalizedProjectPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+        {
+            normalizedProjectPath += Path.DirectorySeparatorChar;
+        }
+
+        // Check if the file is within the project directory
+        if (normalizedFilePath.StartsWith(normalizedProjectPath, StringComparison.OrdinalIgnoreCase))
+        {
+            // Calculate the relative path from project directory
+            string relativePath = normalizedFilePath.Substring(normalizedProjectPath.Length);
+            
+            // Convert path separators to forward slashes for consistency
+            relativePath = relativePath.Replace(Path.DirectorySeparatorChar, '/');
+            
+            return relativePath;
+        }
+
+        return null;
+    }
+    catch (Exception ex)
+    {
+        Log.Error("TryGetProjectRelativePath", $"Error determining project relative path: {ex.Message}");
+        return null;
+    }
+}
+
+/// <summary>
+/// Extracts the absolute file path from a URI or returns the path if it's already absolute.
+/// </summary>
+/// <param name="uriOrPath">URI or file path</param>
+/// <returns>Absolute file path, or null if invalid</returns>
+private string GetAbsolutePathFromUri(string uriOrPath)
+{
+    if (string.IsNullOrEmpty(uriOrPath))
+        return null;
+
+    try
+    {
+        // Try to parse as URI first
+        if (Uri.TryCreate(uriOrPath, UriKind.Absolute, out Uri uri))
+        {
+            return uri.IsFile ? uri.LocalPath : uriOrPath;
+        }
+
+        // If not a URI, treat as file path
+        return Path.IsPathRooted(uriOrPath) ? uriOrPath : null;
+    }
+    catch (Exception ex)
+    {
+        Log.Error("GetAbsolutePathFromUri", $"Error parsing URI/path '{uriOrPath}': {ex.Message}");
+        return null;
+    }
+}
+```
+
+### Usage example
+
+```csharp
+[ExportMethod]
+public void HandleFileSelection(string filePath)
+{
+    try
+    {
+        // Try to determine if the file is within the project directory
+        var projectRelativePath = TryGetProjectRelativePath(filePath);
+        if (projectRelativePath != null)
+        {
+            // File is within project directory - use project relative URI for WebPresentationEngine compatibility
+            var resourceUri = ResourceUri.FromProjectRelativePath(projectRelativePath);
+            Log.Info("HandleFileSelection", $"Using project relative path: {projectRelativePath}");
+            // Use resourceUri for WebPresentationEngine-compatible components
+        }
+        else
+        {
+            // File is outside project directory - cannot be used with WebPresentationEngine
+            Log.Warning("HandleFileSelection", "The selected file will not work in the WebPresentationEngine as it is not in the ProjectDir");
+            // Fallback to absolute path if needed, but be aware of limitations
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error("HandleFileSelection", $"Error processing file path '{filePath}': {ex.Message}");
+    }
+}
+```
+
 ## Create a ResourceUri from scratch
 
 ```csharp
@@ -69,6 +185,9 @@ singlePiece.Get<Image>("PuzzleImage").Path = ResourceUri.FromProjectRelativePath
 ```
 
 ### Using relative path
+
+> [!TIP]
+> This method is recommended as it will produce a relative path that will work if the project is moved to another folder or computer, and is compatible with the WebPresentationEngine.
 
 ```csharp
 [ExportMethod]
