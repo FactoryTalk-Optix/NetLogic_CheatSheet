@@ -317,37 +317,120 @@ public void Method1()
 #### Creating a Key-Value Converter
 
 ```csharp
-private void StuffCreateKeyPair(IUAVariable targetNode, IUAVariable sourceVariable)
+/// <summary>
+/// Creates a ValueMapConverter with multiple key-value pairs and associates it with a Label control.
+/// The converter maps integer values to localized text strings, either through dynamic links or hard-coded values.
+/// </summary>
+[ExportMethod]
+public void CreateKeyValueConverter()
 {
-    // Create the new key value converter
-    ValueMapConverter newValueMapConverter = InformationModel.MakeObject<ValueMapConverter>("KeyValueConverter1", FTOptix.CoreBase.ObjectTypes.ValueMapConverter);
-    // Create the pairs object
-    IUAObject newPairs = InformationModel.MakeObject(new QualifiedName(FTOptix.CoreBase.ObjectTypes.ValueMapConverter.NamespaceIndex, "Pairs"));
-    // For each pair, set properties
-    for (int i = 0; i < 3; i++)
+    // Define constants for object paths and names
+    const string parentBrowsePath = "Display/Popup1/Content";
+    const string labelBrowseName = "Label99";
+    const string aliasName = "{PopupAlias}";
+
+    // Get the parent container where the label will be created
+    var parent = Project.Current.Get(parentBrowsePath);
+    if (parent == null)
     {
-        // First element is the default one
-        string pairBrowseName = "Pair";
-        if (i > 0)
-            pairBrowseName += i.ToString();
-        // Create the new pair
-        IUAObject newPair = InformationModel.MakeObject(pairBrowseName, FTOptix.CoreBase.ObjectTypes.ValueMapPair);
-        IUAVariable newKey = newPair.GetVariable("Key");
-        IUAVariable newValue = newPair.GetVariable("Value");
-        // Set the proper datatype
-        newKey.DataType = OpcUa.DataTypes.UInt32;
-        newValue.DataType = FTOptix.Core.DataTypes.Color;
-        // Set the proper value
-        newKey.Value = i;
-        newValue.Value = System.Drawing.Color.Violet.ToArgb();
-        // Add the pair to the map
-        newPairs.Add(newPair);
+        throw new ArgumentException($"No parent {parentBrowsePath} found");
     }
-    // Add the map to the key value converter
-    newValueMapConverter.Add(newPairs);
-    newValueMapConverter.SourceVariable.SetDynamicLink(sourceVariable);
-    // Add the key value converter to the variable
-    targetNode.SetConverter(newValueMapConverter);
+
+    // Remove existing label if it exists to ensure clean recreation
+    var label = parent.Get<Label>(labelBrowseName);
+    label?.Delete();
+
+    // Create the ValueMapConverter object that will map integer keys to localized text values
+    var converter =
+        InformationModel.MakeObject<ValueMapConverter>("KeyValueConverter1", FTOptix.CoreBase.ObjectTypes.ValueMapConverter);
+    
+    // Create the Pairs container to hold all key-value mappings
+    var pairs =
+        InformationModel.MakeObject(new QualifiedName(FTOptix.CoreBase.ObjectTypes.ValueMapConverter.NamespaceIndex, "Pairs"));
+
+    // Set modeling rule to ensure pairs object follows converter structure requirements
+    pairs.ModellingRule = NamingRuleType.Mandatory;
+
+    // Add key-value pairs to the converter:
+    // Pair 0: Default fallback value (hard-coded)
+    AddPairToKeyValueConverter(pairs, 0, null, new LocalizedText("Default value", "en-US"));
+    // Pair 1: Dynamic link to first localized text variable
+    AddPairToKeyValueConverter(pairs, 1, $"{aliasName}/localizedText1", null);
+    // Pair 2: Dynamic link to second localized text variable
+    AddPairToKeyValueConverter(pairs, 2, $"{aliasName}/localizedText2", null);
+    // Pair 3: Hard-coded localized text for value 3
+    AddPairToKeyValueConverter(pairs, 3, null, new LocalizedText("text associated to value 3 (hard-coded)", "en-US"));
+
+    // Add the configured pairs collection to the converter
+    converter.Add(pairs);
+
+    // Configure the converter's source: link it to an integer variable that determines which value to display
+    converter.SourceVariable.SetDynamicLink(null, DynamicLinkMode.Read);
+    converter.SourceVariable.GetVariable("DynamicLink").SetValue($"{aliasName}/integer1");
+
+    // Create and configure the Label control that will display the converted text
+    label = InformationModel.MakeObject<Label>(labelBrowseName);
+    label.Width = 255;
+    label.LeftMargin = 165;
+    label.TopMargin = 240;
+    label.TextColor = Colors.Blue;
+    
+    // Associate the label's text variable with the converter
+    // The label will automatically display text based on the integer value
+    label.TextVariable.SetConverter(converter);
+    
+    // Add the configured label to the parent container
+    parent.Add(label);
+}
+
+/// <summary>
+/// Adds a key-value pair to the ValueMapConverter's pairs collection.
+/// Each pair maps an integer key to either a dynamically-linked or hard-coded localized text value.
+/// </summary>
+/// <param name="pairs">The pairs collection to add the new pair to</param>
+/// <param name="key">The integer key that will trigger this value when matched</param>
+/// <param name="dynamicLinkString">Optional dynamic link path to a variable (takes precedence if provided)</param>
+/// <param name="hardCodedText">Optional hard-coded localized text value (used when no dynamic link is provided)</param>
+private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamicLinkString, LocalizedText hardCodedText)
+{
+    // Create unique browse name for this pair
+    string pairBrowseName = $"Pair{key}";
+    
+    // Create the ValueMapPair object
+    var newPair = InformationModel.MakeObject(pairBrowseName, FTOptix.CoreBase.ObjectTypes.ValueMapPair);
+    newPair.ModellingRule = NamingRuleType.Mandatory;
+
+    // Get the Key and Value variables from the pair
+    var newKey = newPair.GetVariable("Key");
+    var newValue = newPair.GetVariable("Value");
+    
+    // Set modeling rules to ensure proper structure
+    newKey.ModellingRule = NamingRuleType.Mandatory;
+    newValue.ModellingRule = NamingRuleType.Mandatory;
+
+    // Configure the Key variable with the integer key value
+    newKey.DataType = OpcUa.DataTypes.Int32;
+    newKey.Value = key;
+
+    // Configure the Value variable as LocalizedText type
+    newValue.DataType = OpcUa.DataTypes.LocalizedText;
+
+    // Set the value either through dynamic link or hard-coded value
+    // Dynamic link allows runtime changes to the displayed text
+    if (!string.IsNullOrEmpty(dynamicLinkString))
+    {
+        // Create dynamic link to external variable
+        newValue.SetDynamicLink(null, DynamicLinkMode.ReadWrite);
+        newValue.GetVariable("DynamicLink").SetValue(dynamicLinkString);
+    }
+    else
+    {
+        // Use hard-coded localized text value
+        newValue.SetValue(hardCodedText);
+    }
+
+    // Add the configured pair to the pairs collection
+    pairs.Add(newPair);
 }
 ```
 
