@@ -145,7 +145,7 @@ public void CreateArbitraryTag()
     // This must be in the `.optix` file of the project, so it must be a known index.
     var nxIndex = LogicObject.Context.GetNamespaceIndex("0ccdea9893ed5102b4fae754ef1732f7#http://www.unifiedautomation.com/DemoServer/");
     // Create a new variable in the project with the NodeId of the OPC/UA variable to read in the remote server
-    var variable = LogicObject.Context.NodeFactory.MakeVariable(new NodeId(nxIndex, "Demo.Static.Scalar.Double"+), "Double", OpcUa.DataTypes.Double, OpcUa.VariableTypes.BaseDataVariableType);
+    var variable = LogicObject.Context.NodeFactory.MakeVariable(new NodeId(nxIndex, "Demo.Static.Scalar.Double"), "Double", OpcUa.DataTypes.Double, OpcUa.VariableTypes.BaseDataVariableType);
     // Add the variable to the Objects folder of the OPC/UA client project
     LogicObject.Owner.GetObject("Objects").Add(variable);
 }
