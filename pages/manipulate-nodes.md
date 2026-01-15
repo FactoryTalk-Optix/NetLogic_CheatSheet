@@ -6,7 +6,7 @@
 
 ## Stopping an Optix node
 
-Once nodes are stopped, they stop interacting with the system for example an ODBC database node will stop executing queries, a Trend node will stop logging data, an Alarm node will stop monitoring conditions, etc.
+Once nodes are stopped, they stop interacting with the system for example an ODBC database node will stop processing queries, a Trend node will stop logging data, an Alarm node will stop monitoring conditions, etc.
 
 This can be useful in some scenarios to disable some components (like the `Signing Workflow` node) or to temporarily stop some processes (like a `Trend` node) without deleting them.
 

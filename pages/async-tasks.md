@@ -1,10 +1,10 @@
 # Asynchronous tasks
 
-Asynchronous tasks are very common when executing special or long tasks that may negatively impact the overall execution
+Asynchronous tasks are very common when running special or long tasks that may negatively impact the overall operation
 
 ## General concepts about Asynchronous tasks
 
-Standard C# language provides multiple ways to execute asynchronous operations (such as the `async` modifier for some methods), these can be used in FT Optix as long as those methods does not access any of the project structure (pages, tags, etc).
+Standard C# language provides multiple ways to run asynchronous operations (such as the `async` modifier for some methods), these can be used in FT Optix as long as those methods does not access any of the project structure (pages, tags, etc).
 
 - Example:
     - async method to read/write a CSV -> GOOD
@@ -16,15 +16,15 @@ These asynchronous tasks are InformationModel-safe and can be used to access pro
 
 ### PeriodicTask
 
-This kind of task allows a specific method to be executed every `x` milliseconds, for example to blink a LED or to handle a watchdog.
+This kind of task allows a specific method to be run every `x` milliseconds, for example to blink a LED or to handle a watchdog.
 
-Please note: the specified interval, is actually the delay between two consecutive execution of the method, and the execution is impacted by the length of the instruction to process. The next execution is delayed until the task is completed, for example:
+Please note: the specified interval, is actually the delay between two consecutive runs of the method, and the operation is impacted by the length of the instruction to process. The next run is delayed until the task is completed, for example:
 
 Having a task:
 - PeriodicTask declared every 50mS
-- Method executed by the PeriodicTask takes 100mS to process
+- Method run by the PeriodicTask takes 100mS to process
 
-With this timings, the task is actually executed every 150mS, as the interval is actually the delay after which the task is executed again.
+With this timings, the task is actually run every 150mS, as the interval is actually the delay after which the task is run again.
 
 ```csharp
 public override void Start()
@@ -42,7 +42,7 @@ public override void Stop()
 
 private void IncrementVariable()
 {
-    // Action to be executed every tick of the periodic task
+    // Action to be run every tick of the periodic task
     …
 }
 
@@ -56,7 +56,7 @@ This kind of task will trigger a method after `x` milliseconds it is called, thi
 ```csharp
 public override void Start()
 {
-    // Create an action that is executed after 10s the page is loaded
+    // Create an action that is run after 10s the page is loaded
     // this could also be a method called by a button or any trigger
     myDelayedTask = new DelayedTask(ResetLabelText, 10000, LogicObject);
     myDelayedTask.Start();
@@ -70,7 +70,7 @@ public override void Stop()
 
 private void ResetLabelText()
 {
-    // Action to be executed after the delay
+    // Action to be run after the delay
     …
 }
 
@@ -79,7 +79,7 @@ private DelayedTask myDelayedTask;
 
 ### LongRunningTask
 
-This is the most similar approach to the `async` modifier of the standard C# scripting, it allows to create a dedicated thread and execute it without affecting the main code execution.
+This is the most similar approach to the `async` modifier of the standard C# scripting, it allows to create a dedicated thread and run it without affecting the main code operation.
 An `async` modifier can also be used, but an async method **cannot** access any project node (it may cause concurrency issues), in such cases, use a LongRunningTask instead.
 
 ```csharp
@@ -99,7 +99,7 @@ public override void Stop()
 
 private void ProcessCsvFile(LongRunningTask task)
 {
-    // Process that takes long time to be executed
+    // Process that takes long time to be run
     …
 }
 
@@ -154,7 +154,7 @@ public class LongRunningLogic : BaseNetLogic
 {
     public override void Start()
     {
-        // Create the new LongRunningTask and execute it
+        // Create the new LongRunningTask and run it
         myTask = new LongRunningTask(MyMethod, LogicObject);
         myTask.Start();
     }

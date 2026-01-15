@@ -31,7 +31,7 @@
 
 ## Impersonate a session
 
-Every operation being done on the Optix core must be done in the context of a session. When you are executing code from an asynchronous method, you must always bind to an existing session, even if for a short time.
+Every operation being done on the Optix core must be done in the context of a session. When you are invoking code from an asynchronous method, you must always bind to an existing session, even if for a short time.
 
 > [!TIP]
 > This is a very edge case, if you need to perform asynchronous operation without having to deal with sessions, it is a better choice to use [async tasks](./async-tasks.md) instead.

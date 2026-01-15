@@ -87,7 +87,7 @@ namespace LogsHandler
 
 ```
 
-## Subscribe to methods execution
+## Subscribe to methods invoke
 
 This script can be put anywhere on the project and will listen to every OPCUA method being called (script or UI)
 
@@ -109,7 +109,6 @@ public class RuntimeNetLogic1 : BaseNetLogic
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
         eventRegistration?.Dispose();
     }
 
@@ -164,7 +163,6 @@ public class RuntimeNetLogic1 : BaseNetLogic
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
         eventRegistration?.Dispose();
     }
 
@@ -249,7 +247,6 @@ public class RuntimeNetLogic1 : BaseNetLogic
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
         eventRegistration?.Dispose();
     }
 

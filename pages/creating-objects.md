@@ -4,7 +4,7 @@
 
 ### Add an element to the project
 
-Native types are the one predefined in FTOptix, these are the most simple to create and add anywhere in the project. These types exists both at RunTime and DesignTime, so the syntax does not change depending on the execution
+Native types are the one predefined in FTOptix, these are the most simple to create and add anywhere in the project. These types exists both at RunTime and DesignTime, so the syntax does not change depending on the NetLogic type.
 
 ```csharp
 // Create a new Panel called "MyNewPanelName"
@@ -89,7 +89,7 @@ private void StuffMakePanelUIObject(IUANode panelOwner, string panelName, int wi
 
 When creating custom types or templates, the equivalent C# class is automatically created by FTOptix, then you can instantiate such classes with the same syntax
 
-**Please note**: The user-defined types does not exists when executing scripts at DesignTime, so they should be treated as normal objects (see the DesignTime snippet below)
+**Please note**: The user-defined types does not exists when running scripts at DesignTime, so they should be treated as normal objects (see the DesignTime snippet below)
 
 #### RunTime creation of UI instances
 

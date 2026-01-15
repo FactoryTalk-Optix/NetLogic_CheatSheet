@@ -43,7 +43,7 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         tagImporter.FilePath = ResourceUri.FromAbsoluteFilePath("D:\\test\\Optix\\Tools\\TwinCAT\\tpy\\AllSimpleType.tpy");
         tagImporter.Mode = FetchMode.Offline;
 
-        // Fire and forget, import is executed in a background thread
+        // Fire and forget, import is run in a background thread
         _ = tagImporter.Import();
     }
 
@@ -56,8 +56,8 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         tagImporter.FilePath = ResourceUri.FromAbsoluteFilePath("D:\\test\\Optix\\Tools\\TwinCAT\\tpy\\AllSimpleType.tpy");
         tagImporter.Mode = FetchMode.Offline;
 
-        // Import is executed in a background thread,
-        // continuation is executed in the current thread after the import is completed
+        // Import is started in a background thread,
+        // continuation is run in the current thread after the import is completed
         var task = tagImporter.Import(Filter);
         task.ContinueWith((t) =>
         {

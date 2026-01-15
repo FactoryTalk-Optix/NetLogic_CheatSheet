@@ -17,13 +17,13 @@ public class RuntimeAlarmsLogic : BaseNetLogic
 {
     public override void Start() 
     {
-        // Insert code to be executed when the user-defined logic is started
+        // Insert code to be run when the user-defined logic is started
         DetectAlarmType();
     }
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
+        // Insert code to be run when the user-defined logic is stopped
     }
 
     [ExportMethod]
@@ -319,7 +319,7 @@ public class AlarmGridLogic : BaseNetLogic
 
 ```csharp
 /// <summary>
-/// Execute the AlarmCommands object methods to acknowledge and confirm all active alarms.
+/// Run the AlarmCommands object methods to acknowledge and confirm all active alarms.
 /// This is a global action and requires proper permissions.
 /// </summary>
 var alarmCommands = InformationModel.GetObject(FTOptix.Alarm.Objects.AlarmCommands);

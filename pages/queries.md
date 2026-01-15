@@ -1107,7 +1107,7 @@ If you depend on any of the unsupported forms, ask for help translating to an eq
 
 ## Temporary Tables
 
-Temporary tables provide a way to store intermediate results during query execution. Key characteristics include:
+Temporary tables provide a way to store intermediate results during query process. Key characteristics include:
 
 - Temporary tables, identified by the `##` prefix, can be created and accessed using double-quoted identifiers.
 - Supported operations include querying, joining, and aggregations however, update operations are not permitted.

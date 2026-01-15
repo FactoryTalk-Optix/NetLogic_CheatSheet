@@ -11,7 +11,7 @@
 
 ## Create an instance of a Companion Specs type
 
-Please make sure the proper XML file was added to FT Optix before executing the script
+Please make sure the proper XML file was added to FT Optix before starting the script
 
 We will load an instance of the BlockType object from the DI specifications, the XML relevant part is:
 

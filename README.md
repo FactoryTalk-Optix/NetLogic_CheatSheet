@@ -89,7 +89,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 
 - [Log output](./pages/log-output.md)
 - [Random generation](./pages/random-generation.md)
-- [Execute commands](./pages/execute-command.md)
+- [Running commands](./pages/execute-command.md)
 - [Locales and Translations](./pages/translations.md)
 - [Users and groups](./pages/users-groups.md)
 - [Alarms](./pages/alarming.md)

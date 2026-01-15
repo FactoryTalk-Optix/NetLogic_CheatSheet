@@ -53,7 +53,7 @@ Each session lives as an independent object, each session can interact with glob
 
 NetLogic are also affected by this functionality:
 - When using the `Project.Current.Get` syntax, only the project definition can be accessed, if a UI element is manipulated using such syntax, the session instance must be destroyed and recreated in order to inherit the new changes (for example navigating to a different page and then coming back)
-- When placing the NetLogic inside a page (which can be something like a Screen, a Panel, a Rectangle, or any UI object) and using the `Owner.Get` syntax, the specific instance where the NetLogic is executed gets accessed and the UI is immediately refreshed. Only the instance where the NetLogic exists can be accessed, a session-based NetLogic cannot interact with other sessions, only with elements in the current session or global objects (such as PLC tags or Model variables).
+- When placing the NetLogic inside a page (which can be something like a Screen, a Panel, a Rectangle, or any UI object) and using the `Owner.Get` syntax, the specific instance where the NetLogic is created gets accessed and the UI is immediately refreshed. Only the instance where the NetLogic exists can be accessed, a session-based NetLogic cannot interact with other sessions, only with elements in the current session or global objects (such as PLC tags or Model variables).
 
 ### Summary
 

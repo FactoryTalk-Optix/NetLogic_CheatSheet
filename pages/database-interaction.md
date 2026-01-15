@@ -229,7 +229,7 @@ private void QueryAndUpdate(LongRunningTask myTask, object args)
     // Prepare the query
     var query = $"SELECT * FROM {tableName}";
 
-    // Execute the query
+    // Run the query
     store.Query(query, out String[] header, out Object[,] resultSet);
 
     if (header == null || resultSet == null)

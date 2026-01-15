@@ -30,12 +30,11 @@ public class RuntimeNetLogic1 : BaseNetLogic
 {
     public override void Start()
     {
-        // Insert code to be executed when the user-defined logic is started
+        // Nothing to do
     }
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
         systemNode.OnLoadApplicationStatusEvent -= SystemNode_OnLoadApplicationStatusEvent;
     }
 

@@ -10,7 +10,7 @@ On Windows, the name of the COM port must be specified as `COMx`, where `x` is t
 So, if the project configures `COM0` as serial port name, on Windows it will try to open `COM0`, while on embedded devices it will try to open `/dev/serial0` with no need to change anything on the project.
 
 > [!NOTE]
-> All the serial port write operations (like the `Write` and `WriteBytes` methods) are **non-blocking**, meaning that the NetLogic execution will continue immediately even if the data is not yet written to the serial port.
+> All the serial port write operations (like the `Write` and `WriteBytes` methods) are **non-blocking**, meaning that the NetLogic code will continue immediately even if the data is not yet written to the serial port.
 
 ## Polling mode
 
@@ -181,7 +181,6 @@ public class SerialPortLogic : BaseNetLogic
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
         OutgoingString.VariableChange -= OutgoingString_VariableChange;
         serialPortTask?.Dispose();
     }

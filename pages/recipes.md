@@ -245,7 +245,7 @@ public void PopulateRecipeSchema()
 /// <summary>
 /// Add variables and corresponding store columns to an existing RecipeSchema.
 /// Inputs: two model variables present in the project (Model/Variable2, Model/Variable3).
-/// This is a DesignTime helper typically executed from a DesignTime NetLogic or exported method.
+/// This is a DesignTime helper typically invoked from a DesignTime NetLogic or exported method.
 /// </summary>
 [ExportMethod]
 public void ModifyRecipeSchema()

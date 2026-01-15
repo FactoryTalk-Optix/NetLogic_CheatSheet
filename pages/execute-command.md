@@ -1,15 +1,15 @@
-# Execute commands
+# Calling or running commands
 
 ## OPC/UA Methods
 
 See [here](./creating-objects.md)
 
-## Execute external commands (CMD or external softwares)
+## Run external commands (CMD or external softwares)
 
 ```csharp
 using System.Diagnostics;
 
-static void ExecuteCommand(string command)
+static void RunCommand(string command)
 {
     int exitCode;
     ProcessStartInfo processInfo;
@@ -31,9 +31,9 @@ static void ExecuteCommand(string command)
     // Read the exit code
     exitCode = process.ExitCode;
     // Print some output
-    Log.Info("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
-    Log.Info("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
-    Log.Info("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
+    Log.Info("RunCommand", "output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
+    Log.Info("RunCommand", "error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
+    Log.Info("RunCommand", "ExitCode: " + exitCode.ToString());
     // Close the process handler
     process.Close();
 }
@@ -61,7 +61,7 @@ public void OpenBrowser(string urlPath) {
 }
 ```
 
-## Execute FT Optix Core commands
+## Invoike FT Optix Core commands
 
 ```csharp
 // Get the core commands object (exposed by FT Optix APIs)
@@ -70,7 +70,7 @@ var coreCommandsObject = InformationModel.GetObject(FTOptix.CoreBase.Objects.Cor
 coreCommandsObject.ExecuteMethod("Close");
 ```
 
-## Execute FT Optix Alarm commands
+## Invoke FT Optix Alarm commands
 
 ```csharp
 // Get the alarms object
@@ -81,7 +81,7 @@ alarmCommands.ExecuteMethod("AcknowledgeAll");
 alarmCommands.ExecuteMethod("ConfirmAll");
 ```
 
-## Execute system shutdown (Windows only)
+## Perform system shutdown (Windows only)
 
 ```csharp
 /// <summary>
@@ -98,11 +98,11 @@ public void SystemShutDown()
 }
 ```
 
-## Execute a .BAT or external executable
+## Run a .BAT or external executable
 
 ```csharp
 /// <summary>
-/// Execute a BAT file or external program. Adjust filename and parameters as needed.
+/// Start a BAT file or external program. Adjust filename and parameters as needed.
 /// On Windows, you can call cmd with /k or /c; /k keeps the window open.
 /// </summary>
 private void ExecuteExternalCommand()
@@ -126,7 +126,7 @@ public void OpenVLC()
 }
 ```
 
-## Execute a method from a different NetLogic
+## Invoke a method from a different NetLogic
 
 Calling a NetLogic instance with `var myNetLogic = new MyNetLogic();` will create a new instance of the NetLogic, but it will not be the same as the one that is running in the project so it should be avoided. To call a method from a different NetLogic, you need to get the NetLogic object from the project and then call the method on that object.
 
@@ -134,14 +134,14 @@ Calling a NetLogic instance with `var myNetLogic = new MyNetLogic();` will creat
 [ExportMethod]
 public void CallMethod1()
 {
-    // Get the NetLogic containing the method to execute
+    // Get the NetLogic containing the method to invoke
     var myScript = Project.Current.GetObject("NetLogic/RuntimeNetLogic1");
     // Launch the method
     myScript.ExecuteMethod("Method1");
 }
 ```
 
-### Execute a method from a different NetLogic with parameters
+### Invoke a method from a different NetLogic with parameters
 
 #### NetLogic to be called
 
@@ -173,7 +173,7 @@ public class AckConfirmMessageLogic : BaseNetLogic
     {
         // Get the target NetLogic object
         var alarmsNetLogic = GetNetLogicObject();
-        // Get the action name to be executed
+        // Get the action name to be invoked
         string action = Owner.GetVariable("MethodName").Value;
         // Get the comment to be added to the alarm
         var comment = Owner.Get<TextBox>("Comment").LocalizedText;

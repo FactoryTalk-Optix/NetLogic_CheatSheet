@@ -26,7 +26,7 @@ public class RuntimeNetLogic1 : BaseNetLogic
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
+        // Insert code to be run when the user-defined logic is stopped
     }
 }
 
@@ -34,7 +34,7 @@ public class RuntimeNetLogic1 : BaseNetLogic
 
 ## Debugging page load time
 
-To debug the page load time, the NativeUI and WebUI debug logs can be used, these will provide you detailed information about the page load time, including the time taken to load each component and the time taken to execute each script.
+To debug the page load time, the NativeUI and WebUI debug logs can be used, these will provide you detailed information about the page load time, including the time taken to load each component and the time taken to run each script.
 
 1. Using the Save menu, export the application as an x86 binary anywhere on your PC
 1. Move the exported folder manually to the target device
@@ -56,13 +56,13 @@ When you are satisfied and you passed trough most pages (or the ones that are ta
 > [!NOTE]
 > The logs parsing tool does not store any data anywhere, it only parses the logs and displays the results in a table. The logs are not sent to any server or stored anywhere, they are only used to display the results in the web app. The source code of the tool is available on [GitHub](https://github.com/ASEM-ApplicationSoftwareEngineers/OptixRuntimeLogsParser)
 
-The web app will parse the logs and display the results in a table, showing the time taken to load each component and the time taken to execute each script.
+The web app will parse the logs and display the results in a table, showing the time taken to load each component and the time taken to run each script.
 
 Now, click the tabs to investigate the results:
 
 ### UI Timing
 
-This tab shows the time taken to load each component of the page, including the time taken to load the page itself, the time taken to load each component, and the time taken to execute each script.
+This tab shows the time taken to load each component of the page, including the time taken to load the page itself, the time taken to load each component, and the time taken to run each script.
 
 > [!NOTE]
 > The first page being loaded will likely produce odd results (with some crazy loading time), as the page is being loaded for the first time and the components are being initialized. This is normal and should not be taken into account when analyzing the results.
@@ -120,13 +120,13 @@ The syntax is:
 
 So, in the example above we get the NativeUI:
 
-- Executing the `Start` method of all NetLogics in the page
+- Calling the `Start` method of all NetLogics in the page
 - Starting a total of 6 NetLogics
 - Running at a theoretical 600 NetLogics per second can be loaded (this is something like benchmarking)
 
-## Measure code execution time with Stopwatch
+## Measure code run time with Stopwatch
 
-Using `DateTime.Now` to measure code execution time is not accurate, as it is affected by system time changes and has a low resolution. Instead, use the `Stopwatch` class from the `System.Diagnostics` namespace, which provides a high-resolution timer specifically designed for measuring elapsed time.
+Using `DateTime.Now` to measure code run time is not accurate, as it is affected by system time changes and has a low resolution. Instead, use the `Stopwatch` class from the `System.Diagnostics` namespace, which provides a high-resolution timer specifically designed for measuring elapsed time.
 
 ```csharp
 // Start stopwatch
@@ -136,7 +136,7 @@ stopwatch.Start();
 // code to measure
 
 stopwatch.Stop();
-Log.Info("Execution time (ms): " + stopwatch.Elapsed.TotalMilliseconds);
+Log.Info("Run time (ms): " + stopwatch.Elapsed.TotalMilliseconds);
 ```
 
 ## Simple profiler

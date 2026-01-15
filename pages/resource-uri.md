@@ -193,7 +193,6 @@ singlePiece.Get<Image>("PuzzleImage").Path = ResourceUri.FromProjectRelativePath
 [ExportMethod]
 public void Method2()
 {
-    // Insert code to be executed by the method
     var image = Owner.Get<AdvancedSVGImage>("AdvancedSVGImage1");
     // Set the path to %PROJECTDIR%/logo.svg
     image.PathVariable.Value = ResourceUri.FromProjectRelativePath("logo.svg");

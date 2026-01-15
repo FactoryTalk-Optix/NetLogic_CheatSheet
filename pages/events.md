@@ -83,7 +83,7 @@ public class DesignTimeNetLogic1 : BaseNetLogic
     private FTOptix.CoreBase.EventHandler MakeEventHandler(
         IUANode parentNode, // The parent node to which the event handler is to be added
         NodeId listenEventTypeId, // The NodeID of the event to be listened
-        IUAObject callingObject, // The object on which the method is to be executed
+        IUAObject callingObject, // The object on which the method is to be called
         string methodName, // The name of the method to be called
         List<Tuple<string, NodeId, object>> arguments = null // List of input arguments (name, data type NodeID, value)
     )
@@ -101,7 +101,7 @@ public class DesignTimeNetLogic1 : BaseNetLogic
         var methodContainer = InformationModel.MakeObject($"MethodContainer{methodIndex}");
         eventHandler.MethodsToCall.Add(methodContainer);
 
-        // Create the ObjectPointer variable and set its value to the object on which the method is to be executed
+        // Create the ObjectPointer variable and set its value to the object on which the method is to be called
         var objectPointerVariable = InformationModel.MakeVariable<NodePointer>("ObjectPointer", OpcUa.DataTypes.NodeId);
         objectPointerVariable.Value = callingObject.NodeId;
         methodContainer.Add(objectPointerVariable);
@@ -163,7 +163,7 @@ public class CreateEventHandler : BaseNetLogic
     private FTOptix.CoreBase.EventHandler MakeEventHandler(
        IUANode parentNode, // The parent node to which the event handler is to be added
        NodeId listenEventTypeId, // The NodeID of the event to be listened
-       IUAObject callingObject, // The object on which the method is to be executed
+       IUAObject callingObject, // The object on which the method is to be called
        string methodName, // The name of the method to be called
        List<Tuple<string, NodeId, object>> arguments = null // List of input arguments (name, data type NodeID, value)
     )
@@ -180,7 +180,7 @@ public class CreateEventHandler : BaseNetLogic
         var methodContainer = InformationModel.MakeObject("MethodContainer1");
         eventHandler.MethodsToCall.Add(methodContainer);
 
-        // Create the ObjectPointer variable and set its value to the object on which the method is to be executed
+        // Create the ObjectPointer variable and set its value to the object on which the method is to be called
         var objectPointerVariable = InformationModel.MakeVariable<NodePointer>("ObjectPointer", OpcUa.DataTypes.NodeId);
         objectPointerVariable.Value = callingObject.NodeId;
         string resultPath = CreateRelativePath(parentNode, callingObject);
@@ -263,12 +263,15 @@ public class CreateEventHandler : BaseNetLogic
 }
 ```
 
-## Subscribe to methods execution
+## Subscribe to OPCUA methods
 
 This script can be put anywhere on the project and will listen to every OPCUA method being called (script or UI)
 
+> [!NOTE]
+> In FactoryTalk Optix, any method is mapped to an OPCUA method, so even when calling a NetLogic method, or a core command, this script will intercept the call.
+
 ```csharp
-public class MethodExecutionAuditLogic : BaseNetLogic, IUAEventObserver
+public class OpcMethodsAuditLogic : BaseNetLogic, IUAEventObserver
 {
     public override void Start()
     {
@@ -278,7 +281,7 @@ public class MethodExecutionAuditLogic : BaseNetLogic, IUAEventObserver
 
     public override void Stop()
     {
-        // Insert code to be executed when the user-defined logic is stopped
+        // Insert code to be run when the user-defined logic is stopped
     }
 
     public void OnEvent(IUAObject eventNotifier, IUAObjectType eventType, IReadOnlyList<object> eventData, ulong senderId)

@@ -31,7 +31,7 @@ public void CreateAuditOnVariableSingleBits()
     // Prepare object for the method
     var methodArguments = new object[] { sourceVar, targetFolder };
 
-    // Execute the method in a separate thread
+    // Run the method in a separate thread
     var myTask = new LongRunningTask(CreateSingleBits, methodArguments, LogicObject);
     myTask.Start();
 }

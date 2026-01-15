@@ -117,7 +117,7 @@ private void StuffAddDictionaryTranslations(IUAVariable dictionary, List<string[
     }
     catch
     {
-        // If the dictionary value is not a valid 2D array, stop further execution.
+        // If the dictionary value is not a valid 2D array, stop further processing.
         return;
     }
 
@@ -198,7 +198,7 @@ This example provide a collection of array to edit multiple records into the dic
 ```csharp
 private void StuffModifyDictionaryTranslations(IUAVariable dictionary, List<string[]> valuesToEdit)
 {
-    // A big dictionary may take a long time to process, so using a LongRunningTask is recommended to avoid blocking execution.
+    // A big dictionary may take a long time to process, so using a LongRunningTask is recommended to avoid blocking processes.
     
     // Validate inputs: check if dictionary or its value is null, or if there are no values to edit.
     if (dictionary == null || dictionary.Value.Value == null || valuesToEdit == null || valuesToEdit.Count <= 0)
@@ -212,7 +212,7 @@ private void StuffModifyDictionaryTranslations(IUAVariable dictionary, List<stri
     }
     catch
     {
-        // If the value cannot be cast, it may not be a dictionary, so stop further execution.
+        // If the value cannot be cast, it may not be a dictionary, so stop further processing.
         return;
     }
 
@@ -282,7 +282,7 @@ private void StuffRemoveDictionaryTranslations(IUAVariable dictionary, List<stri
     }
     catch
     {
-        //Maybe is not a dictionary, so is better to stop execution here
+        //Maybe is not a dictionary, so is better to stop processing here
         return;
     }
     List<int> rowsToRemove = new List<int>();
@@ -396,7 +396,7 @@ public class RuntimeNetLogic1 : BaseNetLogic
 
     private void Session_LocaleIdVariable_VariableChange(object sender, VariableChangeEventArgs e)
     {
-        // This code will be executed when the LocaleId variable changes
+        // This code will be called when the LocaleId variable changes
         // You can add your custom logic here
         var newLocaleId = e.NewValue;
         // For example, you can log the new LocaleId
