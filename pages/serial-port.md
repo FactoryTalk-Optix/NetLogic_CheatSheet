@@ -4,7 +4,13 @@ Communication using the serial port is only allowed using the SerialPort driver 
 
 On Windows, the name of the COM port must be specified as `COMx`, where `x` is the port number (e.g., `COM1`, `COM2`, etc.). On embedded devices, the name of the serial port is automatically mapped to the serial port index of the device (e.g., `COM0` is mapped to the serial port at index 0 - the embedded serial port of OptixPanels - which is internally mapped to `/dev/serial0`).
 
+> [!TIP]
+> For the OptixPanel standard, the embedded serial port is available as `COM1` (internally mapped to `/dev/serial1`).
+
 So, if the project configures `COM0` as serial port name, on Windows it will try to open `COM0`, while on embedded devices it will try to open `/dev/serial0` with no need to change anything on the project.
+
+> [!NOTE]
+> All the serial port write operations (like the `Write` and `WriteBytes` methods) are **non-blocking**, meaning that the NetLogic execution will continue immediately even if the data is not yet written to the serial port.
 
 ## Polling mode
 
@@ -265,5 +271,85 @@ public class SerialPortLogic : BaseNetLogic
     private SerialPort comPort;
     private LongRunningTask serialPortTask;
     private string dataToSend;
+}
+```
+
+## Using the serial port to control an external device
+
+This example shows how to keep the TX line HIGH on a serial port to power an external device that requires it (like to power an external relay module).
+
+> [!WARNING]
+> The TX line of a serial port is not designed to provide power to external devices. Ensure that the external device's power requirements do not exceed the capabilities of the serial port to avoid damage. An intermediate driver circuit (current or voltage buffer) is strictly required.
+
+> [!NOTE]
+> Depending on the hardware interface, the TX line might be inverted. Please check the hardware documentation for more details.
+
+```csharp
+using System;
+using System.Linq;
+using FTOptix.CommunicationDriver;
+using FTOptix.NetLogic;
+using FTOptix.SerialPort;
+using UAManagedCore;
+
+public class MinimalSerialPortLogic : BaseNetLogic
+{
+    public override void Start()
+    {
+        // Setup Serial Port
+        serialPort = (SerialPort)Owner;
+        serialPort.Baudrate = 9600;
+        serialPort.FlowControl = FlowControl.None;
+        serialPort.DataSize = 8;
+        serialPort.Parity = Parity.None;
+        serialPort.StopBits = StopBits.One;
+        serialPort.Timeout = TimeSpan.FromMilliseconds(100);
+
+        // Calculate buffer size for 2 seconds transmission
+        // Baudrate: 9600 bits/sec
+        // Bits per byte: 10 (1 start + 8 data + 1 stop)
+        // Bytes per second: 9600 / 10 = 960 bytes/sec
+        // For 2000ms: 960 * 2 = 1920 bytes
+        var bytesPerSecond = serialPort.Baudrate / (serialPort.DataSize + 2);
+        var bufferSize = (bytesPerSecond * TX_DURATION_MS) / 1000;
+        txBuffer = Enumerable.Repeat((byte)0x00, (int)bufferSize).ToArray();
+
+        Log.Info("MinimalSerialPortLogic", $"Initialized with buffer size: {txBuffer.Length} bytes for {TX_DURATION_MS}ms transmission");
+    }
+
+    public override void Stop()
+    {
+        if (serialPort != null)
+        {
+            serialPort.Close();
+            serialPort = null;
+        }
+    }
+
+    /// <summary>
+    /// Activates the TX pin for the configured duration by writing the pre-calculated buffer.
+    /// WriteBytes is asynchronous - it queues the data and returns immediately.
+    /// The actual transmission will take approximately TX_DURATION_MS.
+    /// </summary>
+    [ExportMethod]
+    public void SetOutput()
+    {
+        try
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            serialPort.WriteBytes(txBuffer);
+            stopwatch.Stop();
+
+            Log.Info("SetOutput", $"TX activated. Buffer: {txBuffer.Length} bytes, Queue time: {stopwatch.ElapsedMilliseconds}ms, Expected TX duration: {TX_DURATION_MS}ms");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("SetOutput", $"Failed to write to serial port: {ex.Message}");
+        }
+    }
+
+    private SerialPort serialPort;
+    private byte[] txBuffer;
+    private const int TX_DURATION_MS = 2000;
 }
 ```
