@@ -104,6 +104,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 - [PLC Tags](./pages/plc-tags.md)
 - [Runtime tags import](./pages/runtime-tags-import.md)
 - [Designtime tags import](./pages/designtime-tags-import.md) (starting from FactoryTalk Optix 1.7.X)
+- [MQTT](./pages/mqtt.md) (Starting from FactoryTalk Optix 1.6.X)
 
 ### Advanced
 
