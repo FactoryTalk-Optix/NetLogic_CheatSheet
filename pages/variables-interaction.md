@@ -233,6 +233,24 @@ public override void Stop()
 
 ## Single and multi dimensional arrays
 
+### Create a mono-dimensional array variable
+
+```csharp
+// Use the MakeVariable method with the array dimensions as last parameter
+var newVariable = InformationModel.MakeVariable("MyArray", OpcUa.DataTypes.Int32, new uint[] { 10 });
+// Adds the MyArray variable (Int32[10]) to the Model folder
+Project.Current.Get("Model").Add(newVariable);
+```
+
+### Create a multi-dimensional array variable
+
+```csharp
+// Use the MakeVariable method with the array dimensions as last parameter
+var newMatrix = InformationModel.MakeVariable("MyMatrix", OpcUa.DataTypes.Float, new uint[] { 5, 5 });
+// Adds the MyMatrix variable (Int32[5,5]) to the Model folder
+Project.Current.Get("Model").Add(newMatrix);
+```
+
 ### Access mono-dimensional arrays
 
 ```csharp
