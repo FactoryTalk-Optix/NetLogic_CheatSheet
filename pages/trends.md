@@ -26,18 +26,22 @@ public void AddPen(NodeId penId)
 
 ```csharp
 [ExportMethod]
-public void AddYAxisToPen(NodeId penId)
+public void AddYAxisToPen()
 {
     // Get the pen and the Y-axis
-    var pen = InformationModel.Get<TrendPen>(penId);
+    var trend = Owner.Get("Trend1") as Trend;
+    var pen = trend.Pens.Get<TrendPen>("TrendPen1");
+
     // Create a new Y-axis
     var yAxis = InformationModel.Make<ValueAxis>("YAxis");
+
     // Set the Y-axis properties
     yAxis.MinValueVariable.Value = -10;
     yAxis.MaxValueVariable.Value = 42;
     yAxis.PositionVariable.Value = 0; // 0 = left, 1 = right
-    // Add the Y-axis to the pen
-    pen.YAxes.Add(yAxis);
+
+    // Assign the Y-axis to the pen
+    pen.Add(yAxis);
 }
 ```
 
