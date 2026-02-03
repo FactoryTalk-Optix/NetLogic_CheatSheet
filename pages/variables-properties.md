@@ -24,14 +24,18 @@ public void GetEUInfoDisplayName()
 
 ## Adding engineering units to a variable
 
-The engineering unit follows the OPC-UA standard and is identified by a unique ID that has been issued by the foundation, you can check [Here](https://reference.opcfoundation.org/Core/Part8/v104/docs/5.6.3).
+The engineering unit follows the OPC-UA standard and is identified by a unique ID that has been issued by the foundation, you can check the [OPC-UA Engineering Units specification](https://reference.opcfoundation.org/Core/Part8/v104/docs/5.6.3).
 
 > [!WARNING]
 > It is mandatory to use IDs to generate an EUInformation
 
 ```csharp
-private void GenerateEUInfo(NodeId targetVariable, uint eUID)
+[ExportMethod]
+public void GenerateEUInfo(NodeID TargetVariable, uint eUID, bool)
 {
+    var targetVariable = Project.Current.GetVariable("Model/Variable1").NodeId;
+    var eUID = 999;
+    var isCustomEngineeringUnit = true;
     // Check if the target variable is a valid IUAVariable
     if (InformationModel.GetVariable(targetVariable) is IUAVariable variableToAnalyze)
     {
@@ -56,6 +60,10 @@ private void GenerateEUInfo(NodeId targetVariable, uint eUID)
             euInfo.ModellingRule = NamingRuleType.Mandatory;
             euInfo.SetModellingRuleRecursive();
             variableToAnalyze.Refs.AddReference(OpcUa.ReferenceTypes.HasProperty, euInfo);
+        }
+        if (isCustomEngineeringUnit)
+        {
+            euInfo.GetOrCreateVariable("NamespaceIndex").Value = targetVariable.NamespaceIndex;
         }
     }
 }
