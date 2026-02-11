@@ -33,7 +33,8 @@ public void AddYAxisToPen()
     var pen = trend.Pens.Get<TrendPen>("TrendPen1");
 
     // Create a new Y-axis
-    var yAxis = InformationModel.Make<ValueAxis>("YAxis");
+    var uiNamespaceIndex = NamespaceMapProvider.GetNamespaceIndex("urn:FTOptix:UI");
+    var yAxis = InformationModel.Make<FTOptix.UI.ValueAxis>(new QualifiedName(uiNamespaceIndex, "YAxis"));
 
     // Set the Y-axis properties
     yAxis.MinValueVariable.Value = -10;

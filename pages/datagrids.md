@@ -60,3 +60,64 @@ public void DataGridSelectionChanged(NodeId dataGrid)
     sessionLastUsedTime.Value = Convert.ToDateTime(selectedRowLastUsedTime.Value.Value.ToString());
 }
 ```
+
+## Interacting with the content of a DataGrid
+
+```csharp
+[ExportMethod]
+public void UpdateDataGridValues()
+{
+    // Retrieve the DataGrid object
+    DataGrid dg = (DataGrid)Owner;
+    // Get the "Models" object which is the parent of all the rows of the DataGrid
+    IUAObject t = dg.Children.GetObject("Models");
+
+    // Get all rows as a list
+    List<UAVariable> rows = new List<UAVariable>();
+    foreach (var child in t.Children)
+    {
+        if (child is UAVariable variable)
+            rows.Add(variable);
+    }
+
+    double previousEl = 0;
+    double previousGas = 0;
+    double previousWater = 0;
+    double previousSteam = 0;
+
+    // Row 0: header of the grid
+    // Row 1: selected item
+    // Row 2 and following: actual content of the grid, where each row is an object with a variable per each column of the grid
+    for (int i = 2; i < rows.Count; i++)
+    {
+        var row = rows[i];
+        // Get all columns as a list
+        List<UAVariable> cols = new List<UAVariable>();
+        foreach (var child in row.Children)
+        {
+            if (child is UAVariable variable)
+                cols.Add(variable);
+        }
+        DateTime timestamp = (DateTime)cols[0].Value;
+        if (timestamp.Minute == 0 && i > 0)
+        {
+            // Edit the value of a column by name
+            previousEl = UpdateDGField(ref cols, 2, previousEl);
+            previousGas = UpdateDGField(ref cols, 3, previousGas);
+            previousWater = UpdateDGField(ref cols, 4, previousWater);
+            previousSteam = UpdateDGField(ref cols, 5, previousSteam);
+        }
+    }
+}
+
+private double UpdateDGField(ref List<UAVariable> cols, int i, double prev)
+{
+    double current = Convert.ToDouble(cols[i].Value);
+    if (current >= prev)
+        cols[i+4].Value = current - prev;
+    else
+        cols[i+4].Value = (current + 32767) - prev;
+    prev = current;
+    return prev;
+}
+```
