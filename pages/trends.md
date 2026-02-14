@@ -1,6 +1,8 @@
 # Trends
 
-## Add a pen to a trend
+## Pens
+
+### Add a pen to a trend
 
 ```csharp
 [ExportMethod]
@@ -22,7 +24,49 @@ public void AddPen(NodeId penId)
 }
 ```
 
-## Add a Y-axis to a pen
+### Remove a pen from a trend
+
+```csharp
+/// <summary>
+/// Remove Trend pens at runtime using ComboBoxes to select DataLogger and Variable.
+/// </summary>
+[ExportMethod]
+public void RemovePen()
+{
+    // Remove a pen from a trend by name
+    var nameCombo = Owner.Owner.Get<ComboBox>("ComboBox1");
+    var myTrend = Owner.Owner.Owner.Owner.Get<Trend>("Trend1");
+    myTrend.Pens.Remove(((UAManagedCore.LocalizedText)nameCombo.SelectedValue).Text);
+}
+```
+
+## Y-axis
+
+### Add a Y-axis to a pen
+
+#### FactoryTalk Optix version 1.7.1.x and later
+
+```csharp
+[ExportMethod]
+public void AddYAxisToPen()
+{
+    // Get the pen to interact with
+    var trend = Owner.Get<Trend>("Trend1");
+
+    // Get the pen and add a Y-axis to it
+    var pen = trend.Pens.Get<TrendPen>("Variable1_pen");
+    var newAxis = pen.GetOrAddYAxis();
+
+    // Set the Y-axis properties
+    newAxis.MinValue = 0;
+    newAxis.MaxValue = 100;
+
+    // Refresh the trend to show the new Y-axis
+    trend.Refresh();
+}
+```
+
+#### FactoryTalk Optix before version 1.7.1.x
 
 ```csharp
 [ExportMethod]
@@ -46,18 +90,41 @@ public void AddYAxisToPen()
 }
 ```
 
-## Remove a pen from a trend
+
+
+### Remove a Y-axis from a pen
+
+#### FactoryTalk Optix version 1.7.1.x and later
 
 ```csharp
-/// <summary>
-/// Remove Trend pens at runtime using ComboBoxes to select DataLogger and Variable.
-/// </summary>
 [ExportMethod]
-public void RemovePen()
+public void RemoveYAxisFromPen()
 {
-    // Remove a pen from a trend by name
-    var nameCombo = Owner.Owner.Get<ComboBox>("ComboBox1");
-    var myTrend = Owner.Owner.Owner.Owner.Get<Trend>("Trend1");
-    myTrend.Pens.Remove(((UAManagedCore.LocalizedText)nameCombo.SelectedValue).Text);
+    // Get the pen to interact with
+    var trend = Owner.Get<Trend>("Trend1");
+
+    // Get the pen and remove its Y-axis
+    var pen = trend.Pens.Get<TrendPen>("Variable1_pen");
+    pen.RemoveYAxis();
+
+    // Refresh the trend to show the change
+    trend.Refresh();
+}
+```
+
+#### FactoryTalk Optix before version 1.7.1.x
+
+```csharp
+[ExportMethod]
+public void RemoveYAxisFromPen()
+{
+    // Get the pen and its Y-axis
+    var trend = Owner.Get("Trend1") as Trend;
+    var pen = trend.Pens.Get<TrendPen>("TrendPen1");
+    var yAxis = pen.Children.OfType<FTOptix.UI.ValueAxis>().FirstOrDefault();
+
+    // Remove the Y-axis from the pen
+    if (yAxis != null)
+        pen.Remove(yAxis);
 }
 ```
