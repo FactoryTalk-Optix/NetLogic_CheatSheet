@@ -399,8 +399,12 @@ public void CreateBitAlarms()
             var alarm = InformationModel.Make<DigitalAlarm>($"Alarm_{plc.BrowseName}_{i}_{j}");
             // Create a dynamic link to the element and then point to the bit index
             alarm.InputValueVariable.SetDynamicLink((IUAVariable)plc, (uint)i, DynamicLinkMode.ReadWrite);
-            var dynamicLink = alarm.InputValueVariable.GetVariable("DynamicLink");
-            alarm.InputValueVariable.GetVariable("DynamicLink").Value = dynamicLink.Value + "." + j;
+            // Resolve the DynamicLink variable using the HasDynamicLink reference (recommended)
+            var dynamicLinkVar = alarm.InputValueVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) as IUAVariable;
+            if (dynamicLinkVar != null)
+            {
+                dynamicLinkVar.Value = (string)dynamicLinkVar.Value + "." + j;
+            }
             alarm.Message = $"Alarm_{plc.BrowseName}_{i}_{j}";
             Project.Current.Get($"Alarms/{plc.BrowseName}").Add(alarm);
         }

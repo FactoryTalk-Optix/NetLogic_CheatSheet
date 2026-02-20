@@ -118,8 +118,10 @@ public void AddDynamicLinkToBitOfIntegerVariable()
     IUAVariable tempVariable = null;
     // Add a dynamic link to the fake variable (to trigger the link mechanism)
     myBitAlarm.SetDynamicLink(tempVariable, DynamicLinkMode.ReadWrite);
-    // Replace the dynamic link content to the real target value
-    myBitAlarm.GetVariable("DynamicLink").Value = "../Int32Variable.1";
+    // Replace the dynamic link content to the real target value using HasDynamicLink reference
+    var myBitAlarmDl = myBitAlarm.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) as IUAVariable;
+    if (myBitAlarmDl != null)
+        myBitAlarmDl.Value = "../Int32Variable.1";
 }
 ```
 
@@ -366,7 +368,9 @@ public void CreateKeyValueConverter()
 
     // Configure the converter's source: link it to an integer variable that determines which value to display
     converter.SourceVariable.SetDynamicLink(null, DynamicLinkMode.Read);
-    converter.SourceVariable.GetVariable("DynamicLink").SetValue($"{aliasName}/integer1");
+    var srcDl = converter.SourceVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) as IUAVariable;
+    if (srcDl != null)
+        srcDl.Value = $"{aliasName}/integer1";
 
     // Create and configure the Label control that will display the converted text
     label = InformationModel.MakeObject<Label>(labelBrowseName);
@@ -417,11 +421,13 @@ private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamic
 
     // Set the value either through dynamic link or hard-coded value
     // Dynamic link allows runtime changes to the displayed text
-    if (!string.IsNullOrEmpty(dynamicLinkString))
+        if (!string.IsNullOrEmpty(dynamicLinkString))
     {
         // Create dynamic link to external variable
         newValue.SetDynamicLink(null, DynamicLinkMode.ReadWrite);
-        newValue.GetVariable("DynamicLink").SetValue(dynamicLinkString);
+        var pairDl = newValue.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) as IUAVariable;
+        if (pairDl != null)
+            pairDl.Value = dynamicLinkString;
     }
     else
     {

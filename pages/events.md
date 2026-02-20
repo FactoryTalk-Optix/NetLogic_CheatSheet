@@ -189,7 +189,11 @@ public class CreateEventHandler : BaseNetLogic
         {
             IUAVariable temp = null;
             objectPointerVariable.SetDynamicLink(temp, DynamicLinkMode.ReadWrite);
-            objectPointerVariable.GetVariable("DynamicLink").Value = "../../../../" + resultPath;
+            var dynamicLinkVar = objectPointerVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) as IUAVariable;
+            if (dynamicLinkVar != null)
+            {
+                dynamicLinkVar.Value = "../../../../" + resultPath;
+            }
         }
 
         methodContainer.Add(objectPointerVariable);

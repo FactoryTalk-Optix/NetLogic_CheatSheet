@@ -62,7 +62,7 @@ private void StuffMakePanelUIObject(IUANode panelOwner, string panelName, int wi
     // Access the optional variable value
     IUAVariable moveTarget = panel.GetOrCreateVariable("MoveTarget"); 
     // Prepare the DynamicLink
-    DynamicLink moveTargetLink = moveTarget?.GetVariable("DynamicLink") as DynamicLink;
+    DynamicLink moveTargetLink = moveTarget?.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) as DynamicLink;
     if (moveTarget != null && moveTargetSelf)
     {
         if (moveTargetLink == null)

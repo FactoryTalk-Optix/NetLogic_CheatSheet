@@ -65,9 +65,12 @@ private void CreateSingleBits(LongRunningTask task, object methodArgumentsObj)
         var newVariable = InformationModel.MakeVariable($"{sourceVar.BrowseName}_Bit{i}", OpcUa.DataTypes.Boolean);
         newVariable.SetDynamicLink(sourceVar, DynamicLinkMode.ReadWrite);
 
-        // Modify the dynamic link to read only the bit
-        var dynamicLinkVariable = newVariable.GetVariable("DynamicLink");
-        dynamicLinkVariable.Value = dynamicLinkVariable.Value.Value + $".{i}";
+        // Modify the dynamic link to read only the bit using HasDynamicLink reference
+        var dynamicLinkVariable = newVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink) as IUAVariable;
+        if (dynamicLinkVariable != null)
+        {
+            dynamicLinkVariable.Value = (string)dynamicLinkVariable.Value + $".{i}";
+        }
 
         // Create the audit variable
         var auditVar = InformationModel.Make<AuditInfo>("AuditSigning Signature");
