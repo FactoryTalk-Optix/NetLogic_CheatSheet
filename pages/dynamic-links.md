@@ -259,7 +259,77 @@ public void StuffCreateNewDynamicLinkFormatter()
 }
 ```
 
-### Advanced dynamic links
+### Dynamic link to an Alias
+
+#### FactoryTalk Optix up to 1.7.x
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToAlias()
+{
+    var myVariable = Owner.GetVariable("TextBox1/Text");
+    myVariable.SetDynamicLink(null, DynamicLinkMode.ReadWrite);
+    var myVariableDl = myVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+    if (myVariableDl != null)
+        myVariableDl.Value = "{MotorAlias}/Speed";
+}
+```
+
+#### FactoryTalk Optix 1.8.x and later
+
+Link a variable to the default attribute (Value) of a direct child of an alias:
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToAlias()
+{
+    // Get the Text variable of a TextBox
+    var myVariable = Owner.GetVariable("TextBox1/Text");
+    // Link to {MotorAlias}/Speed in ReadWrite mode
+    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Speed" }, DynamicLinkMode.ReadWrite);
+}
+```
+
+Link a variable to a nested path inside an alias:
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToNestedAlias()
+{
+    // Get the Text variable of a Label
+    var myVariable = Owner.GetVariable("Label1/Text");
+    // Link to {MotorAlias}/Configuration/MaxSpeed in Read mode (default)
+    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Configuration", "MaxSpeed" });
+}
+```
+
+Link a variable to a specific OPC UA attribute of an alias node:
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToAliasAttribute()
+{
+    // Get the Text variable of a Label
+    var myVariable = Owner.GetVariable("Label1/Text");
+    // Link to the BrowseName attribute of {MotorAlias} itself
+    myVariable.SetDynamicLinkToAlias("MotorAlias", AttributeId.BrowseName, DynamicLinkMode.Read);
+}
+```
+
+Link a variable to a specific OPC UA attribute of a sub-item inside an alias:
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToAliasSubItemAttribute()
+{
+    // Get the Text variable of a Label
+    var myVariable = Owner.GetVariable("Label1/Text");
+    // Link to the BrowseName attribute of {MotorAlias}/Configuration/Speed
+    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Configuration", "Speed" }, AttributeId.BrowseName, DynamicLinkMode.Read);
+}
+```
+
+## Advanced dynamic links
 
 > [!WARNING]
 > Advanced dynamic links are a very advanced topic and should be used with caution. It is recommended to use the default dynamic link APIs unless you have a specific use case.
