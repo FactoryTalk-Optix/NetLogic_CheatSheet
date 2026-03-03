@@ -27,7 +27,7 @@ By default a `DynamicLink` is made as _Read only_ unless you specify different m
     // Get the element containing a DynamicLink
     TrendPen originalPen = InformationModel.Get<TrendPen>(Owner.GetAlias("AliasPen").NodeId);
     // Read the variable value
-    var myVariable = (String)originalPen.FindVariable("DynamicLink").Value;
+    var myVariable = (String)originalPen.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink)?.Value;
     // Resolve the dynamic link target
     var result = LogicObject.Context.ResolvePath(myVariable);
     var resolvedNode = result.ResolvedNode;
@@ -41,7 +41,7 @@ By default a `DynamicLink` is made as _Read only_ unless you specify different m
     // Get the element containing a DynamicLink
     var textVariable = Owner.Children.Get<IUAVariable>("Text");
     // Get the DynamicLink node
-    var dynamicLinkNode = textVariable.Children.Get("DynamicLink");
+    var dynamicLinkNode = textVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
     // Get the pointed node
     var pointedNode = dynamicLinkNode.Refs.GetNodes(FTOptix.Core.ReferenceTypes.Resolves).First();
     ...
