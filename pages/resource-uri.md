@@ -296,7 +296,7 @@ Log.Info(ResourceUri.FromApplicationRelativePath("").Uri);
 
 // Access USB slot 1 (if present)
 // [!WARNING]
-// Accessing USB paths at runtime can throw if the device is not present — always guard with try/catch.
+// Accessing USB paths at runtime can throw if the device is not present - always guard with try/catch.
 try
 {
     Log.Info(ResourceUri.FromUSBRelativePath(1, "").Uri);

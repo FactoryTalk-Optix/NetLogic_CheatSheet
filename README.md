@@ -45,6 +45,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 
 - [The InformationModel](./pages/information-model.md)
 - [NetLogic overview](./pages/netlogic-overview.md)
+- [NetLogic Lifecycle](./pages/netlogic-lifecycle.md)
 - [Accessing project nodes](./pages/accessing-project-nodes.md)
 - [General FT Optix good practices](./pages/good-practices.md)
 

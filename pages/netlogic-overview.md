@@ -14,6 +14,101 @@
 - Distinction between the two kind of NetLogic only exists in the YAML definition, the same APIs can be used both at DesignTime and/or at RunTime
     - DesignTime NetLogic can only access elements that exists at DesignTime, you cannot access a `CommDriver` or a `Database` if the application is not running
 
+## Methods visible to FT Optix
+
+Not all methods in a NetLogic class are exposed to the runtime in the same way. FT Optix distinguishes three categories:
+
+### Start() and Stop()
+
+These are the two lifecycle methods inherited from `BaseNetLogic`. They are always called by the runtime automatically - you never invoke them yourself.
+
+- `Start()` is called when the node (page, object) is activated
+- `Stop()` is called when the node is deactivated, in reverse order relative to `Start()`
+- Both must return quickly; slow implementations block the startup of subsequent NetLogics (see [thread-model.md](thread-model.md))
+
+```csharp
+public override void Start()
+{
+    // Setup: register observers, create tasks, read initial values
+}
+
+public override void Stop()
+{
+    // Teardown: dispose tasks, unregister observers
+}
+```
+
+### `[ExportMethod]` - callable from the UI or other NetLogics
+
+Methods decorated with `[ExportMethod]` are **registered as OPC UA Methods** on the NetLogic node. This makes them:
+- Callable from buttons, event handlers, and other UI controls in Studio (they appear in the method picker)
+- Callable from other NetLogics via `ExecuteMethod`
+- Callable by external OPC UA clients
+
+Rules for `[ExportMethod]`:
+- Must be `public`
+- Can have input parameters (mapped to OPC UA input arguments)
+- Can have `out` parameters or a return value (mapped to OPC UA output arguments)
+- The method name must be unique within the NetLogic class
+
+```csharp
+// Simple ExportMethod with no parameters
+[ExportMethod]
+public void ResetCounter()
+{
+    LogicObject.GetVariable("Counter").Value = 0;
+}
+
+// ExportMethod with input and output
+[ExportMethod]
+public void Multiply(double a, double b, out double result)
+{
+    result = a * b;
+}
+```
+
+> [!WARNING]
+> If called from a UI button, an `[ExportMethod]` runs on the **UI thread**. Blocking operations will freeze the UI. See [thread-model.md](./thread-model.md) for the correct pattern.
+
+### Public methods - internal use only
+
+`public` methods that are **not** decorated with `[ExportMethod]` are plain C# class members. They are:
+- **Not visible** to Studio, event handlers, or OPC UA clients
+- Callable only from C# code within the same NetLogic or from other NetLogics via direct object reference
+
+Use them to factor out reusable logic within the class without exposing it to the outside world.
+
+```csharp
+// Visible to Studio and OPC UA clients
+[ExportMethod]
+public void TriggerAlarm(string message)
+{
+    SetAlarmState(true, message); // calls the private helper below
+}
+
+// NOT visible to Studio - internal helper only
+public void SetAlarmState(bool active, string message)
+{
+    LogicObject.GetVariable("AlarmActive").Value = active;
+    LogicObject.GetVariable("AlarmMessage").Value = message;
+}
+```
+
+### Private and internal methods
+
+`private` (and `internal`) methods are standard C# - not accessible from outside the class at all. Use them freely for implementation details.
+
+### Summary table
+
+| Method type | Visible in Studio? | Called by runtime? | Callable from other NetLogics? |
+|-------------|-------------------|-------------------|-------------------------------|
+| `Start()` / `Stop()` | No (automatic) | Yes, automatically | No (use ExportMethod instead) |
+| `[ExportMethod]` public | **Yes** | No (on-demand) | Yes, via `ExecuteMethod` |
+| `public` (no attribute) | No | No | Yes, via object reference |
+| `private` / `internal` | No | No | No |
+
+---
+
 ## Things to remember
 
 - NetLogic class name is the same of the NetLogic object name

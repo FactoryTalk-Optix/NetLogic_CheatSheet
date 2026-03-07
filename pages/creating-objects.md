@@ -140,7 +140,7 @@ public void CreatePolyline()
 /// <summary>
 /// Recursively search from a starting node and open or close all Accordion widgets found.
 /// Inputs: a NodeId of the starting node and a boolean `open` (true=open, false=close).
-/// Caution: this method traverses the children tree and may be slow on large projects — run in a background task if needed.
+/// Caution: this method traverses the children tree and may be slow on large projects - run in a background task if needed.
 /// </summary>
 [ExportMethod]
 public void ToggleAccordions(NodeId startingNode, bool open)

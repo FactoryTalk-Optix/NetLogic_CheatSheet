@@ -7,7 +7,7 @@
 When writing queries for use in FactoryTalk Optix or similar embedded database contexts, keep these recommendations in mind:
 
 - Prefer explicit column lists instead of `SELECT *` in production code to avoid unexpected schema changes and reduce bandwidth.
-- When using `DISTINCT`, be explicit about the columns you need — `DISTINCT *` removes duplicate entire rows which can be expensive.
+- When using `DISTINCT`, be explicit about the columns you need - `DISTINCT *` removes duplicate entire rows which can be expensive.
 - Avoid updating temporary tables when portability is a concern some backends restrict updates on temporary objects.
 - Use table aliases (for example `t1`, `t2`) when joining multiple tables to prevent ambiguity and improve readability.
 - Be cautious with deep subqueries or multiple nested levels - they can impact performance and readability.

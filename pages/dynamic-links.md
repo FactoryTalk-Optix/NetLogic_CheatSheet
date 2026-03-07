@@ -1,5 +1,8 @@
 # Dynamic Links
 
+> [!IMPORTANT]
+> Starting from FactoryTalk Optix 1.7.x, if the DynamicLink optimization is enabled at `Project Root > RuntimeOptimization > DynamicLinks`, all DynamicLinks in the project will be automatically converted to StaticLinks before the deployment and the `DynamicLink` node wil effectively be removed, therefore, any DynamicLink manipulation at runtime with any of the snippets below will not be possible. If a specific link needs to be manipulated at runtime, it should be manually excluded from the optimization by navigating to the DynamicLink popup in the IDE, then in the Advanced tab click the gear icon and set `Disabled` in the `Runtime Optimization` menu.
+
 ## Simple Dynamic Link
 
 By default a `DynamicLink` is made as _Read only_ unless you specify different mode
