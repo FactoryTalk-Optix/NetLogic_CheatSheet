@@ -1,8 +1,8 @@
 # Manipulate Optix nodes
 
 > [!WARNING]
-> This is a very advanced topic and potentially dangerous, only the Optix core should perform these operations.
-> This feature is not officially supported and may be subject to changes in future releases.
+> This page describes low-level features and should be used with caution as they can potentially lead to unexpected results or even break your project. 
+> These features are not officially supported and may be subject to changes in future releases.
 
 ## Stopping an Optix node
 

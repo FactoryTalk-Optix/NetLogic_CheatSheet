@@ -1,5 +1,9 @@
 # Triggering events to the FactoryTalk Optix core
 
+> [!WARNING]
+> This page describes low-level features and should be used with caution as they can potentially lead to unexpected results or even break your project. 
+> These features are not officially supported and may be subject to changes in future releases.
+
 ## Introduction to OPC/UA Events
 
 OPC Unified Architecture (OPC UA) is a machine-to-machine communication protocol for industrial automation developed by the OPC Foundation. One of the key features of OPC UA is its ability to handle events. Events in OPC UA are notifications about changes or occurrences within the system that are of interest to clients.

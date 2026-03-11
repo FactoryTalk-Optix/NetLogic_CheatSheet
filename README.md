@@ -110,7 +110,8 @@ This can significantly improve the quality of the code suggestions related to Fa
 ### Advanced
 
 > [!WARNING]
-> The following topics are very advanced and potentially dangerous, make sure you know what you're doing before implementing them as they could lead to unexpected results or even break your project.
+> This page describes low-level features and should be used with caution as they can potentially lead to unexpected results or even break your project. 
+> These features are not officially supported and may be subject to changes in future releases.
 
 - [Register OPC/UA observers](./pages/register-observers.md)
 - [Dispatch OPC/UA events](./pages/dispatch-events.md)
