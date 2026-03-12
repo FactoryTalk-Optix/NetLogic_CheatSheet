@@ -1,14 +1,13 @@
 # Design time import of PLC tags
 
->[!NOTE]
-> This feature is available starting from FactoryTalk Optix 1.7.x
+This feature is only supported for TwinCAT and RA Ethernet/IP drivers, and allows you to programmatically import tags from a PLC project file. This can be useful in scenarios where you have to import a determined set of tags from a large PLC project, or when you want to automate the import process as part of your project setup.
 
 ## TwinCAT
 
-To import tags from a TwinCAT PLC, you can use the `TwinCAT` driver. The import process allows you to filter tags based on specific criteria, such as tag name or data type.
-
 >[!NOTE]
-> As per FactoryTalk Optix 1.7.x, only the TwinCAT driver supports online and offline import of tags via NetLogic.
+> This feature is available starting from FactoryTalk Optix 1.7.x
+
+To import tags from a TwinCAT PLC, you can use the `TwinCAT` driver. The import process allows you to filter tags based on specific criteria, such as tag name or data type.
 
 ```csharp
 #region Using directives
@@ -321,4 +320,209 @@ An example of TPY file that can be used for testing:
       </Symbol>
 	</Symbols>
 </PlcProjectInfo>
+```
+
+## RA Ethernet/IP
+
+>[!NOTE]
+> This feature is available starting from FactoryTalk Optix 1.8.x
+
+To import tags from an Allen-Bradley PLC, you can use the `RA EtherNetIP` driver. The import process allows you to filter tags based on specific criteria, such as tag name or data type.
+
+```csharp
+#region Using directives
+using System;
+using UAManagedCore;
+using OpcUa = UAManagedCore.OpcUa;
+using FTOptix.UI;
+using FTOptix.HMIProject;
+using FTOptix.NativeUI;
+using FTOptix.Retentivity;
+using FTOptix.CoreBase;
+using FTOptix.Core;
+using FTOptix.NetLogic;
+using FTOptix.RAEtherNetIP;
+using FTOptix.CommunicationDriver;
+using static UAManagedCore.TagImporterAPI;
+using System.Threading.Tasks;
+#endregion
+
+public class DesignTimeNetLogic1 : BaseNetLogic
+{
+    [ExportMethod]
+    public void OfflineImport()
+    {
+        // First get the existing RA EtherNet/IP station from the project
+        var station = plcStation;
+
+        // Then get the tag importer node from the station
+        var tagImporter = station.TagImporter;
+
+        // Set the file path to the L5X file you want to import
+        tagImporter.FilePath = filePath;
+        tagImporter.Mode = FetchMode.Offline;
+
+        // Fire and forget, import is run in a background thread
+        _ = tagImporter.Import();
+    }
+
+    [ExportMethod]
+    public void OfflineImportWithContinuation()
+    {
+        var station = plcStation;
+        var tagImporter = station.TagImporter;
+
+        tagImporter.FilePath = filePath;
+        tagImporter.Mode = FetchMode.Offline;
+
+        // Import is started in a background thread,
+        // continuation is run in the current thread after the import is completed
+        var task = tagImporter.Import(Filter);
+        task.ContinueWith((t) =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error("Import task failed: " + t.Exception?.GetBaseException().Message);
+            }
+            else if (t.IsCanceled)
+            {
+                Log.Info("Import task was canceled.");
+            }
+            else
+            {
+                Log.Info("Import task completed successfully.");
+            }
+        });
+    }
+
+    [ExportMethod]
+    public void OnlineImport()
+    {
+        var station = plcStation;
+        var tagImporter = station.TagImporter;
+
+        tagImporter.Mode = FetchMode.Online;
+        _ = tagImporter.Import(Filter);
+    }
+
+    private bool Filter(string symbolName, string type)
+    {
+        // List of tags to import (supports partial path matching for parent/child nodes)
+        var tagsToImport = new string[]
+        {
+            "Motor.Status.Running",
+            "Integer_tag",
+        };
+
+        foreach (var tagToImport in tagsToImport)
+        {
+            if (IsTagToImport(symbolName, tagToImport))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsTagToImport(string symbolName, string tagToImport)
+    {
+        // Match if the symbol is an exact match, a parent, or a child of the target tag
+        return symbolName == tagToImport ||
+            tagToImport.StartsWith(symbolName) ||
+            symbolName.StartsWith(tagToImport);
+    }
+
+    private FTOptix.RAEtherNetIP.Station plcStation = Project.Current.Get<FTOptix.RAEtherNetIP.Station>("CommDrivers/RAEtherNetIPDriver1/RAEtherNet_IPStation1");
+    private ResourceUri filePath = ResourceUri.FromAbsoluteFilePath("D:\\test\\Optix\\Tools\\RAEtherNetIP\\controller.L5X");
+}
+```
+
+An example of L5X file that can be used for testing:
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="38.00" TargetName="test" TargetType="Controller" ContainsContext="false" ExportDate="Wed Mar 11 10:37:10 2026" ExportOptions="NoRawData L5KData DecoratedData ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Target" Name="test" ProcessorType="1756-L81E" MajorRev="38" MinorRev="11" ProjectCreationDate="Wed Mar 11 10:35:13 2026" LastModifiedDate="Wed Mar 11 10:36:56 2026" SFCExecutionControl="CurrentActive" SFCRestartPosition="MostRecent" SFCLastScan="DontScan" ProjectSN="16#0000_0000"
+ MatchProjectToController="false" CanUseRPIFromProducer="false" InhibitAutomaticFirmwareUpdate="0" PassThroughConfiguration="EnabledWithAppend" DownloadProjectDocumentationAndExtendedProperties="true" DownloadProjectCustomProperties="true" ReportMinorOverflow="false" AutoDiagsEnabled="true" WebServerEnabled="false" DataExchangeId="{7815DD91-43A8-4001-B823-F3594DA6D3FC}">
+<RedundancyInfo Enabled="false" KeepTestEditsOnSwitchOver="false"/>
+<Security Code="0" ChangesToDetect="16#ffff_ffff_ffff_ffff"/>
+<SafetyInfo/>
+<DataTypes>
+<DataType Name="Motor" Family="NoFamily" Class="User">
+<Members>
+<Member Name="Status" DataType="Status" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write"/>
+<Member Name="Speed" DataType="INT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write"/>
+</Members>
+</DataType>
+<DataType Name="Status" Family="NoFamily" Class="User">
+<Members>
+<Member Name="ZZZZZZZZZZStatus0" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="Running" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZStatus0" BitNumber="0" ExternalAccess="Read/Write"/>
+<Member Name="Faulty" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZStatus0" BitNumber="1" ExternalAccess="Read/Write"/>
+</Members>
+</DataType>
+</DataTypes>
+<Modules>
+<Module Name="Local" CatalogNumber="1756-L81E" Vendor="1" ProductType="14" ProductCode="164" Major="38" Minor="11" ParentModule="Local" ParentModPortId="1" Inhibited="false" MajorFault="true"
+>
+<EKey State="Disabled"/>
+<Ports>
+<Port Id="1" Address="0" Type="ICP" Upstream="false">
+<Bus Size="7"/>
+</Port>
+<Port Id="2" Type="Ethernet" Upstream="false">
+<Bus/>
+</Port>
+</Ports>
+</Module>
+</Modules>
+<AddOnInstructionDefinitions/>
+<Tags>
+<Tag Name="Integer_tag" TagType="Base" DataType="DINT" Radix="Decimal" Constant="false" ExternalAccess="Read Only" OpcUaAccess="None">
+<Data Format="L5K">
+<![CDATA[0]]>
+</Data>
+<Data Format="Decorated">
+<DataValue DataType="DINT" Radix="Decimal" Value="0"/>
+</Data>
+</Tag>
+<Tag Name="Motor1" TagType="Base" DataType="Motor" Constant="false" ExternalAccess="Read Only" OpcUaAccess="None">
+<Data Format="L5K">
+<![CDATA[[[0],0]]]>
+</Data>
+<Data Format="Decorated">
+<Structure DataType="Motor">
+<StructureMember Name="Status" DataType="Status">
+<DataValueMember Name="Running" DataType="BOOL" Value="0"/>
+<DataValueMember Name="Faulty" DataType="BOOL" Value="0"/>
+</StructureMember>
+<DataValueMember Name="Speed" DataType="INT" Radix="Decimal" Value="0"/>
+</Structure>
+</Data>
+</Tag>
+</Tags>
+<Programs>
+<Program Name="MainProgram" TestEdits="false" MainRoutineName="MainRoutine" Disabled="false" UseAsFolder="false">
+<Tags/>
+<Routines>
+<Routine Name="MainRoutine" Type="RLL"/>
+</Routines>
+</Program>
+</Programs>
+<Tasks>
+<Task Name="MainTask" Type="CONTINUOUS" Priority="10" Watchdog="500" DisableUpdateOutputs="false" InhibitTask="false" SynchronizeRedundancyDataDisabled="false">
+<ScheduledPrograms>
+<ScheduledProgram Name="MainProgram"/>
+</ScheduledPrograms>
+</Task>
+</Tasks>
+<CST MasterID="0"/>
+<WallClockTime LocalTimeAdjustment="0" TimeZone="0"/>
+<Trends/>
+<TimeSynchronize Priority1="128" Priority2="128" PTPEnable="false"/>
+<EthernetPorts>
+<EthernetPort Port="1" Label="1" PortEnabled="true"/>
+</EthernetPorts>
+<OpcUaInfo EnabledPorts=""/>
+</Controller>
+</RSLogix5000Content>
 ```
