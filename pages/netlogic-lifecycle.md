@@ -100,6 +100,33 @@ public override void Stop()
 }
 ```
 
+### Stop() ordering during page navigation
+
+When navigating from **SCREEN1** to **SCREEN2**, the runtime prioritizes loading the new page to minimize time-to-first-content for the user. As a consequence, **`Stop()` on SCREEN1's NetLogics may execute *after* `Start()` has already been called on SCREEN2's NetLogics**.
+
+This is by design: the destruction and cleanup of nodes belonging to the previous page is intentionally deferred in favor of the new page becoming interactive as quickly as possible.
+
+> [!WARNING]
+> Do not assume that all `Stop()` calls from the previous page have completed before `Start()` begins on the new page. If SCREEN1 and SCREEN2 share any global/static state, session variables, or external resources, this overlap can cause unexpected behavior.
+
+```
+Page transition timeline:
+
+User behavior:      [Navigate to SCREEN2]
+                    ↑ user clicks on the NavigationPanel tab
+
+Behavior thread:        [Start NL_A (SCREEN2)][Start NL_B (SCREEN2)]
+                        ↑ new page load starts first
+
+                            [Stop NL_A (SCREEN1)][Stop NL_B (SCREEN1)]
+                            ↑ old page cleanup follows asynchronously
+```
+
+Practical guidelines:
+- **Do not rely on SCREEN1's `Stop()` having run** before SCREEN2's `Start()` initializes shared resources.
+- **Release exclusive resources** (serial ports, file handles, database connections) as early as possible within `Stop()`, and acquire them as late as possible in `Start()`, to minimize the overlap window.
+- If a clean handoff is required, use a shared session variable or a global synchronization flag to signal that SCREEN1 has fully torn down before SCREEN2 proceeds with the conflicting initialization.
+
 ## ExportMethod execution
 
 Methods decorated with `[ExportMethod]` are called synchronously on **whichever thread triggered them**:
