@@ -223,6 +223,61 @@ private static AlarmController GetAlarmFromRetainedAlarm(NodeId retainedAlarmId)
 }
 ```
 
+## Get the source variable of active alarms
+
+```csharp
+[ExportMethod]
+public void PrintSourceVariableOfAllAlarms()
+{
+    // Get the RetainedAlarms server object
+    var retainedAlarmsObject = LogicObject.Context.GetNode(FTOptix.Alarm.Objects.RetainedAlarms);
+
+    // Get the node that holds the actual list of active/retained alarms
+    var localizedAlarmsObject = retainedAlarmsObject.GetVariable("LocalizedAlarms");
+    var localizedAlarmsNodeId = (NodeId)localizedAlarmsObject.Value;
+
+    IUANode localizedAlarmsContainer = null;
+    if (localizedAlarmsNodeId?.IsEmpty == false)
+        localizedAlarmsContainer = LogicObject.Context.GetNode(localizedAlarmsNodeId);
+
+    if (localizedAlarmsContainer == null)
+    {
+        Log.Error("PrintSourceVariableOfAllAlarms", "LocalizedAlarms node not found");
+        return;
+    }
+
+    // Iterate over every active retained alarm
+    foreach (var item in localizedAlarmsContainer.Children)
+    {
+        // Resolve the retained alarm back to its originating AlarmController
+        var conditionIdVar = item.GetVariable("ConditionId");
+        if (conditionIdVar == null)
+            continue;
+
+        // Get the source variable name for logging purposes
+        string sourceVariableName = item.GetVariable("SourceName").Value;
+
+        // Get the AlarmController node using the ConditionId
+        var alarmController = InformationModel.Get<AlarmController>((NodeId)conditionIdVar.Value);
+        if (alarmController == null)
+            continue;
+
+        // Get the source variable of the alarm by following the dynamic link from the AlarmController's InputValueVariable
+        var sourceVariableDynamicLink = alarmController.InputValueVariable.Refs.GetVariable(FTOptix.CoreBase.ReferenceTypes.HasDynamicLink);
+        var pointedNode = sourceVariableDynamicLink.Refs.GetNodes(FTOptix.Core.ReferenceTypes.Resolves).FirstOrDefault();
+        if (pointedNode == null)
+        {
+            Log.Error("PrintSourceVariableOfAllAlarms", $"No source variable linked to AlarmController: {alarmController.BrowseName}");
+            continue;
+        }
+
+        // Print the current value of the alarm's input variable
+        Log.Info("PrintSourceVariableOfAllAlarms",
+            $"Alarm: {alarmController.BrowseName}, InputVariableName: {sourceVariableName} ({Log.Node(pointedNode)}), InputVariable value: {alarmController.InputValueVariable.Value}");
+    }
+}
+```
+
 ## Acknowledge and Confirm multiple alarms from a DataGrid
 
 > [!WARNING]
