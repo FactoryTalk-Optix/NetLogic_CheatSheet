@@ -65,6 +65,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 - [Variables Interaction](./pages/variables-interaction.md)
 - [Dynamic Links](./pages/dynamic-links.md)
 - [Audit signature](./pages/audit-signature.md)
+- [OPC-UA Structure](./pages/variables-structure.md)
 
 ### OPC/UA
 

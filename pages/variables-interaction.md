@@ -12,29 +12,6 @@ public void CreateVariable()
 }
 ```
 
-## Handle Struct variable
-
-By connecting to an OPC-UA server from another vendor, it is possible for Optix to resolve structures as Struct! (or arrays of structs).
-This type of variable, at code level is readonly, to be able to modify the values within it, one must extract its content which is always expressed in an array of objects, modify this array and recreate a new Struct.
-
-```csharp
-[ExportMethod]
-public void ModifyStructVariable (NodeId opcuaStructVariableNodeId, int indexToModify, string value)
-{
-    // Get the variable to modify
-    IUAVariable opcUaVariable = InformationModel.GetVariable(opcuaStructVariableNodeId);
-    // Read the value from the field (assuming we use a PLC/OPCUA client)
-    Struct structureVariable = opcUaVariable.RemoteRead();
-    // Prepare the structure to be modified
-    object[] newValues = structureVariable.Values as object[];
-    newValues[indexToModify] = value;
-    // Set the new content for the structure
-    Struct newStructureToWrite = structureVariable.HasDataTypeId ? new Struct(structureVariable.DataTypeId, newValues) : new Struct(newValues);
-    // Write the value to the field
-    opcUaVariable.RemoteWrite(newStructureToWrite);
-}
-```
-
 ## Create a complex Variable
 
 Some DataTypes are not exposed by OPC/UA, so you need to get to the DataType number (by attaching the debugger or inspecting the decompiled sources) and then use that info to build a valid NodeId
@@ -181,13 +158,6 @@ if (enumerationDataType != null)
         Log.Info("Value: " + field.Value + ", DisplayName: " + field.DisplayName.Text + ", Description: " + field.Description.Text);
     }
 }
-```
-
-### Creating TagStructure
-
-```csharp
-// Create a new TagStructure variable
-var tagStructure = InformationModel.MakeVariable<FTOptix.CommunicationDriver.TagStructure>("FanArray", OpcUa.DataTypes.Structure, new[] { 11u });
 ```
 
 ## Sync to variable change
