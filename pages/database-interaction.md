@@ -38,7 +38,7 @@ private void UpdateData()
 {
     // Get the Database from the current project
     var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-    // Create the output to get the result (mandatory)
+    // Create the output to get the result
     Object[,] ResultSet;
     String[] Header;
     // Perform the query
@@ -53,7 +53,7 @@ private void DeleteData()
 {
     // Get the Database from the current project
     var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-    // Create the output to get the result (mandatory)
+    // Create the output to get the result
     Object[,] ResultSet;
     String[] Header;
     // Perform the query
@@ -63,12 +63,14 @@ private void DeleteData()
 
 ## Select
 
+### Simple select example
+
 ```csharp
 private void SelectData()
 {
     // Get the Database from the current project
     var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-    // Create the output to get the result (mandatory)
+    // Create the output to get the result
     Object[,] ResultSet;
     String[] Header;
     // Perform the query
@@ -78,17 +80,21 @@ private void SelectData()
 }
 ```
 
+### Select with WHERE clause
+
 ```csharp
 [ExportMethod]
 public void SelectData(NodeId minDateTimePickerNodeId, NodeId maxDateTimePickerNodeId, out double averageValue)
 {
+    // Get the DateTimePickers values from the UI
+    var minDateTimePicker = InformationModel.Get<DateTimePicker>(minDateTimePickerNodeId);
+    var maxDateTimePicker = InformationModel.Get<DateTimePicker>(maxDateTimePickerNodeId);
     // Get the Database from the current project
     var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase1");
-    var minDateTimePicker = InformationModel.Get<DateTimePicker>(minDateTimePickerNodeId);
+    // DateTime values need to be formatted in ISO8601 format for the query
     var minDate = minDateTimePicker.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
-    var maxDateTimePicker = InformationModel.Get<DateTimePicker>(maxDateTimePickerNodeId);
     var maxDate = maxDateTimePicker.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
-    // Create the output to get the result (mandatory)
+    // Create the output to get the result
     Object[,] ResultSet;
     String[] Header;
     var query = $"SELECT AVG(Speed) AS AverageSpeed FROM prod1_table WHERE Machine_state = \"RUN\" AND (Timestamp BETWEEN \"{minDate}\" AND \"{maxDate}\") ORDER BY AverageSpeed DESC";
@@ -108,7 +114,7 @@ private void ExtractColumnNames()
 {
     // Get the Database from the current project
     var myStore = Project.Current.Get<Store>("DataStores/EmbeddedDatabase");
-    // Create the output to get the result (mandatory)
+    // Create the output to get the result
     Object[,] ResultSet;
     String[] Header;
     // Perform the query
