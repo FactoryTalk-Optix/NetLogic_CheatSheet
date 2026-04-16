@@ -7,10 +7,10 @@ Recipes in FT Optix provide a structured way to store and manage sets of paramet
 > Please report any issues or suggestions to the FactoryTalk Optix support or community forums.
 
 > [!NOTE]
-> The recipes engine in FactoryTalk Optix allows a maximum of 2048 ingredients per recipe. This limit is imposed by the underlying database system and cannot be changed.
+> The legacy recipes engine in FactoryTalk Optix allows a maximum of 2048 ingredients per recipe. This limit is imposed by the underlying database system and cannot be changed.
 
 > [!NOTE]
-> The content of this page can only be applied to the legacy recipe module of FactoryTalk Optix. A new Recipe module is coming with release 1.7.x, which will provide enhanced functionality and flexibility.
+> The content of this page can only be applied to the legacy recipe module of FactoryTalk Optix. The reference guide for the new recipe module can be accessed [here](./recipex.md).
 
 ## Recipe System Overview
 
