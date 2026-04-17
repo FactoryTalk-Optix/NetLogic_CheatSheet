@@ -1085,6 +1085,9 @@ public CreateEditModelResult CreateEditModel(
 > - `PendingChanges` — indicates whether the edit model has unsaved changes relative to the recipe in the store.
 > - Transfer methods directly on the `EditModel` instance (e.g. applying to target, committing to store) that operate implicitly on this edit model without having to pass the requester/node again.
 
+> [!NOTE]
+> `CreateEditModel` behaves as **get-or-create**: if an edit model already exists for the given `parentNodeId`/`requesterNodeId` pair, it returns the existing instance instead of creating a new one. This is the correct way to access an edit model that was created and is managed by a `ListView` widget — pass the `ListView.NodeId` as both `parentNodeId` and `requesterNodeId`, and you will get back the live edit model the ListView is currently using.
+
 **Example:**
 ```csharp
 var parent = hmiProject.GetVariable("Parent").Value;
@@ -1898,6 +1901,109 @@ public void ApplyAndClose(NodeId editModelId, NodeId targetNodeId, string recipe
     }
 }
 ```
+
+### Accessing an Edit Model Managed by a ListView
+
+When the **Recipes Editor** widget from the TemplateLibrary is used, FactoryTalk Optix automatically creates an `EditModel` to back the `ListView`. This edit model is not exposed as a visible project node — it exists internally and is not directly accessible by NodeId. To obtain a reference to it from code, call `CreateEditModel` passing the `ListView.NodeId` as both `parentNodeId` and `requesterNodeId`. Because the edit model already exists for that parent/requester pair, the call returns the existing instance rather than creating a new one.
+
+This pattern is useful when you want to run server-side logic against the values the user is currently editing, for example to validate ranges or cross-field constraints before the recipe is saved.
+
+```csharp
+[ExportMethod]
+public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe)
+{
+    isValidRecipe = true;
+
+    var listView = InformationModel.Get<ListView>(listViewNodeId);
+    if (listView == null)
+    {
+        Log.Error("ListView not found");
+        isValidRecipe = false;
+        return;
+    }
+
+    var recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/RecipeSchema1");
+    if (recipeSchema == null)
+    {
+        Log.Error("RecipeSchema not found");
+        isValidRecipe = false;
+        return;
+    }
+
+    // Use get-or-create: if the ListView already owns an edit model this returns it,
+    // otherwise a new one is created. Pass NodeId.Empty and an empty RecipeId so the
+    // call does not load a different recipe on top of the one already active.
+    var createResult = recipeSchema.CreateEditModel(
+        listView.NodeId,    // parentNodeId — same as the ListView used when it created the edit model
+        listView.NodeId,    // requesterNodeId — same as the ListView used when it created the edit model
+        NodeId.Empty,       // targetNodeId — not needed; we are accessing an existing model
+        new RecipeId());    // recipeId — empty; the loaded recipe is already in the model
+
+    if (createResult.ResultCode != CreateEditModelResultCode.Success)
+    {
+        Log.Error($"Failed to access edit model: {createResult.ResultCode}");
+        isValidRecipe = false;
+        return;
+    }
+
+    var editModel = (EditModel)InformationModel.Get(createResult.EditModelNodeId);
+    if (editModel == null)
+    {
+        Log.Error("EditModel not found");
+        isValidRecipe = false;
+        return;
+    }
+
+    // Retrieve the data items defined in the recipe that is currently loaded
+    var dataItemsResult = recipeSchema.GetDataItems(editModel.RecipeId);
+    if (dataItemsResult.ResultCode != GetDataItemsResultCode.Success)
+    {
+        Log.Error($"Failed to retrieve data items: {dataItemsResult.ResultCode}");
+        isValidRecipe = false;
+        return;
+    }
+
+    // Iterate every field and apply validation rules
+    foreach (var dataItem in dataItemsResult.DataItems)
+    {
+        var valueResult = recipeSchema.GetRecipeDataItemValue(
+            editModel.RecipeId,
+            dataItem.ItemRelativeBrowsePath,
+            dataItem.DataItemRelativeBrowsePath,
+            dataItem.ElementAccess);
+
+        if (valueResult.ResultCode != GetRecipeDataItemValueResultCode.Success)
+        {
+            Log.Warning($"Could not read '{string.Join("/", dataItem.ItemRelativeBrowsePath)}': {valueResult.ResultCode}");
+            isValidRecipe = false;
+            continue;
+        }
+
+        var value = valueResult.DataItemValue;
+        var fieldName = string.Join("/", dataItem.ItemRelativeBrowsePath);
+
+        if (value == null)
+        {
+            Log.Warning($"Field '{fieldName}' has a null value");
+            isValidRecipe = false;
+            continue;
+        }
+
+        // Add your custom validation logic here.
+        // Examples:
+        //   if (value is double d && (d < 0 || d > 100)) { ... isValidRecipe = false; }
+        //   if (fieldName == "Motor/MaxSpeed" && (int)value > 3000) { ... isValidRecipe = false; }
+        Log.Info($"Field '{fieldName}' = {value} — OK");
+    }
+
+    Log.Info(isValidRecipe
+        ? $"Recipe '{editModel.RecipeId.Name}' passed validation"
+        : $"Recipe '{editModel.RecipeId.Name}' failed validation");
+}
+```
+
+> [!NOTE]
+> Do not delete or commit the edit model inside this method. Lifecycle management of the edit model (saving, discarding) belongs to the ListView. This method is read-only with respect to the edit model — it only inspects the current values.
 
 ### Bulk Recipe Operations
 
