@@ -48,7 +48,8 @@ Methods decorated with `[ExportMethod]` are **registered as OPC UA Methods** on 
 Rules for `[ExportMethod]`:
 - Must be `public`
 - Can have input parameters (mapped to OPC UA input arguments)
-- Can have `out` parameters or a return value (mapped to OPC UA output arguments)
+- Can have `out` parameters to return a value (which gets mapped to OPC UA output arguments)
+  - All methods must be `void` return type, use `out` parameters to return values instead
 - The method name must be unique within the NetLogic class
 
 ```csharp

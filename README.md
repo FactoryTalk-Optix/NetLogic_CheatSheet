@@ -101,6 +101,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 - [Legacy Recipes](./pages/recipes.md)
 - [Recipes](./pages/recipex.md) (a.k.a. `RecipeX` - starting from FactoryTalk Optix 1.7.X)
 - [Serial port](./pages/serial-port.md)
+- [Element Access](./pages/element-access.md)
 
 ### Communication drivers
 
