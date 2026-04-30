@@ -60,7 +60,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 - [Managing aliases](./pages/managing-aliases.md)
 - [Resource URI](./pages/resource-uri.md)
 - [Variables formatting](./pages/variables-formatting.md)
-- [Variables properties](./pages/variables-properties.md)
+- [Engineering Units](./pages/engineering-units.md)
 - [RegEx](./pages/regex.md)
 - [Variables Interaction](./pages/variables-interaction.md)
 - [Dynamic Links](./pages/dynamic-links.md)

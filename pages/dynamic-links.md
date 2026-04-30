@@ -3,6 +3,9 @@
 > [!IMPORTANT]
 > Starting from FactoryTalk Optix 1.7.x, if the DynamicLink optimization is enabled at `Project Root > RuntimeOptimization > DynamicLinks`, all DynamicLinks in the project will be automatically converted to StaticLinks before the deployment and the `DynamicLink` node wil effectively be removed, therefore, any DynamicLink manipulation at runtime with any of the snippets below will not be possible. If a specific link needs to be manipulated at runtime, it should be manually excluded from the optimization by navigating to the DynamicLink popup in the IDE, then in the Advanced tab click the gear icon and set `Disabled` in the `Runtime Optimization` menu.
 
+> [!NOTE]
+> **API Version Guide:** This documentation covers multiple FactoryTalk Optix versions. When creating dynamic links to aliases, use `SetDynamicLinkToAlias()` for **version 1.8.x and later** (recommended), or the manual path construction approach for **version 1.7.x and earlier** (legacy). The modern API is simpler, more maintainable, and type-safe.
+
 ## Simple Dynamic Link
 
 By default a `DynamicLink` is made as _Read only_ unless you specify different mode
@@ -264,7 +267,67 @@ public void StuffCreateNewDynamicLinkFormatter()
 
 ### Dynamic link to an Alias
 
-#### FactoryTalk Optix up to 1.7.x
+#### FactoryTalk Optix 1.8.x and later (Recommended)
+
+> [!NOTE]
+> The `SetDynamicLinkToAlias()` API is the recommended approach for FactoryTalk Optix 1.8.x and later. It provides a cleaner, more intuitive way to create dynamic links to alias nodes without manual path construction.
+
+##### Link to a direct child of an alias
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToAlias()
+{
+    // Get the Text variable of a TextBox
+    var myVariable = Owner.GetVariable("TextBox1/Text");
+    // Link to {MotorAlias}/Speed in ReadWrite mode
+    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Speed" }, DynamicLinkMode.ReadWrite);
+}
+```
+
+##### Link to a nested path inside an alias
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToNestedAlias()
+{
+    // Get the Text variable of a Label
+    var myVariable = Owner.GetVariable("Label1/Text");
+    // Link to {MotorAlias}/Configuration/MaxSpeed in Read mode (default)
+    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Configuration", "MaxSpeed" });
+}
+```
+
+##### Link to a specific OPC UA attribute of an alias node
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToAliasAttribute()
+{
+    // Get the Text variable of a Label
+    var myVariable = Owner.GetVariable("Label1/Text");
+    // Link to the BrowseName attribute of {MotorAlias} itself
+    myVariable.SetDynamicLinkToAlias("MotorAlias", AttributeId.BrowseName, DynamicLinkMode.Read);
+}
+```
+
+##### Link to a specific OPC UA attribute of a sub-item inside an alias
+
+```csharp
+[ExportMethod]
+public void CreateDynamicLinkToAliasSubItemAttribute()
+{
+    // Get the Text variable of a Label
+    var myVariable = Owner.GetVariable("Label1/Text");
+    // Link to the BrowseName attribute of {MotorAlias}/Configuration/Speed
+    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Configuration", "Speed" }, AttributeId.BrowseName, DynamicLinkMode.Read);
+}
+```
+
+#### FactoryTalk Optix up to 1.7.x (Legacy)
+
+> [!WARNING]
+> This approach is deprecated and only needed for FactoryTalk Optix versions prior to 1.8.x. Use the `SetDynamicLinkToAlias()` API above for newer versions.
 
 ```csharp
 [ExportMethod]
@@ -278,142 +341,193 @@ public void CreateDynamicLinkToAlias()
 }
 ```
 
-#### FactoryTalk Optix 1.8.x and later
-
-Link a variable to the default attribute (Value) of a direct child of an alias:
-
-```csharp
-[ExportMethod]
-public void CreateDynamicLinkToAlias()
-{
-    // Get the Text variable of a TextBox
-    var myVariable = Owner.GetVariable("TextBox1/Text");
-    // Link to {MotorAlias}/Speed in ReadWrite mode
-    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Speed" }, DynamicLinkMode.ReadWrite);
-}
-```
-
-Link a variable to a nested path inside an alias:
-
-```csharp
-[ExportMethod]
-public void CreateDynamicLinkToNestedAlias()
-{
-    // Get the Text variable of a Label
-    var myVariable = Owner.GetVariable("Label1/Text");
-    // Link to {MotorAlias}/Configuration/MaxSpeed in Read mode (default)
-    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Configuration", "MaxSpeed" });
-}
-```
-
-Link a variable to a specific OPC UA attribute of an alias node:
-
-```csharp
-[ExportMethod]
-public void CreateDynamicLinkToAliasAttribute()
-{
-    // Get the Text variable of a Label
-    var myVariable = Owner.GetVariable("Label1/Text");
-    // Link to the BrowseName attribute of {MotorAlias} itself
-    myVariable.SetDynamicLinkToAlias("MotorAlias", AttributeId.BrowseName, DynamicLinkMode.Read);
-}
-```
-
-Link a variable to a specific OPC UA attribute of a sub-item inside an alias:
-
-```csharp
-[ExportMethod]
-public void CreateDynamicLinkToAliasSubItemAttribute()
-{
-    // Get the Text variable of a Label
-    var myVariable = Owner.GetVariable("Label1/Text");
-    // Link to the BrowseName attribute of {MotorAlias}/Configuration/Speed
-    myVariable.SetDynamicLinkToAlias("MotorAlias", new string[] { "Configuration", "Speed" }, AttributeId.BrowseName, DynamicLinkMode.Read);
-}
-```
-
 ## Advanced dynamic links
 
 > [!WARNING]
 > Advanced dynamic links are a very advanced topic and should be used with caution. It is recommended to use the default dynamic link APIs unless you have a specific use case.
 
-#### Creating a String Formatter
+### Understanding Converters
 
-```csharp
-// Create a new variable
-var variable4 = InformationModel.MakeVariable("Variable4", OpcUa.DataTypes.String); 
-// Add the variable to the Model folder
-Project.Current.Get("Model").Add(variable4); 
-// Create a string formatter
-var stringFormatter = InformationModel.Make<StringFormatter>("StringFormatter1"); 
-// Set the base text (with placeholders)
-stringFormatter.Format = "{0} and {1}"; 
-// Configure placeholders
-var source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType); 
-stringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0); 
-var source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType); 
-stringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1); 
-// Add the new converter to the variable
-variable4.SetConverter(stringFormatter);
-// Set the targets for the dynamic links 
-var variable1 = Project.Current.GetVariable("Model/Variable1"); 
-var variable2 = Project.Current.GetVariable("Model/Variable2"); 
-source0.SetDynamicLink(variable1); 
-source1.SetDynamicLink(variable2);
-```
+Converters transform values flowing through dynamic links. Before creating converters, understand these key concepts:
 
-#### Creating an Expression Evaluator
+**SetConverter Behavior**: When you call `variable.SetConverter(converter)`:
+- Any existing converter on the variable is automatically deleted
+- Any existing dynamic link on the variable is automatically deleted
+- The new converter becomes the transformation layer for that variable
+
+**Converter Modes**:
+- `DynamicLinkMode.Read` (or default) - One-way conversion: source → target only
+- `DynamicLinkMode.ReadWrite` - Two-way conversion: allows source ↔ target updates
+- `DynamicLinkMode.OneWayToSource` - One-way in opposite direction: target → source only
+
+**Source Variable Naming**: For `StringFormatter` and `ExpressionEvaluator`, source variables **must** follow this naming pattern:
+- `Source0`, `Source1`, `Source2`, etc.
+- The number must match the placeholder index in the format/expression string
+
+### Creating Converters
+
+##### Creating a String Formatter
+
+A `StringFormatter` converter combines multiple input variables into a formatted string using placeholders like `{0}`, `{1}`, etc.
 
 ```csharp
 [ExportMethod]
-public void Method1()
+public void CreateStringFormatterConverter()
 {
-    // Get the source variables
-    var var1 = Project.Current.GetVariable("Model/Variable1");
-    var var2 = Project.Current.GetVariable("Model/Variable2");
-    var var3 = Project.Current.GetVariable("Model/Variable3");
-    // Create the expression evaluator object
-    var expressionEvaluator = InformationModel.MakeObject<ExpressionEvaluator>("ExpressionEvaluator");
-    // Set the format
-    expressionEvaluator.Expression = "{0} + {1}";
-    // Set the dynamic links to the source variables
+    // Create a target variable that will display the formatted string
+    var displayLabel = Owner.Get<Label>("Label1").TextVariable;
+    
+    // Create a StringFormatter converter with placeholders
+    var stringFormatter = InformationModel.Make<StringFormatter>("StringFormatter1");
+    stringFormatter.Format = "Temperature: {0}°C, Humidity: {1}%";
+    
+    // Create source variables that will feed the placeholders
+    // Sources MUST be named "Source0", "Source1", etc. to match placeholder indices
     var source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType);
-    source0.SetDynamicLink(var2);
     var source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType);
-    source1.SetDynamicLink(var3);
-    // Add the references (OPCUA specs)
-    expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0);
-    expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
-    // Add the converter to the variable
-    var1.SetConverter(expressionEvaluator);
+    
+    // Add the source variables to the converter
+    stringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0);
+    stringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
+    
+    // Connect the sources to actual variables via dynamic links
+    var temperatureVariable = Project.Current.GetVariable("Model/Temperature");
+    var humidityVariable = Project.Current.GetVariable("Model/Humidity");
+    source0.SetDynamicLink(temperatureVariable);
+    source1.SetDynamicLink(humidityVariable);
+    
+    // Apply the converter to the target variable
+    // Note: SetConverter automatically removes any previous converter or dynamic link
+    displayLabel.SetConverter(stringFormatter);
 }
 ```
 
-#### Creating a Key-Value Converter (Instance)
+###### Important Notes
+- Source variables **must** be named `Source0`, `Source1`, `Source2`, etc., matching the placeholder indices in the format string
+- The `SetConverter()` method automatically removes any previous converter or dynamic link from the target variable
+
+##### Creating an Expression Evaluator
+
+An `ExpressionEvaluator` converter evaluates a mathematical expression using input variables as operands. This is useful for calculations like scaling, offset, or combining multiple values.
+
+```csharp
+[ExportMethod]
+public void CreateExpressionEvaluatorConverter()
+{
+    // Get the target variable where the calculated result will be displayed
+    var resultLabel = Owner.Get<Label>("Label1").TextVariable;
+    
+    // Get the source variables to use in the expression
+    var voltageVariable = Project.Current.GetVariable("Model/Voltage");
+    var currentVariable = Project.Current.GetVariable("Model/Current");
+    
+    // Create the expression evaluator converter
+    var expressionEvaluator = InformationModel.MakeObject<ExpressionEvaluator>("PowerCalculator");
+    
+    // Set a mathematical expression combining placeholders
+    // In this example: Power (Watts) = Voltage * Current
+    expressionEvaluator.Expression = "{0} * {1}";
+    
+    // Create source variables that will feed the expression
+    // Sources MUST be named "Source0", "Source1", etc., matching placeholder indices
+    var source0 = InformationModel.MakeVariable("Source0", OpcUa.DataTypes.BaseDataType);
+    var source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType);
+    
+    // Add source variables to the evaluator
+    expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source0);
+    expressionEvaluator.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
+    
+    // Connect sources to actual variables via dynamic links
+    source0.SetDynamicLink(voltageVariable);
+    source1.SetDynamicLink(currentVariable);
+    
+    // Apply the converter to the target variable
+    resultLabel.SetConverter(expressionEvaluator);
+}
+```
+
+###### Supported Expression Syntax
+
+The expression evaluator supports multiple operators and functions, please see the full list in the [official documentation](https://www.rockwellautomation.com/en-us/docs/factorytalk-optix/1-7-0/contents-ditamap/creating-projects/converters/expression-evaluator.html).
+
+##### Creating a Key-Value Converter (Instance)
+
+A `ValueMapConverter` instance maps discrete values (like integers) to other values (like localized text or colors). This is useful for displaying status text or changing colors based on numeric states.
+
+This section creates and applies a converter instance directly to a target variable (the `Text` property of a `Label`).
+
+###### Simple Example Using Pairs Object
+
+```csharp
+[ExportMethod]
+public void CreateSimpleKeyValueConverter()
+{
+    // Get the target variable that will display the mapped value
+    var statusLabel = Owner.Get<Label>("Label1").TextVariable;
+    
+    // Create the ValueMapConverter (must pass the ObjectType explicitly)
+    var converter =
+        InformationModel.MakeObject<ValueMapConverter>("StatusConverter", FTOptix.CoreBase.ObjectTypes.ValueMapConverter);
+    
+    // Create the Pairs container using a QualifiedName with the converter's namespace
+    var pairs =
+        InformationModel.MakeObject(new QualifiedName(FTOptix.CoreBase.ObjectTypes.ValueMapConverter.NamespaceIndex, "Pairs"));
+    pairs.ModellingRule = NamingRuleType.Mandatory;
+    converter.Add(pairs);
+    
+    // Add simple key-value pairs
+    AddSimplePair(pairs, 0, "Idle");
+    AddSimplePair(pairs, 1, "Running");
+    AddSimplePair(pairs, 2, "Error");
+    AddSimplePair(pairs, 3, "Maintenance");
+    
+    // Link the converter's source to the state variable
+    var deviceStateVariable = Project.Current.GetVariable("Model/DeviceState");
+    converter.SourceVariable.SetDynamicLink(deviceStateVariable);
+    
+    // Apply the converter to the target variable
+    statusLabel.SetConverter(converter);
+}
+
+private void AddSimplePair(IUAObject pairsContainer, int key, string value)
+{
+    // Create a ValueMapPair object
+    var pair = InformationModel.MakeObject($"Pair{key}", FTOptix.CoreBase.ObjectTypes.ValueMapPair);
+    pair.ModellingRule = NamingRuleType.Mandatory;
+    
+    // Set the key value
+    var keyVariable = pair.GetVariable("Key");
+    keyVariable.ModellingRule = NamingRuleType.Mandatory;
+    keyVariable.DataType = OpcUa.DataTypes.Int32;
+    keyVariable.Value = key;
+    
+    // Set the value
+    var valueVariable = pair.GetVariable("Value");
+    valueVariable.ModellingRule = NamingRuleType.Mandatory;
+    valueVariable.DataType = OpcUa.DataTypes.String;
+    valueVariable.Value = value;
+    
+    // Add the pair to the Pairs container
+    pairsContainer.Add(pair);
+}
+```
+
+> [!NOTE]
+> This simple approach creates hard-coded key-value pairs. Use the advanced approach below only if you need dynamic links for values that change at runtime based on other variables.
+
+###### Advanced Example With Dynamic Links
 
 ```csharp
 /// <summary>
-/// Creates a ValueMapConverter with multiple key-value pairs and associates it with a Label control.
-/// The converter maps integer values to localized text strings, either through dynamic links or hard-coded values.
+/// Creates a ValueMapConverter with multiple key-value pairs, including dynamic links for runtime-resolved values.
 /// </summary>
 [ExportMethod]
-public void CreateKeyValueConverter()
+public void CreateAdvancedKeyValueConverter()
 {
-    // Define constants for object paths and names
-    const string parentBrowsePath = "Display/Popup1/Content";
-    const string labelBrowseName = "Label99";
     const string aliasName = "{PopupAlias}";
 
-    // Get the parent container where the label will be created
-    var parent = Project.Current.Get(parentBrowsePath);
-    if (parent == null)
-    {
-        throw new ArgumentException($"No parent {parentBrowsePath} found");
-    }
-
-    // Remove existing label if it exists to ensure clean recreation
-    var label = parent.Get<Label>(labelBrowseName);
-    label?.Delete();
+    // Get the target variable that will display the mapped value
+    var statusLabel = Owner.Get<Label>("Label1").TextVariable;
 
     // Create the ValueMapConverter object that will map integer keys to localized text values
     var converter =
@@ -428,13 +542,13 @@ public void CreateKeyValueConverter()
 
     // Add key-value pairs to the converter:
     // Pair 0: Default fallback value (hard-coded)
-    AddPairToKeyValueConverter(pairs, 0, null, new LocalizedText("Default value", "en-US"));
+    AddAdvancedPair(pairs, 0, null, new LocalizedText("Default value", "en-US"));
     // Pair 1: Dynamic link to first localized text variable
-    AddPairToKeyValueConverter(pairs, 1, $"{aliasName}/localizedText1", null);
+    AddAdvancedPair(pairs, 1, $"{aliasName}/localizedText1", null);
     // Pair 2: Dynamic link to second localized text variable
-    AddPairToKeyValueConverter(pairs, 2, $"{aliasName}/localizedText2", null);
+    AddAdvancedPair(pairs, 2, $"{aliasName}/localizedText2", null);
     // Pair 3: Hard-coded localized text for value 3
-    AddPairToKeyValueConverter(pairs, 3, null, new LocalizedText("text associated to value 3 (hard-coded)", "en-US"));
+    AddAdvancedPair(pairs, 3, null, new LocalizedText("text associated to value 3 (hard-coded)", "en-US"));
 
     // Add the configured pairs collection to the converter
     converter.Add(pairs);
@@ -445,19 +559,8 @@ public void CreateKeyValueConverter()
     if (srcDl != null)
         srcDl.Value = $"{aliasName}/integer1";
 
-    // Create and configure the Label control that will display the converted text
-    label = InformationModel.MakeObject<Label>(labelBrowseName);
-    label.Width = 255;
-    label.LeftMargin = 165;
-    label.TopMargin = 240;
-    label.TextColor = Colors.Blue;
-    
-    // Associate the label's text variable with the converter
-    // The label will automatically display text based on the integer value
-    label.TextVariable.SetConverter(converter);
-    
-    // Add the configured label to the parent container
-    parent.Add(label);
+    // Apply the converter to the target variable
+    statusLabel.SetConverter(converter);
 }
 
 /// <summary>
@@ -468,7 +571,7 @@ public void CreateKeyValueConverter()
 /// <param name="key">The integer key that will trigger this value when matched</param>
 /// <param name="dynamicLinkString">Optional dynamic link path to a variable (takes precedence if provided)</param>
 /// <param name="hardCodedText">Optional hard-coded localized text value (used when no dynamic link is provided)</param>
-private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamicLinkString, LocalizedText hardCodedText)
+private void AddAdvancedPair(IUAObject pairs, int key, string dynamicLinkString, LocalizedText hardCodedText)
 {
     // Create unique browse name for this pair
     string pairBrowseName = $"Pair{key}";
@@ -494,7 +597,7 @@ private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamic
 
     // Set the value either through dynamic link or hard-coded value
     // Dynamic link allows runtime changes to the displayed text
-        if (!string.IsNullOrEmpty(dynamicLinkString))
+    if (!string.IsNullOrEmpty(dynamicLinkString))
     {
         // Create dynamic link to external variable
         newValue.SetDynamicLink(null, DynamicLinkMode.ReadWrite);
@@ -512,18 +615,20 @@ private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamic
     pairs.Add(newPair);
 }
 ```
-#### Creating a Key-Value Converter (Type)
+
+##### Creating a Key-Value Converter (Type)
+
+Use this approach when you want to create a reusable converter type in the project model (for example under the Converters folder), instead of applying a runtime instance directly to a target variable.
 
 ```csharp
 /// <summary>
 /// Creates a new ValueMapConverter type in the Converters folder with key-value pairs
-/// that map integer keys to localized text values. The converter is added to the project
-/// and ModellingRule properties are set after instantiation to ensure proper YAML serialization.
+/// that map integer keys to localized text values. ModellingRule properties are set after
+/// nodes are added to the project to ensure correct serialization behavior.
 /// </summary>
 [ExportMethod]
 public void CreateKeyValueConverterType()
 {
-
     // Get the Converters folder
     var parent = Project.Current.Get("Converters");
     if (parent == null)
@@ -532,35 +637,31 @@ public void CreateKeyValueConverterType()
         return;
     }
 
-    // Create the ValueMapConverter object that will map integer keys to localized text values
+    // Create the converter type object
     var converter = InformationModel.MakeObjectType<ValueMapConverterType>("MyKeyValueConverter");
-    
-    // Create the Pairs container to hold all key-value mappings
-    var pairs = InformationModel.MakeObject(new QualifiedName(FTOptix.CoreBase.ObjectTypes.ValueMapConverter.NamespaceIndex, "Pairs"));
 
-    // Add key-value pairs to the converter:
+    // Create the Pairs container
+    var pairs =
+        InformationModel.MakeObject(new QualifiedName(FTOptix.CoreBase.ObjectTypes.ValueMapConverter.NamespaceIndex, "Pairs"));
+
+    // Add key-value pairs
     AddPairToKeyValueConverter(pairs, 0, null, new LocalizedText("Default value", "en-US"));
     AddPairToKeyValueConverter(pairs, 1, null, new LocalizedText("text associated to value 1 (hard-coded)", "en-US"));
     AddPairToKeyValueConverter(pairs, 2, null, new LocalizedText("text associated to value 2 (hard-coded)", "en-US"));
     AddPairToKeyValueConverter(pairs, 3, null, new LocalizedText("text associated to value 3 (hard-coded)", "en-US"));
 
-    // Add the configured pairs collection to the converter
+    // Add pairs to the converter and add converter to the project
     converter.Add(pairs);
-    
-    // Add the configured converter to the parent container
     parent.Add(converter);
 
-    // Set ModellingRule properties AFTER nodes are instantiated in the project
+    // Set modelling rules after instantiation to control serialization
     pairs.ModellingRule = NamingRuleType.None;
     foreach (var pair in pairs.Children)
     {
         pair.ModellingRule = NamingRuleType.None;
         foreach (var child in pair.Children)
-        {
             child.ModellingRule = NamingRuleType.None;
-        }
     }
-
 }
 
 /// <summary>
@@ -575,14 +676,14 @@ private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamic
 {
     // Create unique browse name for this pair
     string pairBrowseName = $"Pair{key}";
-    
+
     // Create the ValueMapPair object
     var newPair = InformationModel.MakeObject(pairBrowseName, FTOptix.CoreBase.ObjectTypes.ValueMapPair);
 
     // Get the Key and Value variables from the pair
     var newKey = newPair.GetVariable("Key");
     var newValue = newPair.GetVariable("Value");
-    
+
     // Configure the Key variable with the integer key value
     newKey.DataType = OpcUa.DataTypes.Int32;
     newKey.Value = key;
@@ -591,8 +692,7 @@ private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamic
     newValue.DataType = OpcUa.DataTypes.LocalizedText;
 
     // Set the value either through dynamic link or hard-coded value
-    // Dynamic link allows runtime changes to the displayed text
-        if (!string.IsNullOrEmpty(dynamicLinkString))
+    if (!string.IsNullOrEmpty(dynamicLinkString))
     {
         // Create dynamic link to external variable
         newValue.SetDynamicLink(null, DynamicLinkMode.ReadWrite);
@@ -611,24 +711,42 @@ private void AddPairToKeyValueConverter(IUAObject pairs, int key, string dynamic
 }
 ```
 
+##### Creating a Conditional Converter
 
-#### Creating a Conditional Converter
+A `ConditionalConverter` outputs one of two values based on a boolean condition. This is useful for switching between states, such as changing a color based on a device status.
 
 ```csharp
-private void StuffCreateConditionalConverter(IUAVariable targetNode, IUAVariable sourceVariable)
+[ExportMethod]
+public void CreateConditionalConverter()
 {
+    // Get the target variable where the converted value will be displayed
+    var statusIndicatorColor = Owner.Get<Rectangle>("Rectangle1").FillColorVariable;
+    
     // Create the conditional converter
-    ConditionalConverter newConditionalConverter = InformationModel.MakeObject<ConditionalConverter>("ConditionalConverter1", FTOptix.CoreBase.ObjectTypes.ConditionalConverter);
-    // Set the "false" condition
-    newConditionalConverter.FalseValueVariable.DataType = FTOptix.Core.DataTypes.Color;
-    newConditionalConverter.FalseValueVariable.Value = System.Drawing.Color.Red.ToArgb();
-    // Set the "true" condition
-    newConditionalConverter.TrueValueVariable.DataType = FTOptix.Core.DataTypes.Color;
-    newConditionalConverter.TrueValueVariable.Value = System.Drawing.Color.Green.ToArgb();
-    // Add the source variable
-    newConditionalConverter.ConditionVariable.SetDynamicLink(sourceVariable);
-    // Set the dynamic link to the object
-    newConditionalConverter.Mode = DynamicLinkMode.Read;
-    targetNode.SetConverter(newConditionalConverter);
+    var conditionalConverter = InformationModel.MakeObject<ConditionalConverter>("StatusColorConverter");
+    
+    // Configure the true condition value (device is running - green)
+    conditionalConverter.TrueValueVariable.DataType = FTOptix.Core.DataTypes.Color;
+    conditionalConverter.TrueValueVariable.Value = System.Drawing.Color.Green.ToArgb();
+    
+    // Configure the false condition value (device is stopped - red)
+    conditionalConverter.FalseValueVariable.DataType = FTOptix.Core.DataTypes.Color;
+    conditionalConverter.FalseValueVariable.Value = System.Drawing.Color.Red.ToArgb();
+    
+    // Link the condition variable to a boolean source
+    var deviceRunningVariable = Project.Current.GetVariable("Model/DeviceIsRunning");
+    conditionalConverter.ConditionVariable.SetDynamicLink(deviceRunningVariable);
+    
+    // Set the converter mode (ReadWrite allows both directions, Read is one-way)
+    conditionalConverter.Mode = DynamicLinkMode.Read;
+    
+    // Apply the converter to the target variable
+    statusIndicatorColor.SetConverter(conditionalConverter);
 }
 ```
+
+###### Important Notes
+- The `ConditionVariable` must be linked to a boolean variable
+- `TrueValueVariable` and `FalseValueVariable` must have the same data type as the target variable
+- Use `DynamicLinkMode.Read` for one-way conversion (source → target)
+- Use `DynamicLinkMode.ReadWrite` to allow bidirectional updates
