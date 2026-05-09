@@ -2,6 +2,9 @@
 
 The "System" object is a special node which provides some methods and events to interact with Optix devices (like OptixPanel, OptixEdge, etc)
 
+> [!NOTE]
+> The System node can only be manipulated at runtime. Attempting to call its methods or subscribe to its events at design time will not work.
+
 ## Load a new application
 
 Please note:

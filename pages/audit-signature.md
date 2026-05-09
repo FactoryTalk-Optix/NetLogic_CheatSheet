@@ -1,5 +1,9 @@
 # Audit Signature (CFR21 workflow)
 
+The Audit Signature is a special type of object that can be added to any variable in FactoryTalk Optix, it allows to track the changes on the variable and who made those changes, this is specially useful for CFR21 compliance.
+
+The following APIs are intended to be used at DesignTime to prepare the InformationModel with the necessary Audit Signatures.
+
 ## Add signature to a variable
 
 ```csharp

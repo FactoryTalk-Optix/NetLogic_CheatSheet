@@ -4,6 +4,9 @@
 > This section is a work in progress and uses some low-level APIs.
 > The documentation will be completed as soon as possible.
 
+> [!NOTE]
+> It is recommended to add events to the InformationModel at design time, and then trigger them at runtime, instead of creating and dispatching events fully at runtime.
+
 ## Add MouseClick event to a Button
 
 This code adds a GeneratePDF method to a button, and a SetVariableValue to a different button

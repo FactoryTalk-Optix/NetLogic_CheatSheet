@@ -2,6 +2,9 @@
 
 There are different ways to interact with database in FactoryTalk Optix, the native approach is to leverage the `Store` APIs to perform operations. The list of supported queries is documented [here](./queries.md).
 
+> [!NOTE]
+> Database connection is only established during the Runtime startup, so queries cannot be used in a DesignTime NetLogic. If you need to test your queries during the design phase, you must use third party tools or NuGet packages that provide direct connectivity to the database without using the FactoryTalk Optix APIs.
+
 ## Insert
 
 First you need to access the Database node, then get the Table by its BrowseName and then prepare the object which will contain the rows to add

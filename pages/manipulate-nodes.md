@@ -4,6 +4,9 @@
 > This page describes low-level features and should be used with caution as they can potentially lead to unexpected results or even break your project. 
 > These features are not officially supported and may be subject to changes in future releases.
 
+> [!NOTE]
+> Nodes behavior can only be manipulated at runtime.
+
 ## Stopping an Optix node
 
 Once nodes are stopped, they stop interacting with the system for example an ODBC database node will stop processing queries, a Trend node will stop logging data, an Alarm node will stop monitoring conditions, etc.

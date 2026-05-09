@@ -1,6 +1,9 @@
 # Asynchronous tasks
 
-Asynchronous tasks are very common when running special or long tasks that may negatively impact the overall operation
+Asynchronous tasks are very common when running special or long tasks that may negatively impact the overall operation. Asynchronous tasks were mostly designed to be used at Runtime. It is quite frequent to use `LongRunningTask` to run a long process without freezing the FactoryTalk Optix Studio interface even with a DesignTime NetLogic though.
+
+> [!WARNING]
+> Avoid modifying the project structure (pages, tags, etc) while asynchronous tasks are running, especially at DesignTime. This can cause unexpected behavior—for example, editing the project while a task is importing/exporting data may result in conflicts or errors.
 
 ## General concepts about Asynchronous tasks
 

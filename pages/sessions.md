@@ -1,5 +1,8 @@
 # Sessions
 
+> [!NOTE]
+> Session operations can only be performed at runtime. Attempting to manipulate sessions at design time will not work.
+
 ## Getting the number of the WebPresentationEngine sessions
 
 ```csharp

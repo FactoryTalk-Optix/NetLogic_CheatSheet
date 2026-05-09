@@ -1,5 +1,8 @@
 # Database queries
 
+> [!NOTE]
+> As databases are only accessible at runtime, all the queries described in this page can only be used at runtime.
+
 ## Guidance and Best Practices
 
 ### Best practices and gotchas

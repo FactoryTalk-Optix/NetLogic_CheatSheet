@@ -2,6 +2,9 @@
 
 ## Generate a report and trigger some action based on the result code
 
+> [!NOTE]
+> Report generation can only be triggered at runtime.
+
 ```csharp
 #region Using directives
 using System;

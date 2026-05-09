@@ -1,5 +1,8 @@
 # Alarms
 
+> [!NOTE]
+> Alarms can be created at design time or runtime, while interaction and testing of live alarms can only be done at runtime. 
+
 ## Create alarms at Runtime
 
 ```csharp

@@ -26,6 +26,12 @@ These are the two lifecycle methods inherited from `BaseNetLogic`. They are alwa
 - `Stop()` is called when the node is deactivated, in reverse order relative to `Start()`
 - Both must return quickly; slow implementations block the startup of subsequent NetLogics (see [thread-model.md](thread-model.md))
 
+> [!NOTE]
+> `Start()` and `Stop()` are not decorated with `[ExportMethod]` because they are not meant to be called manually. They are automatically invoked by the runtime based on the lifecycle of the NetLogic's parent node.
+
+> [!NOTE]
+> Only Runtime NetLogic can have `Start()` and `Stop()` methods, DesignTime NetLogic are meant to be triggered manually via `[ExportMethod]`, if `Start()`/`Stop()` methods are defined in a DesignTime NetLogic, they will not be called automatically.
+
 ```csharp
 public override void Start()
 {

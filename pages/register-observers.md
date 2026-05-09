@@ -4,6 +4,9 @@
 > This page describes low-level features and should be used with caution as they can potentially lead to unexpected results or even break your project. 
 > These features are not officially supported and may be subject to changes in future releases.
 
+> [!NOTE]
+> Observers can only be registered at runtime. Attempting to register an observer at design time will not work.
+
 The OPC/UA protocol implements some ways to monitor changes in the nodes tree, this allows the creation of observers that can monitor some project nodes and triggers some logics based on a set of events (which can be specified using a mask).
 
 This technique allows multiple scenarios like:

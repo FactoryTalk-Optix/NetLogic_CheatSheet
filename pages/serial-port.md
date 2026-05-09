@@ -12,6 +12,9 @@ So, if the project configures `COM0` as serial port name, on Windows it will try
 > [!NOTE]
 > All the serial port write operations (like the `Write` and `WriteBytes` methods) are **non-blocking**, meaning that the NetLogic code will continue immediately even if the data is not yet written to the serial port.
 
+> [!NOTE]
+> Serial port communication can only be performed at runtime. Attempting to read from or write to the serial port at design time will not work.
+
 ## Polling mode
 
 ```csharp

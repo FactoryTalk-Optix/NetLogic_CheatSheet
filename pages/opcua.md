@@ -31,6 +31,9 @@ public void ReadReference(NodeId element)
 > [!WARNING]
 > This method involves some low-level OPC/UA operations and may not be recommended for production usage. It is recommended to use the OPC/UA Client TagImporter instead.
 
+> [!NOTE]
+> This method can only be invoked at runtime.
+
 This method allows to read any OPC/UA variables from a remote server knowing its `NameSpaceIndex` and `ID`. The following examples reads the `Server > ServerStatus > State` (0/2259) variable from the UaAnsiCServer from the OPC Foundation 
 
 ### FactoryTalk Optix 1.6.x or older

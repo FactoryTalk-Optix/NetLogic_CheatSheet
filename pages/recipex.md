@@ -15,6 +15,9 @@ The **RecipeX** module provides a new way to handle recipes in FactoryTalk Optix
 
 Before reading this chapter, please check the [Recipe Schemas Documentation](https://www.rockwellautomation.com/en-us/docs/factorytalk-optix/1-7-0/contents-ditamap/creating-projects/recipes/recipex-schemas.html) for an introduction to recipe schemas and their configuration in the FactoryTalk Optix HMI project.
 
+> [!NOTE]
+> If a recipe schema is edited, the Runtime will require a Refactor to update the database table structure accordingly. It is advised to backup your project before making changes to recipe schemas.
+
 ## Core Types
 
 ### RecipeId

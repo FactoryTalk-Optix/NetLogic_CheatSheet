@@ -13,6 +13,9 @@ Field tags can be forced to read or write a value to the field device (a.k.a. PL
 >
 > If none of these conditions are met, the tag will not be synchronized with the controller and will not be updated, so the following techniques to read or write values to the controller are needed.
 
+> [!NOTE]
+> Communication drivers are only loaded at runtime, so all the methods described in this page to read/write/force values to the controller can only be used at runtime, they will not work at design time.
+
 ## Introduction
 
 Field tags in FactoryTalk Optix provide several methods for efficiently communicating with PLCs, each with different performance characteristics and use cases. Understanding these methods helps optimize both application performance and network traffic.

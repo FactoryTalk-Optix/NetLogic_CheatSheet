@@ -7,6 +7,9 @@ This feature allows you to import objects from the template library into your pr
 > [!TIP]
 > This feature got introduced in FactoryTalk Optix 1.6.X
 
+> [!NOTE]
+> Template library operations can only be performed at design time. Attempting to manipulate the template library at runtime will not work.
+
 ### Import item syntax
 
 ```csharp

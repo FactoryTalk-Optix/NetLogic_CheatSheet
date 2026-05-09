@@ -90,8 +90,6 @@ public void AddYAxisToPen()
 }
 ```
 
-
-
 ### Remove a Y-axis from a pen
 
 #### FactoryTalk Optix version 1.7.1.x and later

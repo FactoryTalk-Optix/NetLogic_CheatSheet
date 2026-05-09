@@ -1,5 +1,9 @@
 # Creating elements
 
+Graphical elements can be added both at design time and at runtime, but some differences exist in the syntax and in the available types, as described in the sections below.
+
+When creating UI elements at runtime, please read the [NetLogic Lifecycle](./netlogic-lifecycle.md) chapter to understand when and how to create elements in a safe way without risking to create concurrency issues or performance problems.
+
 ## UI Elements
 
 ### Add an element to the project

@@ -1,5 +1,10 @@
 # DialogBox
 
+DialogBoxes are windows that can be opened from a UI session to display additional information, gather user input, or provide configuration options. They are defined as `DialogType` objects in the project and can be opened using the `UICommands.OpenDialog()` method.
+
+> [!NOTE]
+> DialogBoxes can only be displayed at runtime.
+
 ## Opening a DialogBox
 
 The `UICommands.OpenDialog()` method opens a dialog (modal window) and associates it with a specific UI session. It has two overloads:

@@ -4,6 +4,9 @@ The MQTT (Message Queuing Telemetry Transport) protocol is a lightweight messagi
 
 Starting from FactoryTalk Optix 1.6.X, the MQTT module provides built-in support for MQTT, allowing you to easily integrate MQTT messaging into your applications.
 
+> [!NOTE]
+> The MQTT module is only loaded at the Runtime startup, so MQTT features are not available at design time.
+
 ## General Concepts about MQTT in FactoryTalk Optix
 
 FactoryTalk Optix provides a robust MQTT module that allows you to:

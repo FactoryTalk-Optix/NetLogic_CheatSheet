@@ -1,10 +1,19 @@
 # Advanced SVG image
 
+## SetImageContent
+
 The AdvancedSVGImage container, supports direct manipulation of the image buffer, allowing for fast and direct access to the content, this allows runtime editing that can efficiently manipulate the path or properties of an SVG image without impacting the InformationModel
 
-This feature was introduced in FT Optix 1.4.x
+> [!NOTE]
+> This feature was introduced in FT Optix 1.4.x
 
-## Sample image
+> [!NOTE]
+> The `SetImageContent` writes in the image buffer, so it does not trigger a change in the InformationModel, and it will not work at DesignTime, it is meant to be used at Runtime for animation or dynamic image manipulation.
+
+> [!NOTE]
+> As the `SetImageContent` method writes directly in the image buffer, if the page is reloaded or if the image source is changed, the changes will be lost, and the original SVG will be loaded again.
+
+### Sample image
 
 This is the sample image (containing a "star" shape) that we used in the examples below to be animated
 
@@ -20,7 +29,7 @@ This is the sample image (containing a "star" shape) that we used in the example
 </svg>
 ```
 
-## Making the image disappear
+### Making the image disappear
 
 ```csharp
 [ExportMethod]
@@ -36,7 +45,7 @@ public void replaceSVG()
 }
 ```
 
-## Rotate the image
+### Rotate the image
 
 ```csharp
 #region Using directives

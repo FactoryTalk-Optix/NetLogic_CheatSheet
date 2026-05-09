@@ -9,6 +9,9 @@
 - Restart the IDE after adding files to one of those paths to load new files
     - Check the FT Optix output if any error was reported after loading the files
 
+> [!NOTE]
+> Companion specifications can only be loaded at design time, so the XML files need to be added before starting the IDE.
+
 ## Create an instance of a Companion Specs type
 
 Please make sure the proper XML file was added to FT Optix before starting the script

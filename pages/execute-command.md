@@ -61,7 +61,10 @@ public void OpenBrowser(string urlPath) {
 }
 ```
 
-## Invoike FT Optix Core commands
+## Invoke FT Optix Core commands
+
+> [!NOTE]
+> Core commands can only be invoked at runtime.
 
 ```csharp
 // Get the core commands object (exposed by FT Optix APIs)
@@ -71,6 +74,9 @@ coreCommandsObject.ExecuteMethod("Close");
 ```
 
 ## Invoke FT Optix Alarm commands
+
+> [!NOTE]
+> Alarm commands can only be invoked at runtime.
 
 ```csharp
 // Get the alarms object
@@ -129,6 +135,9 @@ public void OpenVLC()
 ## Invoke a method from a different NetLogic
 
 Calling a NetLogic instance with `var myNetLogic = new MyNetLogic();` will create a new instance of the NetLogic, but it will not be the same as the one that is running in the project so it should be avoided. To call a method from a different NetLogic, you need to get the NetLogic object from the project and then call the method on that object.
+
+> [!NOTE]
+> Methods from other NetLogic instances can only be invoked at runtime.
 
 ```csharp
 [ExportMethod]

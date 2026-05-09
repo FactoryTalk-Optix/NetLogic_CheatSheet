@@ -2,6 +2,9 @@
 
 This feature is only supported for TwinCAT and RA Ethernet/IP drivers, and allows you to programmatically import tags from a PLC project file. This can be useful in scenarios where you have to import a determined set of tags from a large PLC project, or when you want to automate the import process as part of your project setup.
 
+> [!NOTE]
+> This feature is only available at DesignTime, so it cannot be used in a running application.
+
 ## TwinCAT
 
 >[!NOTE]
