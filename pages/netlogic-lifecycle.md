@@ -139,11 +139,13 @@ Methods decorated with `[ExportMethod]` are called synchronously on **whichever 
 | Called from a `PeriodicTask` | That task's dedicated thread |
 
 ```csharp
-// BAD: called by a button click, freezes the UI for 5 seconds
+// BAD: performs blocking operation on the UI thread
+// While the UI remains responsive, other methods executed from the same UI session 
+// (including page switches) will wait for this method to complete
 [ExportMethod]
 public void GenerateReport()
 {
-    Thread.Sleep(5000); // UI is completely unresponsive during this
+    Thread.Sleep(5000); // blocks the UI thread, other operations from this session must wait
     WriteReportFile();
 }
 
