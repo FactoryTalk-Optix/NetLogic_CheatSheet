@@ -3,6 +3,12 @@
 > [!NOTE]
 > As databases are only accessible at runtime, all the queries described in this page can only be used at runtime.
 
+## Acknowledgements
+
+FactoryTalk Optix does not support the full set of SQL queries, but has an own subset based on the SQL ANSI standard. The reason for this is that FactoryTalk Optix will automatically act as translation layer between the UI (where the custom queries are written) and the underlying database, which may be different based on the user selection (SQLite, SQL Server, MySQL, InfluxDB, etc).
+
+This means that if the user later switches to a different database, the queries will still work without any change, as FactoryTalk Optix will take care of translating them to the right dialect. This is a great advantage for portability, but it also means that some queries that are valid in a specific SQL dialect may not be supported by FactoryTalk Optix if they are not compatible with all the supported databases.
+
 ## Guidance and Best Practices
 
 ### Best practices and gotchas
@@ -518,6 +524,8 @@ SELECT * FROM Table1 WHERE Column > (SELECT Value FROM Table2)
 
 ### EXISTS Operator
 
+#### Simple EXISTS Subquery
+
 Finds employees in departments located in 'New York' using EXISTS subquery.
 
 **Example Output:**
@@ -533,6 +541,30 @@ Finds employees in departments located in 'New York' using EXISTS subquery.
 ```sql
 SELECT Name FROM TestTable1 WHERE EXISTS (SELECT 1 FROM TestTable2 WHERE TestTable2.DepartmentID = TestTable1.DepartmentID AND TestTable2.Location = 'New York')
 ```
+
+#### Only extracting the recipes with the highest version for each recipe name:
+
+When using the new [RecipeX](./recipex.md) module, multiple recipes with same name and different versions can be created. This query will extract only the recipes with the highest version for each recipe name, by using a subquery in the WHERE clause to filter out recipes that have a higher version available.
+
+```sql
+SELECT
+    R.*,
+    M.*
+FROM Recipes AS R
+JOIN RecipeMetadata_RecipeSchema1 AS M
+    ON R.Id = M.RecipeId
+WHERE R.RecipeSchemaName = {#RecipeSchemaName:sql_literal}
+  AND NOT EXISTS (
+      SELECT 1
+      FROM Recipes AS R2
+      WHERE R2.RecipeSchemaName = R.RecipeSchemaName
+        AND R2.Name = R.Name
+        AND R2.Version > R.Version
+  )
+ORDER BY R.Name
+```
+
+**NOTE:** This query should be placed in a `string formatter` and the parameter `RecipeSchemaName` should be passed with a DynamicLink to retrieve the list of recipes for a given recipe schema name.
 
 ### Subquery in FROM Clause (Aggregation)
 

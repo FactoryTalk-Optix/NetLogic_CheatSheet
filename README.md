@@ -85,7 +85,7 @@ This can significantly improve the quality of the code suggestions related to Fa
 ### Databases
 
 - [Database interaction](./pages/database-interaction.md)
-- [Queries](./pages/queries.md)
+- [SQL Queries](./pages/queries.md)
 
 ### Others
 
