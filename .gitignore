@@ -3,3 +3,7 @@
 gists-pull/*
 temp/*
 *.txt
+
+!CONTRIBUTING.md
+!LICENSE
+!SECURITY.md
