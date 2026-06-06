@@ -20,7 +20,7 @@ Before reading this chapter, please check the [Recipe Schemas Documentation](htt
 
 ## Core Types
 
-### RecipeId
+### FTOptix.RecipeX.RecipeId
 
 Uniquely identifies a recipe using name and version information.
 
@@ -35,7 +35,7 @@ public class RecipeId : TypedStruct
 
 **Usage Example:**
 ```csharp
-var recipeId = new RecipeId { Name = "Recipe1", Version = "1.0" };
+var recipeId = new FTOptix.RecipeX.RecipeId { Name = "Recipe1", Version = "1.0" };
 ```
 
 ### Recipe
@@ -44,13 +44,13 @@ Represents a complete recipe with metadata and timestamps.
 
 ```csharp
 [MapDataType(NamespaceUri = Module.Uri, Number = 14)]
-public class Recipe : TypedStruct
+public classRecipe : TypedStruct
 {
-    public RecipeId RecipeId { get; set; }                     // Recipe identifier
+    public FTOptix.RecipeX.RecipeId FTOptix.RecipeX.RecipeId { get; set; }                     // Recipe identifier
     public DateTime RecipeSchemaTimestamp { get; set; }        // Schema timestamp
     public DateTime CreatedAt { get; set; }                    // Creation timestamp
     public DateTime ModifiedAt { get; set; }                   // Last modification timestamp
-    public RecipeMetadata[] MetadataValues { get; set; }       // Custom metadata fields
+    public FTOptix.RecipeX.RecipeMetadata[] MetadataValues { get; set; }       // Custom metadata fields
 }
 ```
 
@@ -60,7 +60,7 @@ Represents custom metadata associated with a recipe.
 
 ```csharp
 [MapDataType(NamespaceUri = Module.Uri, Number = 12)]
-public class RecipeMetadata : TypedStruct
+public classRecipeMetadata : TypedStruct
 {
     public string Name { get; set; }                 // Metadata field name
     public LocalizedText DisplayName { get; set; }   // Localized display name
@@ -75,21 +75,21 @@ Describes a data item within a recipe, including path information for accessing 
 
 ```csharp
 [MapDataType(NamespaceUri = Module.Uri, Number = 171)]
-public class RecipeDataItem : TypedStruct
+public classRecipeDataItem : TypedStruct
 {
     public string[] ItemRelativeBrowsePath { get; set; }       // Path to the recipe item, relative to the schema's target node
     public string[] DataItemRelativeBrowsePath { get; set; }   // Path to data item, relative to the item node reached by ItemRelativeBrowsePath
-    public ElementAccessStruct ElementAccess { get; set; }     // Array element access (index/range)
+    public FTOptix.Core.ElementAccessStruct ElementAccess { get; set; }     // Array element access (index/range)
     public NodeId DataTypeId { get; set; }                     // Data type identifier
 }
 ```
 
-### ErrorPolicy
+### FTOptix.RecipeX.ErrorPolicy
 
 Defines error handling behavior for recipe operations.
 
 ```csharp
-public enum ErrorPolicy : int
+public enum FTOptix.RecipeX.ErrorPolicy : int
 {
     Strict = 0,         // Stop on first error
     BestEffort = 1      // Continue despite errors
@@ -103,34 +103,34 @@ An **Edit Model** is a temporary, session-exclusive working copy of a recipe use
 - **Session-exclusive**: only one session can hold an Edit Model at a time; concurrent access is not allowed. Each session can have a dedicated Edit Model instance if needed.
 - **Non-destructive**: changes made inside the Edit Model are isolated from the persisted recipe until explicitly committed back to the store.
 - **Queryable**: the Edit Model supports filtering and sorting, making it suitable as the data source for recipe-editing UIs (e.g. grids, lists).
-- **Lifecycle**: the Edit Model is created by loading a recipe via `TransferFromStoreToEditModel` and is automatically destroyed when released or when `TransferFromEditModelToStore` completes. The `requesterNodeId` parameter identifies the session owner and is used to enforce the exclusivity constraint.
+- **Lifecycle**: the Edit Model is created by loading a recipe via `TransferFromStoreToEditModel` and is automatically destroyed when released or when `TransferFromEditModelToStore` completes. The `requesterNodeId` parameter identifies the session owner and is used to enforce the exclusivity constraint. An `EditModel` can also be created programmatically via `CreateEditModel` for use cases that require more direct control over its lifecycle and interactions or retrieved from an existing interactive session where a `ListView` is being used by the user to interact with a recipe.
 
-#### EditModel Class
+#### FTOptix.RecipeX.EditModel Class
 
-The `EditModel` class exposes the following members. Obtain an instance by resolving the `EditModelNodeId` returned by `CreateEditModel` and casting it:
+The `FTOptix.RecipeX.EditModel` class exposes the following members. Obtain an instance by resolving the `EditModelNodeId` returned by `CreateEditModel` and casting it:
 
 ```csharp
-var editModel = (EditModel)InformationModel.Get(createResult.EditModelNodeId);
+var editModel = (FTOptix.RecipeX.EditModel)InformationModel.Get(createResult.EditModelNodeId);
 ```
 
 **Properties:**
 
 | Member | Type | Description |
 |---|---|---|
-| `RecipeSchemaNodeId` | `NodeId` | NodeId of the `RecipeSchema` that owns this Edit Model |
+| `RecipeSchemaNodeId` | `NodeId` | NodeId of the `FTOptix.RecipeX.RecipeSchema` that owns this Edit Model |
 | `RequesterNodeId` | `NodeId` | NodeId of the session owner; used to enforce exclusivity |
 | `TargetNodeId` | `NodeId` | NodeId of the target node the Edit Model was created against |
-| `RecipeId` | `RecipeId` | Identifies which recipe is loaded in the Edit Model |
+| `FTOptix.RecipeX.RecipeId` | `FTOptix.RecipeX.RecipeId` | Identifies which recipe is loaded in the Edit Model |
 | `PendingChanges` | `bool` | `true` if the Edit Model contains unsaved changes relative to the store; set to `false` after a successful commit |
 
 **Methods:**
 
 | Method | Description |
 |---|---|
-| `TransferFromStore(RecipeId)` | Loads a recipe from the store into this Edit Model |
-| `TransferToStore(RecipeId)` | Commits Edit Model changes back to the store |
-| `TransferToTarget(NodeId targetNodeId, ErrorPolicy)` | Applies Edit Model values to a target node |
-| `TransferFromTarget(NodeId targetNodeId, ErrorPolicy)` | Overwrites Edit Model values with the current state of a target node |
+| `TransferFromStore(FTOptix.RecipeX.RecipeId)` | Loads a recipe from the store into this Edit Model |
+| `TransferToStore(FTOptix.RecipeX.RecipeId)` | Commits Edit Model changes back to the store |
+| `TransferToTarget(NodeId targetNodeId, FTOptix.RecipeX.ErrorPolicy)` | Applies Edit Model values to a target node |
+| `TransferFromTarget(NodeId targetNodeId, FTOptix.RecipeX.ErrorPolicy)` | Overwrites Edit Model values with the current state of a target node |
 
 Edit Model instances can be programmatically created and/or interacted with as shown in the examples below.
 
@@ -158,7 +158,7 @@ DataItemRelativeBrowsePath = ["Speed", "MaxRPM"]
 ```
 
 **Please note:** Both paths are **relative**, never absolute.
-- `ItemRelativeBrowsePath` is relative to the **target node** configured on the `RecipeSchema` (e.g. `TargetNode = Section1`).
+- `ItemRelativeBrowsePath` is relative to the **target node** configured on the `FTOptix.RecipeX.RecipeSchema` (e.g. `TargetNode = Section1`).
 - `DataItemRelativeBrowsePath` is relative to the **item node** that is reached after navigating `ItemRelativeBrowsePath` from the target node.
 
 This structure allows you to:
@@ -183,7 +183,7 @@ Target Object (Settings)
 ```csharp
 var itemPath = new string[] { "Temperature" };
 var dataItemPath = new string[] { };  // Empty = direct variable
-var elementAccess = new ElementAccessStruct();
+var elementAccess = new FTOptix.Core.ElementAccessStruct();
 
 // Gets/sets "Temperature" variable directly
 var result = schema.GetRecipeDataItemValue(
@@ -198,7 +198,7 @@ var result = schema.GetRecipeDataItemValue(
 ```csharp
 var itemPath = new string[] { "MotorSettings" };
 var dataItemPath = new string[] { "Speed" };
-var elementAccess = new ElementAccessStruct();
+var elementAccess = new FTOptix.Core.ElementAccessStruct();
 
 // Gets/sets MotorSettings.Speed
 var result = schema.GetRecipeDataItemValue(
@@ -213,7 +213,7 @@ var result = schema.GetRecipeDataItemValue(
 ```csharp
 var itemPath = new string[] { "Parameters", "Industrial", "Motor1" };
 var dataItemPath = new string[] { "Configuration", "MaxSpeed" };
-var elementAccess = new ElementAccessStruct();
+var elementAccess = new FTOptix.Core.ElementAccessStruct();
 
 // Gets/sets Parameters -> Industrial -> Motor1 -> Configuration -> MaxSpeed
 var result = schema.GetRecipeDataItemValue(
@@ -228,7 +228,7 @@ var result = schema.GetRecipeDataItemValue(
 ```csharp
 var itemPath = new string[] { "Sensors" };
 var dataItemPath = new string[] { "Readings" };
-var elementAccess = new ElementAccessStruct 
+var elementAccess = new FTOptix.Core.ElementAccessStruct 
 { 
     Index = 0  // Get first array element
 };
@@ -249,8 +249,8 @@ var result = schema.GetRecipeDataItemValue(
 [ExportMethod]
 public void InspectDataItems(string recipeName, string version)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
-    var recipeId = new RecipeId { Name = recipeName, Version = version };
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
     
     // Get the structure of data items in this recipe
     var result = schema.GetDataItems(recipeId);
@@ -285,14 +285,14 @@ public void InspectDataItems(string recipeName, string version)
 public object ReadDataItemValue(string recipeName, string[] itemPath, 
     string[] dataItemPath)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
-    var recipeId = new RecipeId { Name = recipeName, Version = "1.0" };
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = "1.0" };
     
     var result = schema.GetRecipeDataItemValue(
         recipeId,
         itemPath,
         dataItemPath,
-        new ElementAccessStruct());
+        new FTOptix.Core.ElementAccessStruct());
     
     if (result.ResultCode == GetRecipeDataItemValueResultCode.Success)
     {
@@ -313,17 +313,17 @@ public object ReadDataItemValue(string recipeName, string[] itemPath,
 public void WriteDataItemValue(string recipeName, string[] itemPath, 
     string[] dataItemPath, object value)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
-    var recipeId = new RecipeId { Name = recipeName, Version = "1.0" };
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = "1.0" };
     
     var result = schema.SetRecipeDataItemValue(
         recipeId,
         itemPath,
         dataItemPath,
-        new ElementAccessStruct(),
+        new FTOptix.Core.ElementAccessStruct(),
         value);
     
-    if (result == SetRecipeDataItemValueResultCode.Success)
+    if (result == FTOptix.RecipeX.SetRecipeDataItemValueResultCode.Success)
     {
         Log.Info("Data item value updated");
     }
@@ -341,8 +341,8 @@ public void WriteDataItemValue(string recipeName, string[] itemPath,
 public bool CompareDataItemWithTarget(string recipeName, string[] itemPath, 
     string[] dataItemPath, string targetVariablePath)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
-    var recipeId = new RecipeId { Name = recipeName, Version = "1.0" };
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = "1.0" };
     var target = LogicObject.Owner.GetVariable(targetVariablePath);
     
     // Get stored recipe value
@@ -350,7 +350,7 @@ public bool CompareDataItemWithTarget(string recipeName, string[] itemPath,
         recipeId,
         itemPath,
         dataItemPath,
-        new ElementAccessStruct());
+        new FTOptix.Core.ElementAccessStruct());
     
     if (recipeResult.ResultCode != GetRecipeDataItemValueResultCode.Success)
         return false;
@@ -374,7 +374,7 @@ public bool CompareDataItemWithTarget(string recipeName, string[] itemPath,
 1. **Path Ordering Matters**: The order of path segments must exactly match your object hierarchy
 2. **Empty Data Item Path**: If the item itself is the variable, use an empty array for `dataItemRelativeBrowsePath`
 3. **Type Consistency**: Ensure the value type matches the data item's data type
-4. **Array Indices**: Use `ElementAccessStruct` only for array subscripts; regular object properties go in the data item path
+4. **Array Indices**: Use `FTOptix.Core.ElementAccessStruct` only for array subscripts; regular object properties go in the data item path
 5. **Performance**: Reading/writing individual data items has overhead; consider batch operations when possible
 
 ### Common Mistakes
@@ -457,13 +457,13 @@ public class GetRecipeDataItemValueResult : TypedStruct
 - `UnexpectedEmptyRecipeName = 4` - Recipe name is empty/null
 - `RecipeNotFound = 5` - Recipe not found in store
 
-### GetRecipeMetadataValueResult
+### FTOptix.RecipeX.GetRecipeMetadataValueResult
 
 Result of retrieving a single metadata value.
 
 ```csharp
 [MapDataType(NamespaceUri = Module.Uri, Number = 134)]
-public class GetRecipeMetadataValueResult : TypedStruct
+public classGetRecipeMetadataValueResult : TypedStruct
 {
     public RecipeMetadata MetadataValue { get; set; }                      // Retrieved metadata
     public GetRecipeMetadataValueResultCode ResultCode { get; set; }       // Result code
@@ -506,7 +506,7 @@ Result of renaming a recipe.
 [MapDataType(NamespaceUri = Module.Uri, Number = 115)]
 public class RenameRecipeResult : TypedStruct
 {
-    public RecipeId NewRecipeId { get; set; }              // New recipe identifier (after rename)
+    public FTOptix.RecipeX.RecipeId NewRecipeId { get; set; }              // New recipe identifier (after rename)
     public RenameRecipeResultCode ResultCode { get; set; } // Result code
 }
 ```
@@ -519,13 +519,13 @@ public class RenameRecipeResult : TypedStruct
 - `SourceRecipeDoesNotExist = 4` - Recipe not found
 - `TargetRecipeAlreadyExist = 5` - Target recipe name already in use
 
-### CreateEditModelResult
+### FTOptix.RecipeX.CreateEditModelResult
 
 Result of creating an edit model.
 
 ```csharp
 [MapDataType(NamespaceUri = Module.Uri, Number = 142)]
-public class CreateEditModelResult : TypedStruct
+public classCreateEditModelResult : TypedStruct
 {
     public NodeId EditModelNodeId { get; set; }                   // NodeId of created edit model
     public CreateEditModelResultCode ResultCode { get; set; }     // Result code
@@ -539,13 +539,13 @@ public class CreateEditModelResult : TypedStruct
 - `ParentNodeNotFound = 3` - Parent node for edit model not found
 - `RequesterNodeNotFound = 4` - Requester node not found
 
-## RecipeSchema Class
+## FTOptix.RecipeX.RecipeSchema Class
 
 The main class for recipe operations in FTOptix. Inherit from `UAObject` and provides methods for all recipe management tasks.
 
 ```csharp
 [MapType(NamespaceUri = Module.Uri, Number = 1)]
-public class RecipeSchema : UAObject
+public classRecipeSchema : UAObject
 {
     // Properties
     public NodeId TargetNode { get; set; }                  // Target node for recipe operations
@@ -558,7 +558,7 @@ public class RecipeSchema : UAObject
 }
 ```
 
-## RecipeSchema Methods
+## FTOptix.RecipeX.RecipeSchema Methods
 
 ### Recipe Management Methods
 
@@ -567,7 +567,7 @@ public class RecipeSchema : UAObject
 Creates a new empty recipe in the store.
 
 ```csharp
-public CreateRecipeResultCode CreateRecipe(RecipeId recipeId)
+public CreateRecipeResultCode CreateRecipe(FTOptix.RecipeX.RecipeId recipeId)
 ```
 
 **Parameters:**
@@ -583,8 +583,8 @@ public CreateRecipeResultCode CreateRecipe(RecipeId recipeId)
 
 **Example:**
 ```csharp
-var schema = (RecipeSchema)hmiProject.GetVariable("RecipeSchema1").Value;
-var recipeId = new RecipeId { Name = "MyRecipe", Version = "1.0" };
+var schema = (FTOptix.RecipeX.RecipeSchema)hmiProject.GetVariable("RecipeSchema1").Value;
+var recipeId = new FTOptix.RecipeX.RecipeId { Name = "MyRecipe", Version = "1.0" };
 var result = schema.CreateRecipe(recipeId);
 if (result == CreateRecipeResultCode.Success)
 {
@@ -597,7 +597,7 @@ if (result == CreateRecipeResultCode.Success)
 Deletes a recipe from the store.
 
 ```csharp
-public DeleteRecipeResultCode DeleteRecipe(RecipeId recipeId)
+public DeleteRecipeResultCode DeleteRecipe(FTOptix.RecipeX.RecipeId recipeId)
 ```
 
 **Parameters:**
@@ -620,7 +620,7 @@ var result = schema.DeleteRecipe(recipeId);
 Creates a copy of an existing recipe with a new identifier.
 
 ```csharp
-public DuplicateRecipeResultCode DuplicateRecipe(RecipeId recipeId, RecipeId newRecipeId)
+public DuplicateRecipeResultCode DuplicateRecipe(FTOptix.RecipeX.RecipeId recipeId, FTOptix.RecipeX.RecipeId newRecipeId)
 ```
 
 **Parameters:**
@@ -639,8 +639,8 @@ public DuplicateRecipeResultCode DuplicateRecipe(RecipeId recipeId, RecipeId new
 
 **Example:**
 ```csharp
-var sourceId = new RecipeId { Name = "Recipe1", Version = "1.0" };
-var targetId = new RecipeId { Name = "Recipe1_Copy", Version = "1.0" };
+var sourceId = new FTOptix.RecipeX.RecipeId { Name = "Recipe1", Version = "1.0" };
+var targetId = new FTOptix.RecipeX.RecipeId { Name = "Recipe1_Copy", Version = "1.0" };
 var result = schema.DuplicateRecipe(sourceId, targetId);
 ```
 
@@ -649,7 +649,7 @@ var result = schema.DuplicateRecipe(sourceId, targetId);
 Renames an existing recipe.
 
 ```csharp
-public RenameRecipeResult RenameRecipe(RecipeId recipeId, string newName)
+public RenameRecipeResult RenameRecipe(FTOptix.RecipeX.RecipeId recipeId, string newName)
 ```
 
 **Parameters:**
@@ -690,7 +690,7 @@ if (result.ResultCode == GetRecipesResultCode.Success)
 {
     foreach (var recipe in result.Recipes)
     {
-        Log.Info($"Recipe: {recipe.RecipeId.Name} v{recipe.RecipeId.Version}");
+        Log.Info($"Recipe: {recipe.FTOptix.RecipeX.RecipeId.Name} v{recipe.FTOptix.RecipeX.RecipeId.Version}");
     }
 }
 ```
@@ -700,7 +700,7 @@ if (result.ResultCode == GetRecipesResultCode.Success)
 Retrieves the data item structure for a recipe.
 
 ```csharp
-public GetDataItemsResult GetDataItems(RecipeId recipeId)
+public GetDataItemsResult GetDataItems(FTOptix.RecipeX.RecipeId recipeId)
 ```
 
 **Parameters:**
@@ -729,10 +729,10 @@ Retrieves a specific data item value from a recipe.
 
 ```csharp
 public GetRecipeDataItemValueResult GetRecipeDataItemValue(
-    RecipeId recipeId, 
+    FTOptix.RecipeX.RecipeId recipeId, 
     string[] itemRelativeBrowsePath, 
     string[] dataItemRelativeBrowsePath, 
-    ElementAccessStruct elementAccess)
+    FTOptix.Core.ElementAccessStruct elementAccess)
 ```
 
 **Parameters:**
@@ -749,7 +749,7 @@ public GetRecipeDataItemValueResult GetRecipeDataItemValue(
 ```csharp
 var itemPath = new string[] { "Item1" };
 var dataItemPath = new string[] { "Property1" };
-var elementAccess = new ElementAccessStruct(); // No array index
+var elementAccess = new FTOptix.Core.ElementAccessStruct(); // No array index
 
 var result = schema.GetRecipeDataItemValue(recipeId, itemPath, dataItemPath, elementAccess);
 if (result.ResultCode == GetRecipeDataItemValueResultCode.Success)
@@ -763,14 +763,14 @@ if (result.ResultCode == GetRecipeDataItemValueResultCode.Success)
 Retrieves a single metadata value.
 
 ```csharp
-public GetRecipeMetadataValueResult GetRecipeMetadataValue(RecipeId recipeId, string metadataName)
+public FTOptix.RecipeX.GetRecipeMetadataValueResult GetRecipeMetadataValue(FTOptix.RecipeX.RecipeId recipeId, string metadataName)
 ```
 
 **Parameters:**
 - `recipeId` - Recipe identifier
 - `metadataName` - Name of the metadata field
 
-**Returns:** `GetRecipeMetadataValueResult`
+**Returns:** `FTOptix.RecipeX.GetRecipeMetadataValueResult`
 - `MetadataValue` - Retrieved metadata
 - `ResultCode` - Operation result
 
@@ -788,7 +788,7 @@ if (result.ResultCode == GetRecipeMetadataValueResultCode.Success)
 Retrieves all metadata for a recipe.
 
 ```csharp
-public GetRecipeMetadataValuesResult GetRecipeMetadataValues(RecipeId recipeId)
+public GetRecipeMetadataValuesResult GetRecipeMetadataValues(FTOptix.RecipeX.RecipeId recipeId)
 ```
 
 **Parameters:**
@@ -817,11 +817,11 @@ if (result.ResultCode == GetRecipeMetadataValuesResultCode.Success)
 Updates a data item value in a recipe.
 
 ```csharp
-public SetRecipeDataItemValueResultCode SetRecipeDataItemValue(
-    RecipeId recipeId,
+public FTOptix.RecipeX.SetRecipeDataItemValueResultCode SetRecipeDataItemValue(
+    FTOptix.RecipeX.RecipeId recipeId,
     string[] itemRelativeBrowsePath,
     string[] dataItemRelativeBrowsePath,
-    ElementAccessStruct elementAccess,
+    FTOptix.Core.ElementAccessStruct elementAccess,
     object value)
 ```
 
@@ -832,7 +832,7 @@ public SetRecipeDataItemValueResultCode SetRecipeDataItemValue(
 - `elementAccess` - Array element access
 - `value` - New value to set
 
-**Returns:** `SetRecipeDataItemValueResultCode`
+**Returns:** `FTOptix.RecipeX.SetRecipeDataItemValueResultCode`
 - `Success` - Value set successfully
 - `GenericError` - General error occurred
 - `StoreError` - Error accessing the store
@@ -846,7 +846,7 @@ var result = schema.SetRecipeDataItemValue(
     recipeId,
     new string[] { "Item1" },
     new string[] { "Property1" },
-    new ElementAccessStruct(),
+    new FTOptix.Core.ElementAccessStruct(),
     42);
 ```
 
@@ -855,8 +855,8 @@ var result = schema.SetRecipeDataItemValue(
 Updates a metadata value.
 
 ```csharp
-public SetRecipeMetadataValueResultCode SetRecipeMetadataValue(
-    RecipeId recipeId,
+public FTOptix.RecipeX.SetRecipeMetadataValueResultCode SetRecipeMetadataValue(
+    FTOptix.RecipeX.RecipeId recipeId,
     string metadataName,
     object value)
 ```
@@ -866,7 +866,7 @@ public SetRecipeMetadataValueResultCode SetRecipeMetadataValue(
 - `metadataName` - Metadata field name
 - `value` - New metadata value
 
-**Returns:** `SetRecipeMetadataValueResultCode`
+**Returns:** `FTOptix.RecipeX.SetRecipeMetadataValueResultCode`
 - `Success` - Metadata set successfully
 - `GenericError` - General error occurred
 - `StoreError` - Error accessing the store
@@ -888,10 +888,10 @@ Transfer methods move recipes between three locations: **Store** (persistent dat
 Loads a recipe from the store and applies it to a target location.
 
 ```csharp
-public TransferFromStoreToTargetResultCode TransferFromStoreToTarget(
-    RecipeId recipeId,
+public FTOptix.RecipeX.TransferFromStoreToTargetResultCode TransferFromStoreToTarget(
+    FTOptix.RecipeX.RecipeId recipeId,
     NodeId targetNodeId,
-    ErrorPolicy errorPolicy)
+    FTOptix.RecipeX.ErrorPolicy errorPolicy)
 ```
 
 **Parameters:**
@@ -899,7 +899,7 @@ public TransferFromStoreToTargetResultCode TransferFromStoreToTarget(
 - `targetNodeId` - Destination node
 - `errorPolicy` - Error handling mode
 
-**Returns:** `TransferFromStoreToTargetResultCode`
+**Returns:** `FTOptix.RecipeX.TransferFromStoreToTargetResultCode`
 - `Success` - Transfer successful
 - `GenericError` - General error occurred
 - `StoreError` - Error accessing the store
@@ -911,7 +911,7 @@ public TransferFromStoreToTargetResultCode TransferFromStoreToTarget(
 **Example:**
 ```csharp
 var targetNode = hmiProject.GetVariable("TargetObject").Value;
-var result = schema.TransferFromStoreToTarget(recipeId, targetNode, ErrorPolicy.Strict);
+var result = schema.TransferFromStoreToTarget(recipeId, targetNode, FTOptix.RecipeX.ErrorPolicy.Strict);
 ```
 
 #### TransferFromTargetToStore
@@ -919,11 +919,11 @@ var result = schema.TransferFromStoreToTarget(recipeId, targetNode, ErrorPolicy.
 Captures the current state of a target and saves it as a recipe.
 
 ```csharp
-public TransferFromTargetToStoreResultCode TransferFromTargetToStore(
-    RecipeId recipeId,
+public FTOptix.RecipeX.TransferFromTargetToStoreResultCode TransferFromTargetToStore(
+    FTOptix.RecipeX.RecipeId recipeId,
     NodeId targetNodeId,
     bool overwrite,
-    ErrorPolicy errorPolicy)
+    FTOptix.RecipeX.ErrorPolicy errorPolicy)
 ```
 
 **Parameters:**
@@ -932,7 +932,7 @@ public TransferFromTargetToStoreResultCode TransferFromTargetToStore(
 - `overwrite` - Whether to overwrite existing recipe
 - `errorPolicy` - Error handling mode
 
-**Returns:** `TransferFromTargetToStoreResultCode`
+**Returns:** `FTOptix.RecipeX.TransferFromTargetToStoreResultCode`
 - `SuccessRecipeCreated` - New recipe created
 - `SuccessRecipeUpdated` - Existing recipe updated
 - `GenericError` - General error
@@ -948,7 +948,7 @@ var result = schema.TransferFromTargetToStore(
     recipeId,
     targetNode,
     overwrite: true,
-    ErrorPolicy.BestEffort);
+    FTOptix.RecipeX.ErrorPolicy.BestEffort);
 ```
 
 #### TransferFromStoreToEditModel
@@ -956,16 +956,16 @@ var result = schema.TransferFromTargetToStore(
 Loads a recipe from the store into the session's Edit Model.
 
 ```csharp
-public TransferFromStoreToEditModelResultCode TransferFromStoreToEditModel(
+public FTOptix.RecipeX.TransferFromStoreToEditModelResultCode TransferFromStoreToEditModel(
     NodeId requesterNodeId,
-    RecipeId recipeId)
+    FTOptix.RecipeX.RecipeId recipeId)
 ```
 
 **Parameters:**
 - `requesterNodeId` - Node requesting the operation
 - `recipeId` - Recipe to load
 
-**Returns:** `TransferFromStoreToEditModelResultCode`
+**Returns:** `FTOptix.RecipeX.TransferFromStoreToEditModelResultCode`
 - `Success` - Transfer successful
 - `GenericError` - General error
 - `StoreError` - Store access error
@@ -985,16 +985,16 @@ var result = schema.TransferFromStoreToEditModel(requester, recipeId);
 Saves the edit model changes back to the store.
 
 ```csharp
-public TransferFromEditModelToStoreResultCode TransferFromEditModelToStore(
+public FTOptix.RecipeX.TransferFromEditModelToStoreResultCode TransferFromEditModelToStore(
     NodeId requesterNodeId,
-    RecipeId recipeId)
+    FTOptix.RecipeX.RecipeId recipeId)
 ```
 
 **Parameters:**
 - `requesterNodeId` - Node requesting the operation
 - `recipeId` - Recipe identifier (for new recipes)
 
-**Returns:** `TransferFromEditModelToStoreResultCode`
+**Returns:** `FTOptix.RecipeX.TransferFromEditModelToStoreResultCode`
 - `SuccessRecipeCreated` - New recipe created
 - `SuccessRecipeUpdated` - Existing recipe updated
 - `GenericError` - General error
@@ -1014,10 +1014,10 @@ var result = schema.TransferFromEditModelToStore(requester, recipeId);
 Applies edit model changes to a target location.
 
 ```csharp
-public TransferFromEditModelToTargetResultCode TransferFromEditModelToTarget(
+public FTOptix.RecipeX.TransferFromEditModelToTargetResultCode TransferFromEditModelToTarget(
     NodeId requesterNodeId,
     NodeId targetNodeId,
-    ErrorPolicy errorPolicy)
+    FTOptix.RecipeX.ErrorPolicy errorPolicy)
 ```
 
 **Parameters:**
@@ -1025,7 +1025,7 @@ public TransferFromEditModelToTargetResultCode TransferFromEditModelToTarget(
 - `targetNodeId` - Destination node
 - `errorPolicy` - Error handling mode
 
-**Returns:** `TransferFromEditModelToTargetResultCode`
+**Returns:** `FTOptix.RecipeX.TransferFromEditModelToTargetResultCode`
 - `Success` - Transfer successful
 - `GenericError` - General error
 - `StoreError` - Store access error
@@ -1039,10 +1039,10 @@ public TransferFromEditModelToTargetResultCode TransferFromEditModelToTarget(
 Loads target state into edit model for editing.
 
 ```csharp
-public TransferFromTargetToEditModelResultCode TransferFromTargetToEditModel(
+public FTOptix.RecipeX.TransferFromTargetToEditModelResultCode TransferFromTargetToEditModel(
     NodeId requesterNodeId,
     NodeId targetNodeId,
-    ErrorPolicy errorPolicy)
+    FTOptix.RecipeX.ErrorPolicy errorPolicy)
 ```
 
 **Parameters:**
@@ -1050,7 +1050,7 @@ public TransferFromTargetToEditModelResultCode TransferFromTargetToEditModel(
 - `targetNodeId` - Source location
 - `errorPolicy` - Error handling mode
 
-**Returns:** `TransferFromTargetToEditModelResultCode`
+**Returns:** `FTOptix.RecipeX.TransferFromTargetToEditModelResultCode`
 - `Success` - Transfer successful
 - `GenericError` - General error
 - `StoreError` - Store access error
@@ -1066,11 +1066,11 @@ public TransferFromTargetToEditModelResultCode TransferFromTargetToEditModel(
 Creates a working copy of a recipe for editing.
 
 ```csharp
-public CreateEditModelResult CreateEditModel(
+public FTOptix.RecipeX.CreateEditModelResult CreateEditModel(
     NodeId parentNodeId,
     NodeId requesterNodeId,
     NodeId targetNodeId,
-    RecipeId recipeId)
+    FTOptix.RecipeX.RecipeId recipeId)
 ```
 
 **Parameters:**
@@ -1079,14 +1079,14 @@ public CreateEditModelResult CreateEditModel(
 - `targetNodeId` - Target structure reference
 - `recipeId` - Recipe to edit
 
-**Returns:** `CreateEditModelResult`
+**Returns:** `FTOptix.RecipeX.CreateEditModelResult`
 - `EditModelNodeId` - NodeId of created edit model
 - `ResultCode` - Operation result
 
 > [!TIP]
-> Once you have the `EditModelNodeId`, you can resolve it to the actual `EditModel` node and cast it to `EditModel`. The cast exposes additional members not available through `RecipeSchema`, including:
+> Once you have the `EditModelNodeId`, you can resolve it to the actual `FTOptix.RecipeX.EditModel` node and cast it to `FTOptix.RecipeX.EditModel`. The cast exposes additional members not available through `FTOptix.RecipeX.RecipeSchema`, including:
 > - `PendingChanges` — indicates whether the edit model has unsaved changes relative to the recipe in the store.
-> - Transfer methods directly on the `EditModel` instance (e.g. applying to target, committing to store) that operate implicitly on this edit model without having to pass the requester/node again.
+> - Transfer methods directly on the `FTOptix.RecipeX.EditModel` instance (e.g. applying to target, committing to store) that operate implicitly on this edit model without having to pass the requester/node again.
 
 > [!NOTE]
 > `CreateEditModel` behaves as **get-or-create**: if an edit model already exists for the given `parentNodeId`/`requesterNodeId` pair, it returns the existing instance instead of creating a new one. This is the correct way to access an edit model that was created and is managed by a `ListView` widget — pass the `ListView.NodeId` as both `parentNodeId` and `requesterNodeId`, and you will get back the live edit model the ListView is currently using.
@@ -1100,8 +1100,8 @@ var target = hmiProject.GetVariable("Target").Value;
 var result = schema.CreateEditModel(parent, requester, target, recipeId);
 if (result.ResultCode == CreateEditModelResultCode.Success)
 {
-    // Cast to EditModel to access PendingChanges and EditModel-level transfer methods
-    var editModel = (EditModel)InformationModel.Get(result.EditModelNodeId);
+    // Cast to FTOptix.RecipeX.EditModel to access PendingChanges and FTOptix.RecipeX.EditModel-level transfer methods
+    var editModel = (FTOptix.RecipeX.EditModel)InformationModel.Get(result.EditModelNodeId);
     Log.Info($"Pending changes: {editModel.PendingChanges}");
 }
 ```
@@ -1186,7 +1186,7 @@ CREATE TABLE Recipes (
 ```sql
 CREATE TABLE RecipeItems (
     Id,                         -- PRIMARY KEY [UInt32]
-    RecipeId,                   -- [UInt32] Foreign key to Recipes
+    FTOptix.RecipeX.RecipeId,                   -- [UInt32] Foreign key to Recipes
     RelativeBrowsePath,         -- [String] Item path
     TypeId                      -- [String] OPC UA type identifier
 )
@@ -1212,7 +1212,7 @@ Dynamically created as `RecipeMetadata_<RecipeSchemaName>` per schema.
 ```sql
 -- Example: RecipeMetadata_RecipeSchema1
 CREATE TABLE RecipeMetadata_RecipeSchema1 (
-    RecipeId,                   -- Foreign key to Recipes
+    FTOptix.RecipeX.RecipeId,                   -- Foreign key to Recipes
     Metadata1,                  -- [UserDefined] Custom metadata
     Metadata2,                  -- [UserDefined] Custom metadata
     -- ... additional metadata columns as defined in schema
@@ -1224,7 +1224,7 @@ CREATE TABLE RecipeMetadata_RecipeSchema1 (
 SELECT R.*, M.* 
 FROM Recipes AS R 
 LEFT JOIN "RecipeMetadata_RecipeSchema1" AS M 
-    ON R.Id = M.RecipeId 
+    ON R.Id = M.FTOptix.RecipeX.RecipeId 
 WHERE R.RecipeSchemaName = 'RecipeSchema1' 
 ORDER BY R.Name
 ```
@@ -1238,10 +1238,10 @@ public class RecipeManager : BaseNetLogic
 {
     public override void Start()
     {
-        var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+        var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
         
         // Create recipe
-        var recipeId = new RecipeId { Name = "Configuration1", Version = "1.0" };
+        var recipeId = new FTOptix.RecipeX.RecipeId { Name = "Configuration1", Version = "1.0" };
         var createResult = schema.CreateRecipe(recipeId);
         
         if (createResult == CreateRecipeResultCode.Success)
@@ -1253,7 +1253,7 @@ public class RecipeManager : BaseNetLogic
             // Set data values
             var itemPath = new string[] { "Settings" };
             var dataItemPath = new string[] { "Parameter1" };
-            var elementAccess = new ElementAccessStruct();
+            var elementAccess = new FTOptix.Core.ElementAccessStruct();
             
             schema.SetRecipeDataItemValue(recipeId, itemPath, dataItemPath, elementAccess, 100);
             
@@ -1271,17 +1271,17 @@ public class RecipeLoader : BaseNetLogic
     [ExportMethod]
     public void ApplyRecipe(string recipeName, string version)
     {
-        var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+        var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
         var targetNode = LogicObject.Owner.GetVariable("TargetObject").Value;
         
-        var recipeId = new RecipeId { Name = recipeName, Version = version };
+        var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
         
         var result = schema.TransferFromStoreToTarget(
             recipeId,
             targetNode,
-            ErrorPolicy.Strict);
+            FTOptix.RecipeX.ErrorPolicy.Strict);
         
-        if (result == TransferFromStoreToTargetResultCode.Success)
+        if (result == FTOptix.RecipeX.TransferFromStoreToTargetResultCode.Success)
         {
             Log.Info($"Recipe '{recipeName}' applied to target");
         }
@@ -1301,19 +1301,19 @@ public class ConfigurationCapture : BaseNetLogic
     [ExportMethod]
     public void SaveCurrentConfiguration(string recipeName)
     {
-        var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+        var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
         var targetNode = LogicObject.Owner.GetVariable("SourceObject").Value;
         
-        var recipeId = new RecipeId { Name = recipeName, Version = "1.0" };
+        var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = "1.0" };
         
         var result = schema.TransferFromTargetToStore(
             recipeId,
             targetNode,
             overwrite: true,
-            ErrorPolicy.BestEffort);
+            FTOptix.RecipeX.ErrorPolicy.BestEffort);
         
-        if (result == TransferFromTargetToStoreResultCode.SuccessRecipeUpdated ||
-            result == TransferFromTargetToStoreResultCode.SuccessRecipeCreated)
+        if (result == FTOptix.RecipeX.TransferFromTargetToStoreResultCode.SuccessRecipeUpdated ||
+            result == FTOptix.RecipeX.TransferFromTargetToStoreResultCode.SuccessRecipeCreated)
         {
             Log.Info($"Configuration saved as '{recipeName}'");
         }
@@ -1329,7 +1329,7 @@ public class RecipeList : BaseNetLogic
     [ExportMethod]
     public void ListAllRecipes()
     {
-        var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+        var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
         
         var result = schema.GetRecipes();
         
@@ -1337,9 +1337,9 @@ public class RecipeList : BaseNetLogic
         {
             foreach (var recipe in result.Recipes)
             {
-                var metadata = schema.GetRecipeMetadataValues(recipe.RecipeId);
+                var metadata = schema.GetRecipeMetadataValues(recipe.FTOptix.RecipeX.RecipeId);
                 
-                Log.Info($"Recipe: {recipe.RecipeId.Name} v{recipe.RecipeId.Version}");
+                Log.Info($"Recipe: {recipe.FTOptix.RecipeX.RecipeId.Name} v{recipe.FTOptix.RecipeX.RecipeId.Version}");
                 Log.Info($"  Created: {recipe.CreatedAt}");
                 Log.Info($"  Modified: {recipe.ModifiedAt}");
                 
@@ -1366,7 +1366,7 @@ Verify whether a recipe exists before attempting operations:
 [ExportMethod]
 public bool RecipeExists(string recipeName, string version)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null || string.IsNullOrEmpty(recipeName))
         return false;
     
@@ -1377,8 +1377,8 @@ public bool RecipeExists(string recipeName, string version)
     // Check if recipe matches
     foreach (var recipe in result.Recipes)
     {
-        if (recipe.RecipeId.Name == recipeName && 
-            recipe.RecipeId.Version == version)
+        if (recipe.FTOptix.RecipeX.RecipeId.Name == recipeName && 
+            recipe.FTOptix.RecipeX.RecipeId.Version == version)
             return true;
     }
     
@@ -1394,7 +1394,7 @@ Apply a recipe with comprehensive error handling and logging:
 [ExportMethod]
 public void SafeApplyRecipe(string recipeName, string version)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
     {
         Log.Error("Recipe schema not found");
@@ -1408,7 +1408,7 @@ public void SafeApplyRecipe(string recipeName, string version)
         return;
     }
     
-    var recipeId = new RecipeId 
+    var recipeId = new FTOptix.RecipeX.RecipeId 
     { 
         Name = recipeName, 
         Version = version 
@@ -1421,8 +1421,8 @@ public void SafeApplyRecipe(string recipeName, string version)
     if (recipesResult.ResultCode == GetRecipesResultCode.Success)
     {
         recipeExists = recipesResult.Recipes.Any(r => 
-            r.RecipeId.Name == recipeName && 
-            r.RecipeId.Version == version);
+            r.FTOptix.RecipeX.RecipeId.Name == recipeName && 
+            r.FTOptix.RecipeX.RecipeId.Version == version);
     }
     
     if (!recipeExists)
@@ -1435,9 +1435,9 @@ public void SafeApplyRecipe(string recipeName, string version)
     var result = schema.TransferFromStoreToTarget(
         recipeId,
         target,
-        ErrorPolicy.Strict);
+        FTOptix.RecipeX.ErrorPolicy.Strict);
     
-    if (result == TransferFromStoreToTargetResultCode.Success)
+    if (result == FTOptix.RecipeX.TransferFromStoreToTargetResultCode.Success)
     {
         Log.Info($"Recipe '{recipeName}' applied successfully");
     }
@@ -1445,16 +1445,16 @@ public void SafeApplyRecipe(string recipeName, string version)
     {
         switch (result)
         {
-            case TransferFromStoreToTargetResultCode.RecipeNotFound:
+            case FTOptix.RecipeX.TransferFromStoreToTargetResultCode.RecipeNotFound:
                 Log.Error("Recipe not found in store");
                 break;
-            case TransferFromStoreToTargetResultCode.TargetNotFound:
+            case FTOptix.RecipeX.TransferFromStoreToTargetResultCode.TargetNotFound:
                 Log.Error("Target node not found");
                 break;
-            case TransferFromStoreToTargetResultCode.DataMismatch:
+            case FTOptix.RecipeX.TransferFromStoreToTargetResultCode.DataMismatch:
                 Log.Error("Recipe structure does not match target");
                 break;
-            case TransferFromStoreToTargetResultCode.StoreError:
+            case FTOptix.RecipeX.TransferFromStoreToTargetResultCode.StoreError:
                 Log.Error("Error accessing recipe store");
                 break;
             default:
@@ -1473,7 +1473,7 @@ Capture current configuration as a recipe:
 [ExportMethod]
 public void CaptureAsRecipe(string recipeName)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     var source = LogicObject.Owner.GetVariable("SourceObject").Value;
     
     if (schema == null || source == null)
@@ -1482,7 +1482,7 @@ public void CaptureAsRecipe(string recipeName)
         return;
     }
     
-    var recipeId = new RecipeId 
+    var recipeId = new FTOptix.RecipeX.RecipeId 
     { 
         Name = recipeName, 
         Version = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") 
@@ -1493,26 +1493,26 @@ public void CaptureAsRecipe(string recipeName)
         recipeId,
         source,
         overwrite: false,  // Don't overwrite existing
-        ErrorPolicy.Strict);
+        FTOptix.RecipeX.ErrorPolicy.Strict);
     
     switch (result)
     {
-        case TransferFromTargetToStoreResultCode.SuccessRecipeCreated:
+        case FTOptix.RecipeX.TransferFromTargetToStoreResultCode.SuccessRecipeCreated:
             Log.Info($"Recipe '{recipeName}' created and saved");
             // Optionally set metadata
             schema.SetRecipeMetadataValue(recipeId, "CaptureTime", DateTime.UtcNow);
             schema.SetRecipeMetadataValue(recipeId, "CapturedBy", "AutoCapture");
             break;
             
-        case TransferFromTargetToStoreResultCode.SuccessRecipeUpdated:
+        case FTOptix.RecipeX.TransferFromTargetToStoreResultCode.SuccessRecipeUpdated:
             Log.Info($"Recipe '{recipeName}' updated");
             break;
             
-        case TransferFromTargetToStoreResultCode.RecipeAlreadyExists:
+        case FTOptix.RecipeX.TransferFromTargetToStoreResultCode.RecipeAlreadyExists:
             Log.Warning($"Recipe '{recipeName}' already exists");
             break;
             
-        case TransferFromTargetToStoreResultCode.DataMismatch:
+        case FTOptix.RecipeX.TransferFromTargetToStoreResultCode.DataMismatch:
             Log.Error("Source structure does not match recipe schema");
             break;
             
@@ -1531,12 +1531,12 @@ Duplicate a recipe while updating metadata:
 [ExportMethod]
 public void DuplicateRecipeWithMetadata(string sourceRecipe, string targetRecipe)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return;
     
     // Get source metadata
-    var sourceId = new RecipeId { Name = sourceRecipe, Version = "1.0" };
+    var sourceId = new FTOptix.RecipeX.RecipeId { Name = sourceRecipe, Version = "1.0" };
     var metadataResult = schema.GetRecipeMetadataValues(sourceId);
     
     if (metadataResult.ResultCode != GetRecipeMetadataValuesResultCode.Success)
@@ -1546,7 +1546,7 @@ public void DuplicateRecipeWithMetadata(string sourceRecipe, string targetRecipe
     }
     
     // Duplicate the recipe
-    var targetId = new RecipeId { Name = targetRecipe, Version = "1.0" };
+    var targetId = new FTOptix.RecipeX.RecipeId { Name = targetRecipe, Version = "1.0" };
     var dupResult = schema.DuplicateRecipe(sourceId, targetId);
     
     if (dupResult != DuplicateRecipeResultCode.Success)
@@ -1577,7 +1577,7 @@ Create an interactive experience for selecting and applying recipes:
 [ExportMethod]
 public string[] GetAvailableRecipes()
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return new string[] { };
     
@@ -1586,23 +1586,23 @@ public string[] GetAvailableRecipes()
         return new string[] { };
     
     return result.Recipes
-        .Select(r => $"{r.RecipeId.Name} (v{r.RecipeId.Version})")
+        .Select(r => $"{r.FTOptix.RecipeX.RecipeId.Name} (v{r.FTOptix.RecipeX.RecipeId.Version})")
         .ToArray();
 }
 
 [ExportMethod]
 public void ApplySelectedRecipe(string recipeName, string version)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     var target = LogicObject.Owner.GetVariable("TargetObject").Value;
     
     if (schema == null || target == null)
         return;
     
-    var recipeId = new RecipeId { Name = recipeName, Version = version };
-    var result = schema.TransferFromStoreToTarget(recipeId, target, ErrorPolicy.Strict);
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
+    var result = schema.TransferFromStoreToTarget(recipeId, target, FTOptix.RecipeX.ErrorPolicy.Strict);
     
-    if (result == TransferFromStoreToTargetResultCode.Success)
+    if (result == FTOptix.RecipeX.TransferFromStoreToTargetResultCode.Success)
     {
         Log.Info($"Applied recipe: {recipeName}");
         // Update UI display variable
@@ -1617,23 +1617,23 @@ public void ApplySelectedRecipe(string recipeName, string version)
 [ExportMethod]
 public Dictionary<string, object> GetRecipeDetails(string recipeName, string version)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     var details = new Dictionary<string, object>();
     
-    var recipeId = new RecipeId { Name = recipeName, Version = version };
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
     
     // Get general recipe info
     var recipesResult = schema.GetRecipes();
     if (recipesResult.ResultCode == GetRecipesResultCode.Success)
     {
         var recipe = recipesResult.Recipes.FirstOrDefault(r => 
-            r.RecipeId.Name == recipeName && 
-            r.RecipeId.Version == version);
+            r.FTOptix.RecipeX.RecipeId.Name == recipeName && 
+            r.FTOptix.RecipeX.RecipeId.Version == version);
         
         if (recipe != null)
         {
-            details["Name"] = recipe.RecipeId.Name;
-            details["Version"] = recipe.RecipeId.Version;
+            details["Name"] = recipe.FTOptix.RecipeX.RecipeId.Name;
+            details["Version"] = recipe.FTOptix.RecipeX.RecipeId.Version;
             details["CreatedAt"] = recipe.CreatedAt;
             details["ModifiedAt"] = recipe.ModifiedAt;
         }
@@ -1670,11 +1670,11 @@ Verify recipe consistency and values:
 [ExportMethod]
 public bool ValidateRecipe(string recipeName, string version)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return false;
     
-    var recipeId = new RecipeId { Name = recipeName, Version = version };
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
     
     // Check recipe exists
     var recipesResult = schema.GetRecipes();
@@ -1685,8 +1685,8 @@ public bool ValidateRecipe(string recipeName, string version)
     }
     
     var recipeExists = recipesResult.Recipes.Any(r => 
-        r.RecipeId.Name == recipeName && 
-        r.RecipeId.Version == version);
+        r.FTOptix.RecipeX.RecipeId.Name == recipeName && 
+        r.FTOptix.RecipeX.RecipeId.Version == version);
     
     if (!recipeExists)
     {
@@ -1749,11 +1749,11 @@ This pattern is useful in HMI screens where a "Delete" button can first show a c
 [ExportMethod]
 public void DeleteRecipeWithConfirmation(string recipeName, string version, bool confirmed)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return;
     
-    var recipeId = new RecipeId { Name = recipeName, Version = version };
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
     
     if (!confirmed)
     {
@@ -1762,12 +1762,12 @@ public void DeleteRecipeWithConfirmation(string recipeName, string version, bool
         if (result.ResultCode == GetRecipesResultCode.Success)
         {
             var recipe = result.Recipes.FirstOrDefault(r => 
-                r.RecipeId.Name == recipeName && 
-                r.RecipeId.Version == version);
+                r.FTOptix.RecipeX.RecipeId.Name == recipeName && 
+                r.FTOptix.RecipeX.RecipeId.Version == version);
             
             if (recipe != null)
             {
-                Log.Info($"Would delete recipe: {recipe.RecipeId.Name} v{recipe.RecipeId.Version} " +
+                Log.Info($"Would delete recipe: {recipe.FTOptix.RecipeX.RecipeId.Name} v{recipe.FTOptix.RecipeX.RecipeId.Version} " +
                          $"(modified: {recipe.ModifiedAt})");
                 return;
             }
@@ -1802,7 +1802,7 @@ Complete workflow for editing a recipe using edit models:
 [ExportMethod]
 public NodeId StartEditingRecipe(string recipeName, string version)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     var parentNode = LogicObject.Owner.GetVariable("EditModelsParent").Value;
     var requester = LogicObject.GetNodeId();
     var target = LogicObject.Owner.GetVariable("TargetObject").Value;
@@ -1810,7 +1810,7 @@ public NodeId StartEditingRecipe(string recipeName, string version)
     if (schema == null)
         return NodeId.Empty;
     
-    var recipeId = new RecipeId { Name = recipeName, Version = version };
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
     
     // Create edit model
     var createResult = schema.CreateEditModel(parentNode, requester, target, recipeId);
@@ -1824,15 +1824,15 @@ public NodeId StartEditingRecipe(string recipeName, string version)
     // Load recipe into edit model
     var transferResult = schema.TransferFromStoreToEditModel(requester, recipeId);
     
-    if (transferResult != TransferFromStoreToEditModelResultCode.Success)
+    if (transferResult != FTOptix.RecipeX.TransferFromStoreToEditModelResultCode.Success)
     {
         Log.Error($"Failed to load recipe into edit model: {transferResult}");
         return NodeId.Empty;
     }
     
-    // Cast to EditModel to access additional members such as PendingChanges
+    // Cast to FTOptix.RecipeX.EditModel to access additional members such as PendingChanges
     // and transfer methods that operate directly on this edit model instance.
-    var editModel = (EditModel)InformationModel.Get(createResult.EditModelNodeId);
+    var editModel = (FTOptix.RecipeX.EditModel)InformationModel.Get(createResult.EditModelNodeId);
     Log.Info($"Recipe '{recipeName}' loaded for editing. Pending changes: {editModel.PendingChanges}");
     return createResult.EditModelNodeId;
 }
@@ -1853,17 +1853,17 @@ public void CancelEditingRecipe(NodeId editModelId)
 public void SaveEditedRecipe(NodeId editModelId, string recipeName, string version, 
     NodeId requesterNodeId)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return;
     
-    var recipeId = new RecipeId { Name = recipeName, Version = version };
+    var recipeId = new FTOptix.RecipeX.RecipeId { Name = recipeName, Version = version };
     
     // Save changes back to store
     var result = schema.TransferFromEditModelToStore(requesterNodeId, recipeId);
     
-    if (result == TransferFromEditModelToStoreResultCode.SuccessRecipeUpdated ||
-        result == TransferFromEditModelToStoreResultCode.SuccessRecipeCreated)
+    if (result == FTOptix.RecipeX.TransferFromEditModelToStoreResultCode.SuccessRecipeUpdated ||
+        result == FTOptix.RecipeX.TransferFromEditModelToStoreResultCode.SuccessRecipeCreated)
     {
         Log.Info($"Recipe '{recipeName}' saved successfully");
         
@@ -1880,16 +1880,16 @@ public void SaveEditedRecipe(NodeId editModelId, string recipeName, string versi
 
 [ExportMethod]
 public void ApplyAndClose(NodeId editModelId, NodeId targetNodeId, string recipeName,
-    NodeId requesterNodeId, ErrorPolicy errorPolicy = ErrorPolicy.Strict)
+    NodeId requesterNodeId, FTOptix.RecipeX.ErrorPolicy errorPolicy = FTOptix.RecipeX.ErrorPolicy.Strict)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return;
     
     // Apply edit model directly to target
     var applyResult = schema.TransferFromEditModelToTarget(requesterNodeId, targetNodeId, errorPolicy);
     
-    if (applyResult == TransferFromEditModelToTargetResultCode.Success)
+    if (applyResult == FTOptix.RecipeX.TransferFromEditModelToTargetResultCode.Success)
     {
         Log.Info($"Recipe '{recipeName}' applied to target");
         
@@ -1907,7 +1907,7 @@ public void ApplyAndClose(NodeId editModelId, NodeId targetNodeId, string recipe
 
 ### Accessing an Edit Model Managed by a ListView
 
-When the **Recipes Editor** widget from the TemplateLibrary is used, FactoryTalk Optix automatically creates an `EditModel` to back the `ListView`. This edit model is not exposed as a visible project node — it exists internally and is not directly accessible by NodeId. To obtain a reference to it from code, call `CreateEditModel` passing the `ListView.NodeId` as both `parentNodeId` and `requesterNodeId`. Because the edit model already exists for that parent/requester pair, the call returns the existing instance rather than creating a new one.
+When the **Recipes Editor** widget from the TemplateLibrary is used, FactoryTalk Optix automatically creates an `FTOptix.RecipeX.EditModel` to back the `ListView`. This edit model is not exposed as a visible project node, it exists internally and is not directly accessible as children of the `ListView` instance. To programmatically obtain a reference to it, call `CreateEditModel` passing the `ListView.NodeId` as both `parentNodeId` and `requesterNodeId`. Because the edit model already exists for that parent/requester pair, the call returns the existing instance rather than creating a new one.
 
 This pattern is useful when you want to run server-side logic against the values the user is currently editing, for example to validate ranges or cross-field constraints before the recipe is saved.
 
@@ -1925,22 +1925,22 @@ public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe
         return;
     }
 
-    var recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/RecipeSchema1");
+    var recipeSchema = Project.Current.Get<FTOptix.RecipeX.RecipeSchema>("Recipes/RecipeSchema1");
     if (recipeSchema == null)
     {
-        Log.Error("RecipeSchema not found");
+        Log.Error("FTOptix.RecipeX.RecipeSchema not found");
         isValidRecipe = false;
         return;
     }
 
     // Use get-or-create: if the ListView already owns an edit model this returns it,
-    // otherwise a new one is created. Pass NodeId.Empty and an empty RecipeId so the
+    // otherwise a new one is created. Pass NodeId.Empty and an empty FTOptix.RecipeX.RecipeId so the
     // call does not load a different recipe on top of the one already active.
     var createResult = recipeSchema.CreateEditModel(
         listView.NodeId,    // parentNodeId — same as the ListView used when it created the edit model
         listView.NodeId,    // requesterNodeId — same as the ListView used when it created the edit model
         NodeId.Empty,       // targetNodeId — not needed; we are accessing an existing model
-        new RecipeId());    // recipeId — empty; the loaded recipe is already in the model
+        new FTOptix.RecipeX.RecipeId());    // recipeId — empty; the loaded recipe is already in the model
 
     if (createResult.ResultCode != CreateEditModelResultCode.Success)
     {
@@ -1949,16 +1949,16 @@ public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe
         return;
     }
 
-    var editModel = (EditModel)InformationModel.Get(createResult.EditModelNodeId);
+    var editModel = (FTOptix.RecipeX.EditModel)InformationModel.Get(createResult.EditModelNodeId);
     if (editModel == null)
     {
-        Log.Error("EditModel not found");
+        Log.Error("FTOptix.RecipeX.EditModel not found");
         isValidRecipe = false;
         return;
     }
 
     // Retrieve the data items defined in the recipe that is currently loaded
-    var dataItemsResult = recipeSchema.GetDataItems(editModel.RecipeId);
+    var dataItemsResult = recipeSchema.GetDataItems(editModel.FTOptix.RecipeX.RecipeId);
     if (dataItemsResult.ResultCode != GetDataItemsResultCode.Success)
     {
         Log.Error($"Failed to retrieve data items: {dataItemsResult.ResultCode}");
@@ -1970,7 +1970,7 @@ public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe
     foreach (var dataItem in dataItemsResult.DataItems)
     {
         var valueResult = recipeSchema.GetRecipeDataItemValue(
-            editModel.RecipeId,
+            editModel.FTOptix.RecipeX.RecipeId,
             dataItem.ItemRelativeBrowsePath,
             dataItem.DataItemRelativeBrowsePath,
             dataItem.ElementAccess);
@@ -2000,8 +2000,8 @@ public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe
     }
 
     Log.Info(isValidRecipe
-        ? $"Recipe '{editModel.RecipeId.Name}' passed validation"
-        : $"Recipe '{editModel.RecipeId.Name}' failed validation");
+        ? $"Recipe '{editModel.FTOptix.RecipeX.RecipeId.Name}' passed validation"
+        : $"Recipe '{editModel.FTOptix.RecipeX.RecipeId.Name}' failed validation");
 }
 ```
 
@@ -2016,7 +2016,7 @@ Perform operations on multiple recipes:
 [ExportMethod]
 public void RenameAllRecipesWithPrefix(string oldPrefix, string newPrefix)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return;
     
@@ -2030,15 +2030,15 @@ public void RenameAllRecipesWithPrefix(string oldPrefix, string newPrefix)
     int renamed = 0;
     foreach (var recipe in recipesResult.Recipes)
     {
-        if (recipe.RecipeId.Name.StartsWith(oldPrefix))
+        if (recipe.FTOptix.RecipeX.RecipeId.Name.StartsWith(oldPrefix))
         {
-            var newName = recipe.RecipeId.Name.Replace(oldPrefix, newPrefix);
-            var result = schema.RenameRecipe(recipe.RecipeId, newName);
+            var newName = recipe.FTOptix.RecipeX.RecipeId.Name.Replace(oldPrefix, newPrefix);
+            var result = schema.RenameRecipe(recipe.FTOptix.RecipeX.RecipeId, newName);
             
             if (result.ResultCode == RenameRecipeResultCode.Success)
             {
                 renamed++;
-                Log.Info($"Renamed: {recipe.RecipeId.Name} -> {newName}");
+                Log.Info($"Renamed: {recipe.FTOptix.RecipeX.RecipeId.Name} -> {newName}");
             }
         }
     }
@@ -2049,7 +2049,7 @@ public void RenameAllRecipesWithPrefix(string oldPrefix, string newPrefix)
 [ExportMethod]
 public void DeleteRecipesOlderThan(int daysOld)
 {
-    var schema = (RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
+    var schema = (FTOptix.RecipeX.RecipeSchema)LogicObject.Owner.GetObject("RecipeSchema1");
     if (schema == null)
         return;
     
@@ -2064,11 +2064,11 @@ public void DeleteRecipesOlderThan(int daysOld)
     {
         if (recipe.ModifiedAt < cutoffDate)
         {
-            var result = schema.DeleteRecipe(recipe.RecipeId);
+            var result = schema.DeleteRecipe(recipe.FTOptix.RecipeX.RecipeId);
             if (result == DeleteRecipeResultCode.Success)
             {
                 deleted++;
-                Log.Info($"Deleted old recipe: {recipe.RecipeId.Name}");
+                Log.Info($"Deleted old recipe: {recipe.FTOptix.RecipeX.RecipeId.Name}");
             }
         }
     }
@@ -2082,11 +2082,11 @@ public void DeleteRecipesOlderThan(int daysOld)
 ### Schema Compatibility
 
 - Legacy recipe schemas and new RecipeX schemas can coexist in the same project but they have different structures, so they cannot easily interoperate.
-- Recipe parameters represent Items or DataItems selected in the RecipeSchema editor.
+- Recipe parameters represent Items or DataItems selected in the FTOptix.RecipeX.RecipeSchema editor.
 - Recipe parameters displayed in a ListView are always presented as read-only.
 
 ### Error Handling Best Practices
 
 - Always check result codes after operations; they indicate specific error conditions.
-- Use `ErrorPolicy.Strict` for critical operations and `ErrorPolicy.BestEffort` for optional operations.
+- Use `FTOptix.RecipeX.ErrorPolicy.Strict` for critical operations and `FTOptix.RecipeX.ErrorPolicy.BestEffort` for optional operations.
 - Log failures with the specific result code for easier diagnosis.

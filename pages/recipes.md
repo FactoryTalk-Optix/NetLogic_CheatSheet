@@ -43,11 +43,11 @@ Recipe schemas can be modified at runtime using NetLogic. This is useful when yo
 public void UpdateRecipeSchema()
 {
     // Get the recipe schema from the project
-    var recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/MyRecipeSchema");
+    var legacyRecipeSchema = Project.Current.Get<FTOptix.Recipe.RecipeSchema>("Recipes/MyRecipeSchema");
     
     // Get the EditModel and Root objects
-    var editModel = recipeSchema.GetObject("EditModel");
-    var root = recipeSchema.GetObject("Root");
+    var editModel = legacyRecipeSchema.GetObject("EditModel");
+    var root = legacyRecipeSchema.GetObject("Root");
     
     // Clear existing schema
     if (editModel != null)
@@ -56,7 +56,7 @@ public void UpdateRecipeSchema()
         root.Children.ToList().ForEach(child => child.Delete());
     
     // Add variables to the schema
-    var targetNode = InformationModel.Get(recipeSchema.TargetNode);
+    var targetNode = InformationModel.Get(legacyRecipeSchema.TargetNode);
     var speedVar = targetNode.GetVariable("MotorSpeed");
     
     if (speedVar != null)
@@ -68,8 +68,8 @@ public void UpdateRecipeSchema()
         root.Add(rootVar);
         
         // Update database columns
-        var store = InformationModel.Get<Store>(recipeSchema.Store);
-        var table = store.Tables.Get(recipeSchema.BrowseName);
+        var store = InformationModel.Get<Store>(legacyRecipeSchema.Store);
+        var table = store.Tables.Get(legacyRecipeSchema.BrowseName);
         if (table != null)
         {
             var column = InformationModel.Make<StoreColumn>("MotorSpeed");
@@ -89,25 +89,25 @@ Variables in nested folders or objects require special handling. The code below 
 public void AddVariablesToRecipeSchema()
 {
     // Get the recipe schema
-    var recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/MyRecipeSchema");
-    if (recipeSchema == null)
+    var legacyRecipeSchema = Project.Current.Get<FTOptix.Recipe.RecipeSchema>("Recipes/MyRecipeSchema");
+    if (legacyRecipeSchema == null)
     {
         Log.Error("Recipe schema not found");
         return;
     }
     
     // Get or create EditModel and Root
-    var editModel = recipeSchema.GetObject("EditModel") ?? InformationModel.MakeObject("EditModel");
-    var root = recipeSchema.GetObject("Root") ?? InformationModel.MakeObject("Root");
+    var editModel = legacyRecipeSchema.GetObject("EditModel") ?? InformationModel.MakeObject("EditModel");
+    var root = legacyRecipeSchema.GetObject("Root") ?? InformationModel.MakeObject("Root");
     
-    if (recipeSchema.GetObject("EditModel") == null)
-        recipeSchema.Add(editModel);
-    if (recipeSchema.GetObject("Root") == null)
-        recipeSchema.Add(root);
+    if (legacyRecipeSchema.GetObject("EditModel") == null)
+        legacyRecipeSchema.Add(editModel);
+    if (legacyRecipeSchema.GetObject("Root") == null)
+        legacyRecipeSchema.Add(root);
     
     // Get the database table
-    var store = InformationModel.Get<Store>(recipeSchema.Store);
-    var table = store.Tables.Get(recipeSchema.BrowseName);
+    var store = InformationModel.Get<Store>(legacyRecipeSchema.Store);
+    var table = store.Tables.Get(legacyRecipeSchema.BrowseName);
     
     // Variables to add
     var variablePaths = new List<string>
@@ -118,7 +118,7 @@ public void AddVariablesToRecipeSchema()
     };
     
     // Add each variable to the schema
-    var targetNode = InformationModel.Get(recipeSchema.TargetNode);
+    var targetNode = InformationModel.Get(legacyRecipeSchema.TargetNode);
     foreach (var path in variablePaths)
     {
         AddVariableToSchema(targetNode, path, editModel, root, table);
@@ -189,7 +189,7 @@ The following example demonstrates how to populate a recipe schema with variable
 [ExportMethod]
 public void PopulateRecipeSchema()
 {
-    // List of tags with relative path from the root node to be added to the RecipeSchema
+    // List of tags with relative path from the root node to be added to the FTOptix.Recipe.RecipeSchema
     var tagsToAdd = new List<string>
     {
         "Folder1/Variable3", // Variable in a folder
@@ -199,20 +199,20 @@ public void PopulateRecipeSchema()
         "Object1" // Entire object (may contain other objects or variables)
     };
 
-    //get the RecipeSchema object
-    RecipeSchema recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/RecipeSchema1");
+    //get the FTOptix.Recipe.RecipeSchema object
+    var legacyRecipeSchema = Project.Current.Get<FTOptix.Recipe.RecipeSchema>("Recipes/LegacyRecipeSchema1");
 
-    // Check if the RecipeSchema exists and if the Store and TargetNode are set
-    if (recipeSchema == null || 
-        recipeSchema.Store == NodeId.Empty || 
-        recipeSchema.TargetNode == NodeId.Empty)
+    // Check if the FTOptix.Recipe.RecipeSchema exists and if the Store and TargetNode are set
+    if (legacyRecipeSchema == null || 
+        legacyRecipeSchema.Store == NodeId.Empty || 
+        legacyRecipeSchema.TargetNode == NodeId.Empty)
     {
         Log.Error("Invalid recipe schema configuration");
         return;
     }
 
     // Get the root node of the Information Model
-    var rootNode = InformationModel.Get(recipeSchema.TargetNode);
+    var rootNode = InformationModel.Get(legacyRecipeSchema.TargetNode);
     
     // Process each tag
     foreach (string path in tagsToAdd)
@@ -228,12 +228,12 @@ public void PopulateRecipeSchema()
         {
             // Process all variables in the object
             foreach (var childVar in obj.FindNodesByType<IUAVariable>())
-                AddNodeToSchema(childVar, recipeSchema);
+                AddNodeToSchema(childVar, legacyRecipeSchema);
         }
         else
         {
             // Process single variable
-            AddNodeToSchema(node, recipeSchema);
+            AddNodeToSchema(node, legacyRecipeSchema);
         }
     }
 }
@@ -243,7 +243,7 @@ public void PopulateRecipeSchema()
 
 ```csharp
 /// <summary>
-/// Add variables and corresponding store columns to an existing RecipeSchema.
+/// Add variables and corresponding store columns to an existing FTOptix.Recipe.RecipeSchema.
 /// Inputs: two model variables present in the project (Model/Variable2, Model/Variable3).
 /// This is a DesignTime helper typically invoked from a DesignTime NetLogic or exported method.
 /// </summary>
@@ -255,24 +255,24 @@ public void ModifyRecipeSchema()
     IUAVariable var3 = Project.Current.GetVariable("Model/Variable3");
 
     // Get the recipe schema to modify
-    RecipeSchema recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/RecipeSchema1");
+    FTOptix.Recipe.RecipeSchema legacyRecipeSchema = Project.Current.Get<FTOptix.Recipe.RecipeSchema>("Recipes/LegacyRecipeSchema1");
 
     // Add variables to the EditModel (UI edit form)
-    IUAObject editModelObj = recipeSchema.GetObject("EditModel");
+    IUAObject editModelObj = legacyRecipeSchema.GetObject("EditModel");
     IUAVariable var2ToAddEditModel = InformationModel.MakeVariable(var2.BrowseName, var2.DataType);
     IUAVariable var3ToAddEditModel = InformationModel.MakeVariable(var3.BrowseName, var3.DataType);
     editModelObj.Add(var2ToAddEditModel);
     editModelObj.Add(var3ToAddEditModel);
 
     // Add variables to the Root (actual storage mapping)
-    IUAObject rootObj = recipeSchema.GetObject("Root");
+    IUAObject rootObj = legacyRecipeSchema.GetObject("Root");
     IUAVariable var2ToAddRoot = InformationModel.MakeVariable(var2.BrowseName, var2.DataType);
     IUAVariable var3ToAddRoot = InformationModel.MakeVariable(var3.BrowseName, var3.DataType);
     rootObj.Add(var2ToAddRoot);
     rootObj.Add(var3ToAddRoot);
 
     // Create corresponding columns in the store table
-    var DB_Table_Columns = Project.Current.Get("DataStores/EmbeddedDatabase1/Tables/RecipeSchema1/Columns");
+    var DB_Table_Columns = Project.Current.Get("DataStores/EmbeddedDatabase1/Tables/LegacyRecipeSchema1/Columns");
     var TableColumn_Var2 = InformationModel.Make<StoreColumn>("/" + var2.BrowseName);
     TableColumn_Var2.DataType = var2.DataType;
     var TableColumn_Var3 = InformationModel.Make<StoreColumn>("/" + var3.BrowseName);
@@ -341,12 +341,12 @@ private void ResetVariableValue(IUAVariable iUAVariable)
 The following examples demonstrate common recipe operations you might need to perform in your application.
 
 > [!NOTE]
-> Please see the `RecipesController.cs` file in the `Scripts` library of the FactoryTalk Optix IDE to see how to load, apply, create or update recipes at runtime.
+> Please see the `LegacyRecipesController.cs` file in the `Scripts` library of the FactoryTalk Optix IDE to see how to load, apply, create or update recipes at runtime.
 
 ### Importing/Exporting recipes to CSV
 
 > [!NOTE]
-> Please use the code in the `RecipesController.cs` file in the `Scripts` library of the FactoryTalk Optix IDE to import and export recipes to CSV format.
+> Please use the code in the `LegacyRecipesController.cs` file in the `Scripts` library of the FactoryTalk Optix IDE to import and export recipes to CSV format.
 
 ### Checking if a recipe exists
 
@@ -354,15 +354,15 @@ The following examples demonstrate common recipe operations you might need to pe
 [ExportMethod]
 public bool RecipeExists(string recipeName)
 {
-    var recipeSchema = Project.Current.Get<RecipeSchema>("Recipes/RecipeSchema1");
-    if (recipeSchema == null || string.IsNullOrEmpty(recipeName))
+    var legacyRecipeSchema = Project.Current.Get<FTOptix.Recipe.RecipeSchema>("Recipes/LegacyRecipeSchema1");
+    if (legacyRecipeSchema == null || string.IsNullOrEmpty(recipeName))
         return false;
         
-    var store = InformationModel.Get<Store>(recipeSchema.Store);
+    var store = InformationModel.Get<Store>(legacyRecipeSchema.Store);
     if (store == null)
         return false;
         
-    var tableName = string.IsNullOrEmpty(recipeSchema.TableName) ? recipeSchema.BrowseName : recipeSchema.TableName;
+    var tableName = string.IsNullOrEmpty(legacyRecipeSchema.TableName) ? legacyRecipeSchema.BrowseName : legacyRecipeSchema.TableName;
     
     // Query the database to check if the recipe exists
     object[,] resultSet;
