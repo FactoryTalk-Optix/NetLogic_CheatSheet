@@ -6,6 +6,36 @@
 > [!NOTE]
 > **API Version Guide:** This documentation covers multiple FactoryTalk Optix versions. When creating dynamic links to aliases, use `SetDynamicLinkToAlias()` for **version 1.8.x and later** (recommended), or the manual path construction approach for **version 1.7.x and earlier** (legacy). The modern API is simpler, more maintainable, and type-safe.
 
+## Table of Contents
+
+- [Simple Dynamic Link](#simple-dynamic-link)
+    - [Dynamic link manipulation](#dynamic-link-manipulation)
+        - [Resolve a DynamicLink](#resolve-a-dynamiclink)
+        - [Check for a DynamicLink](#check-for-a-dynamiclink)
+        - [Check for broken DynamicLink](#check-for-broken-dynamiclink)
+        - [Change the EU Mode of a DynamicLink](#change-the-eu-mode-of-a-dynamiclink)
+        - [Dynamic Link to a bit indexed word](#dynamic-link-to-a-bit-indexed-word)
+        - [Dynamic Link to a single element of array variable](#dynamic-link-to-a-single-element-of-array-variable)
+    - [Create a dynamic link to a specific element of an array variable](#create-a-dynamic-link-to-a-specific-element-of-an-array-variable)
+    - [Find broken dynamic links in the project](#find-broken-dynamic-links-in-the-project)
+        - [Formatted dynamic link](#formatted-dynamic-link)
+    - [Dynamic link to an Alias](#dynamic-link-to-an-alias)
+        - [FactoryTalk Optix 1.8.x and later (Recommended)](#factorytalk-optix-18x-and-later-recommended)
+        - [FactoryTalk Optix up to 1.7.x (Legacy)](#factorytalk-optix-up-to-17x-legacy)
+- [Advanced dynamic links](#advanced-dynamic-links)
+    - [Understanding Converters](#understanding-converters)
+    - [Creating Converters](#creating-converters)
+        - [Creating a String Formatter](#creating-a-string-formatter)
+            - [Using translation keys in Format (dictionary namespace aware)](#using-translation-keys-in-format-dictionary-namespace-aware)
+            - [Important Notes](#important-notes)
+        - [Creating an Expression Evaluator](#creating-an-expression-evaluator)
+            - [Supported Expression Syntax](#supported-expression-syntax)
+        - [Creating a Key-Value Converter (Instance)](#creating-a-key-value-converter-instance)
+            - [Simple Example Using Pairs Object](#simple-example-using-pairs-object)
+            - [Advanced Example With Dynamic Links](#advanced-example-with-dynamic-links)
+        - [Creating a Key-Value Converter (Type)](#creating-a-key-value-converter-type)
+        - [Creating a Conditional Converter](#creating-a-conditional-converter)
+
 ## Simple Dynamic Link
 
 By default a `DynamicLink` is made as _Read only_ unless you specify different mode
@@ -370,6 +400,46 @@ Converters transform values flowing through dynamic links. Before creating conve
 
 A `StringFormatter` converter combines multiple input variables into a formatted string using placeholders like `{0}`, `{1}`, etc.
 
+###### Using translation keys in `Format` (dictionary namespace aware)
+
+When your format string is a translation key (instead of plain text), set the `Format` variable value as `LocalizedText` using the localization dictionary namespace index.
+
+```csharp
+[ExportMethod]
+public void CreateLocalizedStringFormatterConverter()
+{
+    // Target variable that will show the translated and formatted value
+    var displayLabel = Owner.Get<Label>("Label1").TextVariable;
+
+    // Create formatter
+    var stringFormatter = InformationModel.Make<StringFormatter>("LocalizedFormatter");
+
+    // Resolve translation dictionary namespace index
+    ushort translationNamespaceIndex = GetTranslationNamespaceIndex();
+
+    // Set Format as a translation key using LocalizedText
+    // Example key value in dictionary: "MainKey1" => "Speed: {1}"
+    stringFormatter.GetVariable("Format").Value = new LocalizedText(translationNamespaceIndex, "MainKey1");
+
+    // Placeholder {1} requires Source1 (index must match)
+    var source1 = InformationModel.MakeVariable("Source1", OpcUa.DataTypes.BaseDataType);
+    source1.SetDynamicLink(Project.Current.GetVariable("Model/InjectionValue"));
+    stringFormatter.Refs.AddReference(FTOptix.CoreBase.ReferenceTypes.HasSource, source1);
+
+    displayLabel.SetConverter(stringFormatter);
+}
+
+private ushort GetTranslationNamespaceIndex()
+{
+    var dictionary = Project.Current.Get("Translations/LocalizationDictionary1");
+    if (dictionary != null)
+        return (ushort)dictionary.NodeId.NamespaceIndex;
+
+    // Fallback to current logic namespace if dictionary is not found
+    return (ushort)LogicObject.NodeId.NamespaceIndex;
+}
+```
+
 ```csharp
 [ExportMethod]
 public void CreateStringFormatterConverter()
@@ -403,7 +473,10 @@ public void CreateStringFormatterConverter()
 ```
 
 ###### Important Notes
+
 - Source variables **must** be named `Source0`, `Source1`, `Source2`, etc., matching the placeholder indices in the format string
+- Placeholder index and source index must match exactly: `{0}` uses `Source0`, `{1}` uses `Source1`, and so on
+- If your translation value intentionally starts from `{1}`, create `Source1` (you do not need `Source0` unless `{0}` is used)
 - The `SetConverter()` method automatically removes any previous converter or dynamic link from the target variable
 
 ##### Creating an Expression Evaluator

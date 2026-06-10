@@ -3,6 +3,19 @@
 > [!NOTE]
 > As databases are only accessible at runtime, all the queries described in this page can only be used at runtime.
 
+## Table of Contents
+
+- [Acknowledgements](#acknowledgements)
+- [Guidance and Best Practices](#guidance-and-best-practices)
+- [SELECT queries](#select-queries)
+- [UPDATE Queries](#update-queries)
+- [DELETE Queries](#delete-queries)
+- [INSERT Queries](#insert-queries)
+- [Temporary Tables](#temporary-tables)
+- [Dynamic queries using variables](#dynamic-queries-using-variables)
+- [Known Limitations and Workarounds](#known-limitations-and-workarounds)
+- [Queries on UI objects](#queries-on-ui-objects)
+
 ## Acknowledgements
 
 FactoryTalk Optix does not support the full set of SQL queries, but has an own subset based on the SQL ANSI standard. The reason for this is that FactoryTalk Optix will automatically act as translation layer between the UI (where the custom queries are written) and the underlying database, which may be different based on the user selection (SQLite, SQL Server, MySQL, InfluxDB, etc).
@@ -1238,6 +1251,28 @@ Counts high-salary employees from the filtered temporary table.
 ```sql
 SELECT COUNT(*) AS HighSalaryCount FROM "##FilteredTemp"
 ```
+
+## Dynamic queries using variables
+
+FactoryTalk Optix supports user-defined variables in SQL queries by using string formatting in your application code to construct the SQL query with the desired values before executing it against the database.
+
+Variables has to be escaped or formatted using two dedicated formatters:
+
+- `sql_literal` for string values, which adds single quotes, escapes internal quotes and formats dates appropriately.
+- `sql_identifier` for identifiers (like table or column names), which adds double quotes and escapes internal quotes.
+
+For example:
+
+```sql
+SELECT * FROM {#TableName:sql_identifier} WHERE Name = {#NameValue:sql_literal}
+```
+
+## Known Limitations and Workarounds
+
+As FactoryTalk Optix does not support all SQL features, some queries may fail due to syntax errors or unsupported constructs. If you encounter issues, consider the following workarounds:
+
+- Use a StringFormatter to build dynamic queries that adjust based on supported features.
+  - `CONCAT` and the `||` operator are not supported, but you can concatenate a string with something like `SELECT {#Param1:sql_literal} AS NewColumnName FROM Table` and compose the query dynamically.
 
 ## Queries on UI objects
 

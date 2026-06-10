@@ -32,7 +32,7 @@ public void ReadReference(NodeId element)
 > This method involves some low-level OPC/UA operations and may not be recommended for production usage. It is recommended to use the OPC/UA Client TagImporter instead.
 
 > [!NOTE]
-> This method can only be invoked at runtime.
+> This method can only be used at runtime.
 
 This method allows to read any OPC/UA variables from a remote server knowing its `NameSpaceIndex` and `ID`. The following examples reads the `Server > ServerStatus > State` (0/2259) variable from the UaAnsiCServer from the OPC Foundation 
 
@@ -286,6 +286,9 @@ public void ReadArbitraryValueFromRemoteOpcUaServer(string namespaceUri, string 
 
 This may be needed in some OPC/UA companion specifications where the Status of a tag is used to detect other status that are not only good or bad
 
+> [!NOTE]
+> This method can only be used at runtime. 
+
 ```csharp
 [ExportMethod]
 public void UpdateStatusCode()
@@ -304,6 +307,9 @@ Log.Info($"New status code: {myVariable.StatusCode}");
 ## Manually create an OPC/UA Client Tag
 
 This script presumes that the OPC/UA Client is already configured in the project and at least a tag was imported (needed to get the NameSpaceIndex). It creates a new tag in the project that will be used to read a variable from the OPC/UA Server.
+
+> [!NOTE]
+> This method can only be used at designtime. 
 
 ```csharp
 [ExportMethod]
