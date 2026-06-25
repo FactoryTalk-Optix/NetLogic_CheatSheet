@@ -1,6 +1,6 @@
 # Recipes
 
-Recipes in FT Optix provide a structured way to store and manage sets of parameters that can be loaded into your application. They are particularly useful for manufacturing processes where different product variants require different machine settings.
+Recipes in FactoryTalk Optix provide a structured way to store and manage sets of parameters that can be loaded into your application. They are particularly useful for manufacturing processes where different product variants require different machine settings.
 
 > [!WARNING]
 > This section is a work in progress and might be updated with more examples and explanations in the future.
@@ -14,7 +14,7 @@ Recipes in FT Optix provide a structured way to store and manage sets of paramet
 
 ## Recipe System Overview
 
-The recipe system in FT Optix consists of three main components:
+The recipe system in FactoryTalk Optix consists of three main components:
 
 1. **Recipe Schema**: Defines what variables are included in a recipe
 2. **Recipe Store**: The database where recipe data is stored

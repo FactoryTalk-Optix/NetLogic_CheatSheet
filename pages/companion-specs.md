@@ -3,18 +3,18 @@
 ## Load Companion Specifications
 
 - Companion Specifications files can be downloaded from [https://github.com/OPCFoundation/UA-Nodeset](https://github.com/OPCFoundation/UA-Nodeset)
-- Add them to FT Optix in one of these paths (make sure to replace your username or the proper FT Optix setup folder):
+- Add them to FactoryTalk Optix in one of these paths (make sure to replace your username or the proper FactoryTalk Optix setup folder):
     - `C:\Users\<username>\Documents\Rockwell Automation\FactoryTalk Optix\CompanionSpecifications`
     - `C:\Program Files\Rockwell Automation\FactoryTalk Optix\Studio <version number>\CompanionSpecifications`
 - Restart the IDE after adding files to one of those paths to load new files
-    - Check the FT Optix output if any error was reported after loading the files
+    - Check the FactoryTalk Optix output if any error was reported after loading the files
 
 > [!NOTE]
 > Companion specifications can only be loaded at design time, so the XML files need to be added before starting the IDE.
 
 ## Create an instance of a Companion Specs type
 
-Please make sure the proper XML file was added to FT Optix before starting the script
+Please make sure the proper XML file was added to FactoryTalk Optix before starting the script
 
 We will load an instance of the BlockType object from the DI specifications, the XML relevant part is:
 
@@ -44,7 +44,7 @@ We will load an instance of the BlockType object from the DI specifications, the
 ...
 ```
 
-From the XML we can see that the numeric identifier for the BlockType is `1003`, now in FT Optix we need to read the NameSpaceIndex. We will also need the NamespaceUri for that CompanionSpecs, in this case is `http://opcfoundation.org/UA/DI/`
+From the XML we can see that the numeric identifier for the BlockType is `1003`, now in FactoryTalk Optix we need to read the NameSpaceIndex. We will also need the NamespaceUri for that CompanionSpecs, in this case is `http://opcfoundation.org/UA/DI/`
 
 ```csharp
 [ExportMethod]

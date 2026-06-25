@@ -1,10 +1,10 @@
 # NetLogic Lifecycle
 
-Understanding how FT Optix manages threads is essential to writing reliable NetLogic code, especially in projects with complex pages, many widgets, or heavy processing requirements.
+Understanding how FactoryTalk Optix manages threads is essential to writing reliable NetLogic code, especially in projects with complex pages, many widgets, or heavy processing requirements.
 
 ## Overview
 
-FT Optix runtime operates with two primary execution contexts that are always present:
+FactoryTalk Optix runtime operates with two primary execution contexts that are always present:
 
 | Thread | Responsible for |
 |--------|----------------|
@@ -17,7 +17,7 @@ These two threads are **independent** from each other. The UI can render while b
 
 ### When is Start() called?
 
-`Start()` is invoked by the FT Optix runtime when a node (page, object, widget) is activated - either at application startup or when a page is navigated to.
+`Start()` is invoked by the FactoryTalk Optix runtime when a node (page, object, widget) is activated - either at application startup or when a page is navigated to.
 
 The fundamental rule is: **all `Start()` methods are called sequentially, one at a time, on the behavior thread**. There is no parallelism between different NetLogic `Start()` calls.
 
@@ -163,7 +163,7 @@ private LongRunningTask reportTask;
 
 ### ExportMethod and thread safety
 
-When an `[ExportMethod]` runs on a thread different from the one that owns a shared variable, concurrent access can occur. The safest pattern is to keep all model-node reads/writes inside the method call itself (the FT Optix information model is thread-safe at the node level)
+When an `[ExportMethod]` runs on a thread different from the one that owns a shared variable, concurrent access can occur. The safest pattern is to keep all model-node reads/writes inside the method call itself (the FactoryTalk Optix information model is thread-safe at the node level)
 
 ```csharp
 // Sharing a plain C# object between a PeriodicTask and an ExportMethod: use a lock
@@ -258,7 +258,7 @@ For a detailed reference, see [async-tasks.md](./async-tasks.md). Quick summary:
 | `async/await` (C# native) | Uses ThreadPool | **No** - avoid accessing nodes | Pure computation, I/O without node access |
 
 > [!NOTE]
-> All FT Optix task types (`LongRunningTask`, `PeriodicTask`, `DelayedTask`) are [information-model](./information-model.md)-safe. Native C# `async/await` or `Task.Run()` should only be used for operations that do not touch any project node.
+> All FactoryTalk Optix task types (`LongRunningTask`, `PeriodicTask`, `DelayedTask`) are [information-model](./information-model.md)-safe. Native C# `async/await` or `Task.Run()` should only be used for operations that do not touch any project node.
 
 ## DesignTime NetLogic and ExportMethod
 

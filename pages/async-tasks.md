@@ -7,13 +7,13 @@ Asynchronous tasks are very common when running special or long tasks that may n
 
 ## General concepts about Asynchronous tasks
 
-Standard C# language provides multiple ways to run asynchronous operations (such as the `async` modifier for some methods), these can be used in FT Optix as long as those methods does not access any of the project structure (pages, tags, etc).
+Standard C# language provides multiple ways to run asynchronous operations (such as the `async` modifier for some methods), these can be used in FactoryTalk Optix as long as those methods does not access any of the project structure (pages, tags, etc).
 
 - Example:
     - async method to read/write a CSV -> GOOD
     - async method to read a CSV and import it into the TranslationDictionary -> BAD
 
-## Using FT Optix Asynchronous tasks
+## Using FactoryTalk Optix Asynchronous tasks
 
 These asynchronous tasks are InformationModel-safe and can be used to access project nodes without concerns
 
@@ -89,7 +89,7 @@ An `async` modifier can also be used, but an async method **cannot** access any 
 class public override void Start()
 {
     // Create a dedicated thread to run a long or demanding process
-    // Without stopping the FT Optix Runtime or Studio
+    // Without stopping the FactoryTalk Optix Runtime or Studio
     myLongRunningTask = new LongRunningTask(ProcessCSVFile, LogicObject);
     myLongRunningTask.Start();
 }

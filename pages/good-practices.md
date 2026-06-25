@@ -1,6 +1,6 @@
 # Good practices
 
-Here is a list of convention our FT Optix technicians uses when creating new projects, feel free to choose if this can apply to your project
+Here is a list of convention our FactoryTalk Optix technicians uses when creating new projects, feel free to choose if this can apply to your project
 
 - Use significative names for every project element (no default names)
     - Exception is made when creating object types, still remember to give meaningful name if possible

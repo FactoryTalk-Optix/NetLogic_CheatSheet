@@ -67,13 +67,13 @@ public void OpenBrowser(string urlPath) {
 > Core commands can only be invoked at runtime.
 
 ```csharp
-// Get the core commands object (exposed by FT Optix APIs)
+// Get the core commands object (exposed by FactoryTalk Optix APIs)
 var coreCommandsObject = InformationModel.GetObject(FTOptix.CoreBase.Objects.CoreCommands);
 // Call a specific command
 coreCommandsObject.ExecuteMethod("Close");
 ```
 
-## Invoke FT Optix Alarm commands
+## Invoke FactoryTalk Optix Alarm commands
 
 > [!NOTE]
 > Alarm commands can only be invoked at runtime.

@@ -273,7 +273,7 @@ private void QueryAndUpdate(LongRunningTask myTask, object args)
 
 ## CSV interaction
 
-A simple way to import or export data from a database is to use CSV files, here are some examples of how to read and write CSV files using C# in FT Optix.
+A simple way to import or export data from a database is to use CSV files, here are some examples of how to read and write CSV files using C# in FactoryTalk Optix.
 
 ### Read / Write CSV files
 

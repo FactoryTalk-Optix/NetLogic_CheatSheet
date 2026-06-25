@@ -162,7 +162,7 @@ if (enumerationDataType != null)
 
 ## Sync to variable change
 
-For each variable that is created in FT Optix, the corresponding class is automatically generated, this is actually creating two properties/classes per each variable
+For each variable that is created in FactoryTalk Optix, the corresponding class is automatically generated, this is actually creating two properties/classes per each variable
 
 - The first one is a variable with the same BrowseName
 - The second one is the BrowseName of the variable concatenated by `Variable`, this is typically used to sync to change in value or to make DynamicLinks
