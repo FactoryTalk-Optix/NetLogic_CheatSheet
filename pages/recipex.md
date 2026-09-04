@@ -131,6 +131,10 @@ var editModel = (FTOptix.RecipeX.EditModel)InformationModel.Get(createResult.Edi
 | `TransferToStore(FTOptix.RecipeX.RecipeId)` | Commits Edit Model changes back to the store |
 | `TransferToTarget(NodeId targetNodeId, FTOptix.RecipeX.ErrorPolicy)` | Applies Edit Model values to a target node |
 | `TransferFromTarget(NodeId targetNodeId, FTOptix.RecipeX.ErrorPolicy)` | Overwrites Edit Model values with the current state of a target node |
+| `GetDataItemValue(NodeId itemNodeId, string[] dataItemRelativeBrowsePath, FTOptix.Core.ElementAccessStruct elementAccess, NodeId dataTypeId)` | Reads the current in-memory value of a data item held by this Edit Model, without transferring anything to/from the store or target |
+
+> [!TIP]
+> `GetDataItemValue` was added into FactoryTalk Optix 1.8.x and is the recommended way to inspect values that a user is currently editing (e.g. in a `ListView` bound to a recipe) **before** calling `TransferFromEditModelToStore` or `TransferFromEditModelToTarget`. Unlike `RecipeSchema.GetRecipeDataItemValue`, which reads from the persisted recipe in the store, `EditModel.GetDataItemValue` reads the live, unsaved value from the Edit Model itself, so it reflects any pending edits. Note that this method takes the resolved `itemNodeId` (the actual node reached by navigating `ItemRelativeBrowsePath` from the Edit Model's `TargetNodeId`), not the browse path itself.
 
 Edit Model instances can be programmatically created and/or interacted with as shown in the examples below.
 
@@ -456,6 +460,23 @@ public class GetRecipeDataItemValueResult : TypedStruct
 - `DataItemNotFound = 3` - Data item not found in recipe
 - `UnexpectedEmptyRecipeName = 4` - Recipe name is empty/null
 - `RecipeNotFound = 5` - Recipe not found in store
+
+### GetDataItemValueResult
+
+Result of `FTOptix.RecipeX.EditModel.GetDataItemValue`, used to read the current in-memory value of a data item held by an Edit Model (i.e. the value as currently edited, before it is transferred to the store or a target).
+
+```csharp
+public class GetDataItemValueResult : TypedStruct
+{
+    public object DataItemValue { get; set; }                  // Value currently held in the Edit Model (scalar or array)
+    public GetDataItemValueResultCode ResultCode { get; set; } // Result code
+}
+```
+
+**Result Codes:**
+- `Success = 0` - Value retrieved successfully
+- `GenericError = 1` - General error occurred
+- `DataItemNotFound = 2` - Data item not found in the Edit Model
 
 ### FTOptix.RecipeX.GetRecipeMetadataValueResult
 
@@ -1958,7 +1979,7 @@ public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe
     }
 
     // Retrieve the data items defined in the recipe that is currently loaded
-    var dataItemsResult = recipeSchema.GetDataItems(editModel.FTOptix.RecipeX.RecipeId);
+    var dataItemsResult = recipeSchema.GetDataItems(editModel.RecipeId);
     if (dataItemsResult.ResultCode != GetDataItemsResultCode.Success)
     {
         Log.Error($"Failed to retrieve data items: {dataItemsResult.ResultCode}");
@@ -1970,7 +1991,7 @@ public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe
     foreach (var dataItem in dataItemsResult.DataItems)
     {
         var valueResult = recipeSchema.GetRecipeDataItemValue(
-            editModel.FTOptix.RecipeX.RecipeId,
+            editModel.RecipeId,
             dataItem.ItemRelativeBrowsePath,
             dataItem.DataItemRelativeBrowsePath,
             dataItem.ElementAccess);
@@ -2000,13 +2021,159 @@ public void ValidateListViewRecipe(NodeId listViewNodeId, out bool isValidRecipe
     }
 
     Log.Info(isValidRecipe
-        ? $"Recipe '{editModel.FTOptix.RecipeX.RecipeId.Name}' passed validation"
-        : $"Recipe '{editModel.FTOptix.RecipeX.RecipeId.Name}' failed validation");
+        ? $"Recipe '{editModel.RecipeId.Name}' passed validation"
+        : $"Recipe '{editModel.RecipeId.Name}' failed validation");
 }
 ```
 
 > [!NOTE]
 > Do not delete or commit the edit model inside this method. Lifecycle management of the edit model (saving, discarding) belongs to the ListView. This method is read-only with respect to the edit model — it only inspects the current values.
+
+### Validating Edit Model Values Before Save
+
+The example above reads the recipe values from the **store** via `RecipeSchema.GetRecipeDataItemValue`, which does not reflect changes the user has typed into a `ListView` but not yet saved. To validate the **live, unsaved values** currently held by the Edit Model, use `EditModel.GetDataItemValue` instead. This is the recommended check to run just before calling `TransferFromEditModelToStore` or `TransferFromEditModelToTarget`, so invalid input can be rejected before it is persisted or applied.
+
+Key differences from `RecipeSchema.GetRecipeDataItemValue`:
+- It is called on the resolved `FTOptix.RecipeX.EditModel` instance, not on the `RecipeSchema`.
+- It takes the resolved **item node** (`NodeId`) rather than `ItemRelativeBrowsePath` — resolve it once via `editModel.TargetNodeId` and `IUANode.Get(itemRelativePath)`.
+- It returns the value currently in the Edit Model, including any pending, unsaved edits.
+
+```csharp
+[ExportMethod]
+public void ValidateEditedParameterRange(double minValue, double maxValue, out bool isValidRecipe, out string validationMessage)
+{
+    isValidRecipe = false;
+    validationMessage = string.Empty;
+
+    if (minValue > maxValue)
+    {
+        SetFailure("Minimum value cannot be greater than maximum value.", ref isValidRecipe, ref validationMessage);
+        return;
+    }
+
+    var parametersListView = Owner?.Owner?.Owner?.Get<ListView>("RecipeParameters/ParametersListView");
+    if (parametersListView == null)
+    {
+        SetFailure("Recipe parameters ListView was not found.", ref isValidRecipe, ref validationMessage);
+        return;
+    }
+
+    var recipeSchema = Project.Current.Get<FTOptix.RecipeX.RecipeSchema>("Recipes/RecipeSchema1");
+    if (recipeSchema == null)
+    {
+        SetFailure("Recipe schema not found at 'Recipes/RecipeSchema1'.", ref isValidRecipe, ref validationMessage);
+        return;
+    }
+
+    // Get-or-create: accesses the edit model already owned by the ListView
+    var createResult = recipeSchema.CreateEditModel(
+        parametersListView.NodeId,
+        parametersListView.NodeId,
+        NodeId.Empty,
+        new FTOptix.RecipeX.RecipeId { Name = string.Empty, Version = string.Empty });
+
+    if (createResult.ResultCode != FTOptix.RecipeX.CreateEditModelResultCode.Success)
+    {
+        SetFailure($"Failed to access ListView edit model: {createResult.ResultCode}.", ref isValidRecipe, ref validationMessage);
+        return;
+    }
+
+    var editModel = InformationModel.Get<FTOptix.RecipeX.EditModel>(createResult.EditModelNodeId);
+    var targetNode = InformationModel.Get(editModel.TargetNodeId);
+    if (editModel == null || targetNode == null)
+    {
+        SetFailure("Edit model or its target node could not be resolved.", ref isValidRecipe, ref validationMessage);
+        return;
+    }
+
+    var dataItemsResult = recipeSchema.GetDataItems(editModel.FTOptix.RecipeX.RecipeId);
+    if (dataItemsResult.ResultCode != FTOptix.RecipeX.GetDataItemsResultCode.Success || dataItemsResult.DataItems.Length == 0)
+    {
+        SetFailure($"Unable to retrieve recipe data items: {dataItemsResult.ResultCode}.", ref isValidRecipe, ref validationMessage);
+        return;
+    }
+
+    var invalidFields = 0;
+
+    foreach (var dataItem in dataItemsResult.DataItems)
+    {
+        var itemRelativePath = string.Join("/", dataItem.ItemRelativeBrowsePath ?? Array.Empty<string>());
+        var fullPath = string.Join("/", (dataItem.ItemRelativeBrowsePath ?? Array.Empty<string>())
+            .Concat(dataItem.DataItemRelativeBrowsePath ?? Array.Empty<string>()));
+
+        // Resolve the item node reached by ItemRelativeBrowsePath from the Edit Model's target
+        var itemNodeId = targetNode.NodeId;
+        if (!string.IsNullOrWhiteSpace(itemRelativePath))
+        {
+            var itemNode = targetNode.Get(itemRelativePath);
+            if (itemNode == null)
+            {
+                invalidFields++;
+                Log.Warning("RecipeValidation", $"Unable to resolve item node for '{itemRelativePath}'.");
+                continue;
+            }
+            itemNodeId = itemNode.NodeId;
+        }
+
+        // Read the current, unsaved value directly from the Edit Model
+        var valueResult = editModel.GetDataItemValue(
+            itemNodeId,
+            dataItem.DataItemRelativeBrowsePath,
+            dataItem.ElementAccess,
+            dataItem.DataTypeId);
+
+        if (valueResult.ResultCode != FTOptix.RecipeX.GetDataItemValueResultCode.Success || valueResult.DataItemValue == null)
+        {
+            invalidFields++;
+            Log.Warning("RecipeValidation", $"Unable to read edited value for '{fullPath}': {valueResult.ResultCode}");
+            continue;
+        }
+
+        if (!TryConvertToDouble(valueResult.DataItemValue, out var numericValue) || numericValue < minValue || numericValue > maxValue)
+        {
+            invalidFields++;
+            Log.Warning("RecipeValidation", $"Edited value for '{fullPath}' is out of range [{minValue}, {maxValue}].");
+            continue;
+        }
+    }
+
+    isValidRecipe = invalidFields == 0;
+    validationMessage = isValidRecipe
+        ? "Validation passed: all fields are within range."
+        : $"Validation failed: {invalidFields} of {dataItemsResult.DataItems.Length} fields are invalid or out of range.";
+}
+
+private void SetFailure(string message, ref bool isValidRecipe, ref string validationMessage)
+{
+    isValidRecipe = false;
+    validationMessage = message;
+    Log.Warning("RecipeValidation", message);
+}
+
+// Converts numeric-like UAValue/CLR types to double for range comparison; returns false for non-numeric values
+private static bool TryConvertToDouble(object value, out double numericValue)
+{
+    if (value is UAValue uaValue)
+        value = uaValue.Value;
+
+    switch (value)
+    {
+        case double d: numericValue = d; return true;
+        case float f: numericValue = f; return true;
+        case int i: numericValue = i; return true;
+        case long l: numericValue = l; return true;
+        case string str when double.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed):
+            numericValue = parsed;
+            return true;
+        default:
+            numericValue = 0;
+            return false;
+    }
+}
+```
+
+> [!TIP]
+> Because `GetDataItemValue` reads directly from the Edit Model, this pattern lets you reject invalid input (e.g. out-of-range values) before calling `TransferFromEditModelToStore`/`TransferFromEditModelToTarget`, preventing bad data from ever reaching the store or the running target.
 
 ### Bulk Recipe Operations
 
@@ -2030,15 +2197,15 @@ public void RenameAllRecipesWithPrefix(string oldPrefix, string newPrefix)
     int renamed = 0;
     foreach (var recipe in recipesResult.Recipes)
     {
-        if (recipe.FTOptix.RecipeX.RecipeId.Name.StartsWith(oldPrefix))
+        if (recipe.RecipeId.Name.StartsWith(oldPrefix))
         {
-            var newName = recipe.FTOptix.RecipeX.RecipeId.Name.Replace(oldPrefix, newPrefix);
-            var result = schema.RenameRecipe(recipe.FTOptix.RecipeX.RecipeId, newName);
+            var newName = recipe.RecipeId.Name.Replace(oldPrefix, newPrefix);
+            var result = schema.RenameRecipe(recipe.RecipeId, newName);
             
             if (result.ResultCode == RenameRecipeResultCode.Success)
             {
                 renamed++;
-                Log.Info($"Renamed: {recipe.FTOptix.RecipeX.RecipeId.Name} -> {newName}");
+                Log.Info($"Renamed: {recipe.RecipeId.Name} -> {newName}");
             }
         }
     }
